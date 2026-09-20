@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "@azure/msal-node": "^5.3.1",
+    "firebase-functions": "^7.3.2",
+    "framer-motion": "^13.2.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "firebase-admin": "^12.1.0"
+  },
+  "scripts": {
+    "build": "esbuild src/app.js --minify --format=esm --target=es2020 --banner:js=\"// GENERATED FILE - do not edit directly. Source is src/app.js; run \\\"npm run build\\\" to regenerate this file, then deploy.\" --outfile=public/app.js",
+    "seed:emulator": "node scripts/seed-emulator.js",
+    "export:emulator": "firebase emulators:export ./emulator-data --force"
+  }
+}

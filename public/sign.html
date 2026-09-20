@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Sign Keycard Form — Cubework</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: #f1f5f9;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #0f172a; display: flex; justify-content: center; padding: 24px 14px;
+  }
+  .sign-card {
+    background: #ffffff; border-radius: 14px; width: 100%; max-width: 520px;
+    box-shadow: 0 1px 3px rgba(15,23,42,.08); padding: 24px 20px 28px;
+  }
+  .sign-logo { font-weight: 800; font-size: 15px; letter-spacing: .02em; color: #0f172a; margin-bottom: 4px; }
+  .sign-title { font-size: 19px; font-weight: 700; margin: 0 0 4px; }
+  .sign-sub { font-size: 13px; color: #64748b; margin: 0 0 18px; }
+  .sign-summary { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; margin-bottom: 18px; font-size: 13.5px; }
+  .sign-summary div { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; }
+  .sign-summary span:first-child { color: #64748b; }
+  .sign-summary span:last-child { font-weight: 600; text-align: right; }
+  label.sign-label { font-size: 12.5px; font-weight: 600; color: #475569; display: block; margin: 14px 0 5px; }
+  input[type="text"] {
+    width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid #cbd5e1;
+    font-size: 14.5px; font-family: inherit;
+  }
+  .photoid-file-btn {
+    display: inline-block; margin-top: 2px; padding: 9px 14px; border-radius: 8px;
+    border: 1px solid #cbd5e1; background: #f8fafc; color: #0f172a;
+    font-size: 13.5px; font-weight: 600; cursor: pointer;
+  }
+  .photoid-status { font-size: 12.5px; color: #16a34a; margin-top: 6px; display: block; }
+  #sigCanvas { width: 100%; max-width: 100%; height: 140px; border: 1px dashed #94a3b8; border-radius: 10px; background: #f8fafc; touch-action: none; cursor: crosshair; display: block; }
+  .sig-actions { display: flex; justify-content: flex-end; margin-top: 6px; }
+  .sig-actions button { background: none; border: none; color: #475569; font-size: 12.5px; cursor: pointer; padding: 4px 6px; }
+  .consent-row { display: flex; gap: 8px; align-items: flex-start; margin: 16px 0 6px; font-size: 12.5px; line-height: 1.45; color: #475569; }
+  .consent-row input { margin-top: 3px; flex-shrink: 0; }
+  .sign-note { font-size: 11.5px; color: #94a3b8; margin-top: 4px; }
+  .sign-error { color: #dc2626; font-size: 13px; margin-top: 12px; display: none; }
+  .sign-error strong { display: block; font-size: 13.5px; margin-bottom: 2px; }
+  .required-tag { color: #dc2626; font-weight: 700; font-size: 11.5px; text-transform: uppercase; letter-spacing: .02em; margin-left: 6px; }
+  .sign-btn {
+    width: 100%; margin-top: 18px; padding: 12px; border-radius: 9px; border: none;
+    background: #0f172a; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer;
+  }
+  .sign-btn:disabled { opacity: .55; cursor: default; }
+  .sign-state { text-align: center; padding: 24px 4px; }
+  .sign-state h2 { font-size: 17px; margin: 12px 0 6px; }
+  .sign-state p { font-size: 13.5px; color: #64748b; margin: 0; }
+  .sign-state .icon { font-size: 34px; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+  <div class="sign-card">
+    <div class="sign-logo">CUBEWORK</div>
+
+    <div id="loadingState" class="sign-state">
+      <p>Loading your signature request…</p>
+    </div>
+
+    <div id="errorState" class="sign-state hidden">
+      <div class="icon">⚠️</div>
+      <h2 id="errorTitle">This link isn't valid</h2>
+      <p id="errorBody">Ask whoever sent it to send a new one.</p>
+    </div>
+
+    <div id="successState" class="sign-state hidden">
+      <div class="icon">✅</div>
+      <h2>Signed — thank you</h2>
+      <p>Your signature has been recorded and Cubework has been notified. You can close this page.</p>
+    </div>
+
+    <form id="signForm" class="hidden">
+      <div class="sign-title">Keycard Authorization Form</div>
+      <p class="sign-sub">Please review and sign below.</p>
+      <div class="sign-summary" id="summaryBox"></div>
+
+      <label class="sign-label">Your signature<span class="required-tag">Required</span></label>
+      <canvas id="sigCanvas" width="600" height="180"></canvas>
+      <div class="sig-actions"><button type="button" id="clearSigBtn">Clear</button></div>
+
+      <label class="sign-label" for="signerNameInput">Signer's full name</label>
+      <input type="text" id="signerNameInput" autocomplete="name" placeholder="Full name">
+
+      <label class="sign-label" for="photoIdInput">Photo ID<span class="required-tag">Required</span></label>
+      <label for="photoIdInput" class="photoid-file-btn">Upload photo ID</label>
+      <input type="file" id="photoIdInput" accept="image/*" class="hidden">
+      <span class="photoid-status hidden" id="photoIdStatus"></span>
+      <div class="sign-note">A photo of your ID (driver's license, passport, etc.) is required to complete your signature — you can upload it from your phone, laptop, or desktop.</div>
+
+      <label class="consent-row">
+        <input type="checkbox" id="consentCheckbox">
+        I confirm this is my signature, that I am providing it knowingly and voluntarily, and that I agree to sign this document electronically (ESIGN Act / UETA).
+      </label>
+      <div class="sign-note" id="expiryNote"></div>
+
+      <div class="sign-error" id="formError"></div>
+      <button type="submit" class="sign-btn" id="submitBtn">Sign &amp; Submit</button>
+    </form>
+  </div>
+
+<script>
+(function () {
+  function byId(id) { return document.getElementById(id); }
+  function show(id) { byId(id).classList.remove("hidden"); }
+  function hide(id) { byId(id).classList.add("hidden"); }
+  function showOnly(id) {
+    ["loadingState", "errorState", "successState", "signForm"].forEach(function (s) {
+      s === id ? show(s) : hide(s);
+    });
+  }
+  function escapeHtml(v) {
+    return String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function showError(title, body) {
+    byId("errorTitle").textContent = title;
+    byId("errorBody").textContent = body;
+    showOnly("errorState");
+  }
+  // Renders a title + body inside #formError (Signature/Photo ID required
+  // messages, 2026-09-20) rather than a single flat line, so the tenant
+  // sees exactly which of the two required items is missing.
+  function setFormError(errEl, title, body) {
+    errEl.innerHTML = "<strong>" + escapeHtml(title) + "</strong>" + escapeHtml(body);
+    errEl.style.display = "block";
+  }
+
+  const token = new URLSearchParams(window.location.search).get("t") || "";
+  if (!/^[0-9a-f]{64}$/.test(token)) {
+    showError("This link isn't valid", "The link is missing or malformed. Ask whoever sent it to send a new one.");
+    return;
+  }
+
+  // ---------- draw-to-sign canvas (same approach as the in-app Keycard
+  // Form modal's own pad, kept independent since this page has no
+  // dependency on that script) ----------
+  const canvas = byId("sigCanvas");
+  const ctx = canvas.getContext("2d");
+  ctx.lineWidth = 2.2;
+  ctx.lineCap = "round";
+  ctx.strokeStyle = "#0f172a";
+  let drawing = false, hasInk = false, last = null;
+  function pointFromEvent(e) {
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches && e.touches[0];
+    const clientX = touch ? touch.clientX : e.clientX;
+    const clientY = touch ? touch.clientY : e.clientY;
+    return { x: ((clientX - rect.left) * canvas.width) / rect.width, y: ((clientY - rect.top) * canvas.height) / rect.height };
+  }
+  function start(e) { e.preventDefault(); drawing = true; last = pointFromEvent(e); }
+  function move(e) {
+    if (!drawing) return;
+    e.preventDefault();
+    const p = pointFromEvent(e);
+    ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+    last = p; hasInk = true;
+  }
+  function end(e) { if (!drawing) return; if (e) e.preventDefault(); drawing = false; last = null; }
+  canvas.addEventListener("mousedown", start);
+  canvas.addEventListener("mousemove", move);
+  window.addEventListener("mouseup", end);
+  canvas.addEventListener("touchstart", start, { passive: false });
+  canvas.addEventListener("touchmove", move, { passive: false });
+  canvas.addEventListener("touchend", end);
+  byId("clearSigBtn").addEventListener("click", function () {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    hasInk = false;
+  });
+
+  // Photo ID upload (2026-08-19) - required before this signature can be
+  // submitted, part of the digital-signature process; works from a phone,
+  // laptop, or desktop, same plain <input type="file"> either way. Read as
+  // base64 with a plain FileReader, no library needed.
+  const photoIdInput = byId("photoIdInput");
+  const photoIdStatus = byId("photoIdStatus");
+  photoIdInput.addEventListener("change", function () {
+    const file = photoIdInput.files && photoIdInput.files[0];
+    if (!file) {
+      photoIdStatus.textContent = "";
+      photoIdStatus.classList.add("hidden");
+      return;
+    }
+    photoIdStatus.textContent = "✓ " + file.name;
+    photoIdStatus.classList.remove("hidden");
+  });
+  function readPhotoIdAsBase64() {
+    const file = photoIdInput.files && photoIdInput.files[0];
+    if (!file) return Promise.resolve(null);
+    return new Promise(function (resolve, reject) {
+      const reader = new FileReader();
+      reader.onload = function () {
+        const result = reader.result || "";
+        const idx = result.indexOf(",");
+        resolve({
+          base64: idx >= 0 ? result.slice(idx + 1) : result,
+          contentType: file.type || "application/octet-stream",
+          fileName: file.name || "photo-id",
+        });
+      };
+      reader.onerror = function () { reject(reader.error || new Error("Could not read the photo ID file.")); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function loadRequest() {
+    fetch("/api/getSignatureRequest?token=" + encodeURIComponent(token))
+      .then(function (res) { return res.json().then(function (json) { return { status: res.status, json: json }; }); })
+      .then(function (r) {
+        if (!r.json || !r.json.ok) {
+          if (r.status === 404) return showError("This link isn't valid", "Ask whoever sent it to send a new one.");
+          return showError("Something went wrong", "Please try again in a moment.");
+        }
+        const status = r.json.status;
+        if (status === "completed") {
+          showOnly("successState");
+          return;
+        }
+        if (status === "expired") {
+          return showError("This link has expired", "Ask whoever sent it to send you a new signature request.");
+        }
+        if (status === "processing") {
+          return showError("Already being processed", "This signature is already being submitted. If this seems wrong, contact Cubework.");
+        }
+        const d = r.json.data || {};
+        let summary = "";
+        if (d.tenantName) summary += "<div><span>Name</span><span>" + escapeHtml(d.tenantName) + "</span></div>";
+        if (d.keycardNumber) summary += "<div><span>Keycard #</span><span>" + escapeHtml(d.keycardNumber) + "</span></div>";
+        if (d.locationText) summary += "<div><span>Location</span><span>" + escapeHtml(d.locationText) + "</span></div>";
+        byId("summaryBox").innerHTML = summary || "<div><span>Document</span><span>Keycard Authorization Form</span></div>";
+        if (d.tenantName) byId("signerNameInput").value = d.tenantName;
+        if (d.expiresAtIso) {
+          const exp = new Date(d.expiresAtIso);
+          byId("expiryNote").textContent = "This link is unique to you and expires " + exp.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) + ". Do not forward it.";
+        }
+        showOnly("signForm");
+      })
+      .catch(function () {
+        showError("Couldn't load this link", "Check your connection and reload the page.");
+      });
+  }
+  loadRequest();
+
+  const form = byId("signForm");
+  const submitBtn = byId("submitBtn");
+  const errEl = byId("formError");
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    errEl.style.display = "none";
+    const signerName = byId("signerNameInput").value.trim();
+    const consented = byId("consentCheckbox").checked;
+    // Signature and Photo ID are both hard requirements (2026-09-20 pass) -
+    // check both up front so a tenant missing both sees one combined
+    // message instead of only ever hearing about whichever was checked
+    // first.
+    const missingSignature = !hasInk;
+    const missingPhotoId = !photoIdInput.files || !photoIdInput.files[0];
+    if (missingSignature && missingPhotoId) {
+      setFormError(errEl, "Signature and Photo ID Required", "Please provide your signature and upload your Photo ID before submitting.");
+      return;
+    }
+    if (missingSignature) {
+      setFormError(errEl, "Signature Required", "Please provide your signature before submitting.");
+      return;
+    }
+    if (missingPhotoId) {
+      setFormError(errEl, "Photo ID Required", "Please upload your Photo ID before submitting.");
+      return;
+    }
+    if (!signerName) { setFormError(errEl, "Name Required", "Please enter your full name."); return; }
+    if (!consented) { setFormError(errEl, "Consent Required", "Please check the consent box before submitting."); return; }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Submitting…";
+    readPhotoIdAsBase64()
+      .then(function (photoId) {
+        return fetch("/api/submitSignatureRequest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token: token,
+            signerName: signerName,
+            consented: true,
+            signaturePngBase64: canvas.toDataURL("image/png"),
+            photoIdBase64: photoId ? photoId.base64 : "",
+            photoIdContentType: photoId ? photoId.contentType : "",
+            photoIdFileName: photoId ? photoId.fileName : "",
+          }),
+        });
+      })
+      .then(function (res) { return res.json().then(function (json) { return { status: res.status, json: json }; }); })
+      .then(function (r) {
+        if (r.json && r.json.ok) { showOnly("successState"); return; }
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Sign & Submit";
+        const err = (r.json && r.json.error) || "unknown";
+        const messages = {
+          already_signed: ["Already Signed", "This document has already been signed."],
+          in_progress: ["Already Submitting", "This signature is already being submitted — please wait a moment and reload."],
+          expired: ["Link Expired", "This link has expired. Ask for a new one."],
+          not_found: ["Link Not Valid", "This link isn't valid."],
+          consent_required: ["Name and Consent Required", "Please fill in your name and check the consent box."],
+          invalid_signature_image: ["Signature Required", "Please provide your signature before submitting."],
+          photo_id_required: ["Photo ID Required", "Please upload your Photo ID before submitting."],
+        };
+        const m = messages[err] || ["Something Went Wrong", "Please try again."];
+        setFormError(errEl, m[0], m[1]);
+      })
+      .catch(function () {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Sign & Submit";
+        setFormError(errEl, "Connection Error", "Couldn't reach the server. Check your connection and try again.");
+      });
+  });
+})();
+</script>
+</body>
+</html>

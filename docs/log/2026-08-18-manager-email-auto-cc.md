@@ -1,0 +1,7 @@
+# 2026-08-18 (second pass): CW Email Request: auto-Cc every tab's Manager Email field
+
+Every tab's manager-email-shaped field now auto-Cc's that address when the email preview is generated, never added to To. Before this pass only Keycard's Request Card action did this (added 2026-08-17); every other mode's manager field (Printer's `entry.managerEmail` "Report to Manager (email)", App/Soft/Hardware New Install/Access+Troubleshoot's `entry.email` "Manager's Email", App Hardware Request's `entry.managerEmail`, Phone New Phone Line's `entry.managerEmail`) was only validated and printed in the body, never Cc'd. Wi-Fi and Laptop have no manager-email-shaped field and needed no change.
+
+In `functions/emailRequest.js`, a new `collectDistinctEmails(entries, fieldName)` extracts distinct, valid values of a field across entries as Cc-ready objects. `GENERIC_CONFIG` (Printer/App/Laptop via `buildGeneric()`) gained a `managerEmailField` key per kind (`"managerEmail"` for Printer, `"email"` for App, unset for Laptop), consumed by `buildGeneric()`'s `ccRecipients`; `buildAppHardware()` and `buildPhone()` got the same `.concat(collectDistinctEmails(entries, "managerEmail"))` treatment; `buildKeycard()`'s existing Request Card Cc logic was simplified to reuse the same helper. No new dedupe logic was needed — the existing central `dedupeRecipientsAcrossFields()` call in `buildEmailRequest()` already catches any resulting repeat (e.g. a manager email matching the base Cc or the requester's own address).
+
+Files: `functions/emailRequest.js`

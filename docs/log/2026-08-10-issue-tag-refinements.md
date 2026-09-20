@@ -1,0 +1,9 @@
+# 2026-08-10: Issue tab tag refinements (follow-up to the shared-catalog unification)
+
+Same-day follow-up to the shared tag catalog work. Moved `#issueTagCatalogWrap` ("Manage custom tags") out of `#issueAddRow` (which only rendered on the "New" tab) to sit between `#issueToolbar` and `#issueList`, so it's visible from every region. Fixed a bug where picking "+ New tag…" from an existing card's edit-mode tag select (`.issue-edit-tag`) silently discarded the raw `"__new__"` value on Save instead of running the prompt/create flow — added the same prompt → dedupe-check → `addSharedTagFn` → reflect-locally flow used by the New form.
+
+Issue's tag picker (`issueSelectableTags()`) now offers only the shared custom catalog, not the fixed 8 `STANDUP_TAGS` — Standup and Daily To-Do are unaffected and still offer both. Existing issues already tagged with a fixed-tag key still display correctly and aren't retagged; `issueTagOptionsHtml()` injects a `"<label> (legacy)"` option so the select still shows/selects it without letting it be re-picked going forward. `docs/tag-feature.md`/`docs/issue-tab.md` updated to match.
+
+Same-day follow-up: made the tag pill on each Cali/Outside Cali row directly clickable (previously read-only, only changeable via Edit → Save). Added `setIssueItemTag` callable (`functions/index.js`, same single-field pattern as `setIssueItemStatus`, kept separate so a quick tag change can't clobber an in-progress full edit). The summary-row pill is now a real `<select class="issue-row-tag-select">` for anyone with edit access, built from the same `issueTagOptionsHtml()`, firing `setIssueItemTagFn` immediately on change (including the "+ New tag…" create flow); view-only users still see the old read-only `<span class="tag">`. Untagged rows now show a dashed "+ Tag" style select instead of nothing.
+
+Files: `public/app.js`, `public/index.html`, `functions/index.js`

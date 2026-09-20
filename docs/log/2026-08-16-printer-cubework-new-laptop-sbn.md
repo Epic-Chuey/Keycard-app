@@ -1,0 +1,5 @@
+# 2026-08-16 (fifth pass) — CW Email Request, Printer tab: Cubework + Setup New Printer becomes a Laptop SBN#/Printer IP form
+
+When both "Cubework" and "Setup New Printer" are ticked on the Printer tab (an internal Cubework-laptop printer setup, not a tenant request), Email/Unit Number/Phone hide and Company Name/Tenant Name relabel to "Laptop SBN#" (e.g. `SBN1895`, placeholder shown)/"Printer IP" — any other Serves/Create-Troubleshoot combination keeps the normal tenant-Printer shape. New `eraApplyPrinterCubeworkNewVisibility()` (runs on every relevant checkbox change and new entry) drives this; underlying field classes are unchanged so a Laptop SBN# value still travels as `entry.companyName`. Server-side, `buildGeneric()` gained `isCubeworkNew` and drops the required-fields list to `["companyName", "extra"]` for this combo (Unit/Email/Phone no longer required). Attachment was already optional for Printer everywhere (no unconditional requirement existed) — no change needed there.
+
+Files: `public/index.html`, `functions/emailRequest.js`

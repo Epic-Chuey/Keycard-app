@@ -1,0 +1,22 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "emulator-preview",
+      "runtimeExecutable": "firebase",
+      "runtimeArgs": [
+        "emulators:start",
+        "--only", "hosting,firestore,auth,functions,storage",
+        "--import", "./emulator-data",
+        "--export-on-exit", "./emulator-data"
+      ],
+      "port": 5000
+    },
+    {
+      "name": "static-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "http-server", "public", "-p", "5173", "-c-1"],
+      "port": 5173
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+# 2026-08-18: Keycard: blank line before Transfer's From/To, bold + red From/To block (fifth pass)
+
+Two changes to Keycard's Transfer action in `functions/emailRequest.js`'s `buildKeycard()`: `buildEntryLine()`'s Transfer branch now inserts a blank line (`\n\n`) before the `From:`/`To:` block (same spacing already used for the Email/Phone block; Access still sits directly under the header line), and the entire two-line `From: ...\nTo: ...` block is now rendered bold + red (`color:#dc2626; font-weight:700`) in `htmlBody`, via a new `FROM_TO_WRAP_START`/`FROM_TO_WRAP_END` sentinel pair swapped for a `<span>` after escaping — unconditional (not Serves-gated, unlike the Cubework header-line green highlight). Plain-text `body` gets the same blank line but no markup. Preview and the sent email match by the same one-`htmlBody`-two-consumers construction as the third/fourth passes. Scoped to Transfer only; other Keycard actions and other request types are untouched.
+
+Files: `functions/emailRequest.js`

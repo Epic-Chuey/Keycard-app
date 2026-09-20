@@ -1,0 +1,7 @@
+# 2026-08-09: Issue tab — row list, location grouping, expand/collapse
+
+For the Cali/Outside Cali list tabs (not the New/create-issue tab): replaced the 2-column fixed-height card grid with one row per issue, grouped by location. `buildIssueLocationGroups()` buckets filtered items by exact `location` text (alphabetical, case-insensitive, no-location bucket last), each bucket newest-first; `renderIssueLocationGroupHtml()` prints a "📍 `<location>` `<count>`" header per bucket. Rows are collapsed by default — checkbox/toggle/Title/tag/Status/Edit/Delete always visible, with Ticket/Description/attachments/Resolution moved into `.issue-row-details` shown only when a row is expanded (tracked in `expandedIssueItemIds`, same persists-through-re-render pattern as `editingIssueItemIds`). `lastRenderedIssueItems` (what Excel export reads) now reflects this flattened, location-grouped order instead of a separate plain newest-first list, matching what's on screen the same way PDF/PNG already did.
+
+Same-day follow-up added a "Select all shown" checkbox to `#issueToolbar` (next to search), ticking/unticking every row in the currently filtered `lastRenderedIssueItems` into `selectedIssueItemIds` and staying in sync both directions — Roadmap's own `roadmapGrandTotalSelectAllEl` mechanic, copied over since Issue has no grand-total bar to hang it off of.
+
+Files: `public/app.js`, `public/index.html`

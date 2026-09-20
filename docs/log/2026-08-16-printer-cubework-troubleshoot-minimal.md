@@ -1,0 +1,5 @@
+# 2026-08-16 (sixth pass) — CW Email Request, Printer tab: Cubework + Troubleshoot strips down to Laptop SBN#/Printer Model/issue only
+
+When both "Cubework" and "Troubleshoot" are ticked on the Printer tab, the entry shows only "Laptop SBN#" (e.g. `SBN1895`, same relabeled Company Name as the Cubework+Setup-New-Printer combo), "Printer Model", and the shared "Describe the issue" box — Office or Warehouse, Tenant Name, Unit Number, Email, Phone, and Notes all hide. `eraApplyPrinterCubeworkNewVisibility()` was renamed to `eraApplyPrinterCubeworkVisibility()` and extended to handle both this new `isCubeworkTroubleshoot` combo and the existing `isCubeworkNew` (Setup New Printer) combo; if both Setup New Printer and Troubleshoot are ticked alongside Cubework, Troubleshoot wins (more restrictive). No `functions/emailRequest.js` change was needed — `buildGeneric()`'s existing `relaxTroubleshoot` flag already drops every entry-field requirement (including companyName) whenever Troubleshoot is ticked, and the Setup-New-Printer relaxation already covered the other combo; only the pre-existing "Describe the issue" check still applies.
+
+Files: `public/index.html`

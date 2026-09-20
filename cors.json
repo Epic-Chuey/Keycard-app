@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["https://keycard-helpdesk.web.app", "https://keycard-helpdesk.firebaseapp.com"],
+    "method": ["GET"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": ["Content-Type"]
+  }
+]

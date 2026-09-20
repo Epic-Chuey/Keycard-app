@@ -1,0 +1,47 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isCubeworkUser() {
+      return request.auth != null
+             && request.auth.token.email.matches('.*@cubework[.]com$');
+    }
+
+    // Files attached to Project Roadmap items. Uploaded via the
+    // addRoadmapAttachment callable (Admin SDK bypasses this rule) so
+    // clients still never get direct write access, same policy as above.
+    match /roadmapAttachments/{allPaths=**} {
+      allow read: if isCubeworkUser();
+      allow write: if false;
+    }
+
+    // Files attached to Issue tab items via the "New" tab's file field
+    // (2026-08-05) - uploaded via the addIssueAttachment callable (Admin SDK
+    // bypasses this rule), same read-only-for-clients policy as
+    // roadmapAttachments above.
+    match /issueAttachments/{allPaths=**} {
+      allow read: if isCubeworkUser();
+      allow write: if false;
+    }
+
+    // Files attached to the Standup tab's "Summary for Kuan Goh" section
+    // (2026-09-14) - uploaded via the addStandupAttachment callable (Admin
+    // SDK bypasses this rule), same read-only-for-clients policy as
+    // roadmapAttachments/issueAttachments above.
+    match /standupAttachments/{allPaths=**} {
+      allow read: if isCubeworkUser();
+      allow write: if false;
+    }
+
+    // Customer photo IDs collected during the Keycard Form digital-signature
+    // process (2026-08-19, both in-person and remote sign.html paths) -
+    // uploaded via the uploadKeycardPhotoId callable or submitSignatureRequest
+    // (Admin SDK bypasses this rule either way), same read-only-for-clients
+    // policy as roadmapAttachments/issueAttachments above.
+    match /keycardPhotoIds/{allPaths=**} {
+      allow read: if isCubeworkUser();
+      allow write: if false;
+    }
+  }
+}

@@ -1,0 +1,5 @@
+# 2026-08-15 (ninth pass) — "Today's Standup" added as its own email section
+
+Added a third section, "Today's Standup," to the Cali/Outside Cali email, below Cali Issues/Outside Cali Issues — it reuses Kuan's existing colored per-tag breakdown ("Summary for Kuan Goh"), not the raw daily Pull entries (Section 2, which stays excluded per the sixth pass). `buildIssueCaliIssuesEmailHtml` was split into `buildCaliIssuesSectionsHtml` (unchanged Cali/Outside Cali HTML, minus the outer wrapper) and a new `buildTodaysStandupSectionHtml(items)` (wraps `buildStandupSummaryDetailSectionsHtml()`'s output with the same 18px/700 heading style as the other two sections); a new `buildStandupReportEmailHtml(caliItems, outsideItems, standupItems)` combines both under one wrapper and is now the function called from `standupEmailOpenBtn`. The "nothing to send" check now only fires when both halves are empty. No `index.html`/`functions/index.js` change was needed — `sendStandupCaliIssuesEmail` already accepts an arbitrary `{subject, html}`.
+
+Files: `src/app.js`, `public/app.js`

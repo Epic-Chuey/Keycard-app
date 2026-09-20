@@ -1,0 +1,7 @@
+# 2026-08-18: CW Email Request > Laptop > Cubework > Troubleshoot — Laptop SBN# field + bold-red Issue line in Preview
+
+Two additions, both scoped to Laptop's Cubework side (see the Cubework/Unis split log) and to Troubleshoot only — New Laptop untouched. (1) A new optional "Laptop SBN#" field (placeholder "e.g. SBN1983"), shown above Employee Name only while Troubleshoot is ticked (mirrors Printer's own "Laptop SBN#" field and App/Soft/Hardware's `hasSbnField`, but is its own independent field). (2) The existing "Issue: {description}" line (from the shared `era_lt_issue` box) now renders bold + red in the Preview/sent email, matching `buildKeycard()`'s Transfer From/To treatment.
+
+In `functions/emailRequest.js`'s `buildLaptopCubework()`, a new `ISSUE_WRAP_START`/`ISSUE_WRAP_END` sentinel pair (following the `FROM_TO_WRAP_*` precedent) brackets the Issue line in a parallel `bodyForHtml` used only to build `htmlBody`, swapped for `<span style="color:#dc2626;font-weight:700;">` after escaping; plain-text `textBody` is unaffected. `entryLines` also gained `Laptop SBN#: {entry.sbn}` (Troubleshoot only, when filled in), unstyled. Client side: `eraCreateLaptopEntry()` adds the SBN field markup, `eraApplyLaptopCubeworkVisibility()` toggles it opposite to Job Title/Report-to-Manager, and `eraCollectFields()` reads it into `entry.sbn`.
+
+Files: `public/index.html`, `functions/emailRequest.js`

@@ -1,0 +1,9 @@
+# 2026-08-21: Tenant Name + Keycard Number on one line, "have physical form?" restriction removed
+
+Follow-up to the same day's [Tenant Company Name hidden / Submission search pass](2026-08-21-signid-companyname-hide-submission-search.md). Both changes are in `public/index.html`'s CW Email Request embed script/markup only.
+
+- **Tenant First and Last Name + Keycard Number, same line:** the hidden Tenant Company Name div was pulled out of the `era-row2` grid entirely (it's always `era-field-hidden` regardless of which row it lives in) and Keycard Number's own standalone `.era-k-standard-fields` block was merged into a single two-column `era-row2 era-k-standard-fields` alongside Tenant First and Last Name. Both fields still hide/show together under the same `.era-k-standard-fields` toggle in `i()` as before — only the grid grouping changed.
+- **"Answer whether you have the physical keycard form" restriction removed, both places it existed:**
+  - `eraSaveKeycardSubmission()` (backs both the outer "Save" button and the per-card Signature/ID "Save & Leave" button) had an early-return blocking the save whenever any entry was Activate/Replacement and the have-form question was unanswered.
+  - `Le()` (the shared pre-Preview/Submit validation gate) had the same check, worded slightly differently ("...before submitting" vs. this one), blocking Preview/Send the same way.
+  - Both are now unreachable dead checks anyway since [the have-form card was permanently hidden](2026-08-21-signid-date-notes-autoesign.md) — its radios can never be answered, so this had silently started blocking every Save *and* every Send. Removed outright per Huy's explicit follow-up request rather than leaving an unanswerable requirement in place. `eraSaveKeycardSubmission()`'s own `path: outer.haveForm || "no"` already defaulted to `"no"` for the server call, so no other change was needed for `recordKeycardSubmission` to keep accepting a valid `path`.

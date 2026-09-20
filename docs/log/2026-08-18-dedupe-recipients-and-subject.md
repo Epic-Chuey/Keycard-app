@@ -1,0 +1,7 @@
+# 2026-08-18: CW Email Request: dedupe recipients and subject text
+
+Fixed two duplication bugs reported via screenshot: a Cc line reading a requester's own address twice (once via `CC_EMAILS_GENERAL`'s display name, once bare as `p.requesterEmail`, whenever the requester submitting the form is Huy or Jose — the two addresses hardcoded into every non-Keycard mode's base Cc list), and a Subject line repeating the same location twice (`buildAppHardware()`'s subject label used the per-entry "Location" field unconditionally, which is often identical to the top-level location already at the front of the subject).
+
+In `functions/emailRequest.js`: a new `dedupeRecipientsAcrossFields(toRecipients, ccRecipients, bccRecipients)` helper de-dupes by email (trimmed, case-insensitive) within a field and across To → Cc → Bcc, wired in once, centrally, inside `buildEmailRequest()` for every mode's result (the switch statement now captures `built` before returning so the dedupe can run on it). A second helper, `distinctSubjectLabel(label, subjectName, fallback)`, returns `label` unless it matches `subjectName` (trimmed/case-insensitive), in which case it returns `fallback`; `buildAppHardware()`'s `subjectEntryLabel` now goes through this, falling back to a plain "Hardware Request" label on a match. Every other mode's own `subjectEntryLabel` is untouched since none of them build it from a location-shaped field.
+
+Files: `functions/emailRequest.js`

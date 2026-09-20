@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Firebase CLI local cache/logs
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+*-debug.log
+
+# Local emulator data dumps (Firestore/Auth/Storage exports)
+emulator-data/
+
+# Real secrets - never commit these
+refresh-token.txt
+client-id.txt
+functions/.secret.local
+
+# Editor/OS temp files
+.fuse_hidden*
+.DS_Store
+Thumbs.db

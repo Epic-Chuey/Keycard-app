@@ -1,0 +1,240 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // You (the owner) always have full access, even if this collection is
+    // empty or you're not in it - that guarantees there's never a way to
+    // lock yourself out. Everyone else's access comes entirely from an
+    // accessControl/{email} doc with a role of view, edit, or full.
+    function isOwner() {
+      return request.auth != null
+             && request.auth.token.email == "huy.nguyen@cubework.com";
+    }
+
+    // Accounts self-signed-up via the email-OTP flow (see requestEmailOtp/
+    // verifyEmailOtp in functions/index.js) carry an otpVerifiedAt stamp
+    // that's refreshed on every successful code verification - their access
+    // is only good for 30 days since the last one, after which they must
+    // verify a new code before this doc's role/tabs count for anything
+    // again. A doc with no otpVerifiedAt field at all (every account added
+    // directly via Manage Access) is never subject to this - matches
+    // getAccessInfo's identical check server-side in functions/index.js.
+    function otpSessionValid() {
+      let doc = get(/databases/$(database)/documents/accessControl/$(request.auth.token.email)).data;
+      return !("otpVerifiedAt" in doc)
+        || request.time < doc.otpVerifiedAt + duration.value(30, 'd');
+    }
+
+    function myRole() {
+      return isOwner()
+        ? "full"
+        : (
+            (exists(/databases/$(database)/documents/accessControl/$(request.auth.token.email)) && otpSessionValid())
+              ? get(/databases/$(database)/documents/accessControl/$(request.auth.token.email)).data.role
+              : null
+          );
+    }
+
+    function hasAnyRole() {
+      return request.auth != null && myRole() != null;
+    }
+
+    function isFullAccess() {
+      return request.auth != null && myRole() == "full";
+    }
+
+    // Per-user tab restriction (set via the Access tab, stored as a "tabs"
+    // array on the accessControl doc). Used to treat a missing field, an
+    // explicit null, or no doc at all as unrestricted - mirroring
+    // sanitizeTabs()/getAccessInfo() (functions/index.js) back when those
+    // treated "no tabs field" and "every tab checked" as the same null
+    // value. That's exactly the "no automatic access assignment" bug fixed
+    // 2026-09-02 (see architecture-core.md's Role/access model section) -
+    // it meant a tab added after a user's doc was last saved was silently
+    // granted to them. Both sides of that convention are gone now: a doc
+    // must explicitly list a tab in its "tabs" array to grant it, full
+    // stop, for anyone but the owner (isOwner() bypass below, unchanged -
+    // the one deliberate exception, so the owner can never be locked out).
+    // migrateAccessControlPermissions is the one-time backfill that gave
+    // every pre-existing account an explicit snapshot instead of leaving
+    // them with nothing the moment this rule changed.
+    function userTabs() {
+      return get(/databases/$(database)/documents/accessControl/$(request.auth.token.email)).data.tabs;
+    }
+
+    function tabAllowed(tab) {
+      return isOwner()
+        || (exists(/databases/$(database)/documents/accessControl/$(request.auth.token.email))
+            && ("tabs" in get(/databases/$(database)/documents/accessControl/$(request.auth.token.email)).data)
+            && userTabs() is list
+            && tab in userTabs());
+    }
+
+    // The user list itself - only the owner can see who else has access,
+    // not just any full-access user (matches the requireOwner check on the
+    // addAuthorizedUser/updateAuthorizedUserRole/removeAuthorizedUser
+    // callables in functions/index.js). All writes happen via those
+    // callables (Admin SDK bypasses this rule), never directly from a client.
+    match /accessControl/{email} {
+      allow read: if isOwner();
+      allow write: if false;
+    }
+
+    // OTP codes/attempt counters for the email sign-in flow (requestEmailOtp/
+    // verifyEmailOtp in functions/index.js) - never read or written by a
+    // client directly, not even the owner. A code hash and its salt live
+    // here only long enough to be verified or expire.
+    match /otpRequests/{email} {
+      allow read, write: if false;
+    }
+
+    // Complete/incomplete state per thread, set only via the
+    // setThreadCompleted callable (Admin SDK bypasses this rule).
+    match /threadStatus/{threadKey} {
+      allow read: if hasAnyRole();
+      allow write: if false;
+    }
+
+    // Manually-added Project Roadmap items. Written only via the
+    // addRoadmapItem/updateRoadmapItem/setRoadmapItemStatus/
+    // addRoadmapAttachment/deleteRoadmapItem callables (Admin SDK bypasses
+    // this rule), same pattern as threadStatus above.
+    match /roadmapItems/{itemId} {
+      allow read: if hasAnyRole() && tabAllowed("roadmap");
+      allow write: if false;
+    }
+
+    // Shared, self-growing catalog of line-item descriptions + last-used
+    // price - every Cost Breakdown row anyone saves gets folded in here
+    // (see updateRoadmapItem), so it can power the description autocomplete
+    // for the whole team, not just the person who first typed an item.
+    // Written only via that callable (Admin SDK bypasses this rule).
+    match /roadmapSettings/{docId} {
+      allow read: if hasAnyRole();
+      allow write: if false;
+    }
+
+    // Standup tab, step 3 ("Saved") - one doc per PT calendar day (docId is
+    // the "YYYY-MM-DD" date string), written only via the saveStandupReport
+    // callable (Admin SDK bypasses this rule) when the Report step's "Save"
+    // button (or its "Open in Outlook Web" button) is pressed. Everything
+    // else in the Standup tab (Pull, Report, Email) is ephemeral client
+    // state with no Firestore collection of its own - this is the one
+    // exception, since "Saved" is specifically about persisting the final
+    // result across days/sessions.
+    match /standupSaves/{date} {
+      allow read: if hasAnyRole() && tabAllowed("standup");
+      allow write: if false;
+    }
+
+    // Standup tab's location auto-detection (see standupDetectLocationState
+    // in app.js) - user-confirmed additions to the shared address catalog
+    // that window.CUBEWORK_LOCATIONS alone (a static file, only editable by
+    // a code deploy) can't grow at runtime. Written only via the
+    // addStandupLocationFn callable when Huy confirms a flagged, unmatched
+    // task really is at a real location.
+    match /standupLocationCatalog/{docId} {
+      allow read: if hasAnyRole() && tabAllowed("standup");
+      allow write: if false;
+    }
+
+    // Daily To-Do tab's own "Saved" step - one doc per calendar day (docId
+    // is the "YYYY-MM-DD" date string), written only via the saveDailyTodo
+    // callable (Admin SDK bypasses this rule) when its Report step's "Save"
+    // button is pressed. Same pattern as standupSaves above; kept as its
+    // own collection since this tab's voice-logged entries have no tags or
+    // mail-pull involved.
+    match /dailyTodoSaves/{date} {
+      allow read: if hasAnyRole() && tabAllowed("dailyTodo");
+      allow write: if false;
+    }
+
+    // Issue tab (2026-08-05) - manually-logged facilities/IT issues, split
+    // into two region tabs (Cali / Outside Cali) client-side, each with an
+    // Active/Pending/Complete status filter mirroring Roadmap's own
+    // Planning/Active/Pending/Complete tabs. Written only via the
+    // addIssueItem/updateIssueItem/setIssueItemStatus/setIssueItemResolution/
+    // setIssueItemPendingReason/deleteIssueItem/addIssueAttachment/
+    // removeIssueAttachment callables (Admin SDK bypasses this rule), same
+    // pattern as roadmapItems above.
+    match /issueItems/{itemId} {
+      allow read: if hasAnyRole() && tabAllowed("issue");
+      allow write: if false;
+    }
+
+    // Shared tag catalog (2026-08-10 unification) - user-created tags on top
+    // of the fixed 9-tag starter set (STANDUP_TAGS, reused client-side but
+    // never written here), used by Standup, Daily To-Do, and Issue alike.
+    // Used to be three separate collections (standupTagCatalog/
+    // dailyTodoTagCatalog/issueTagCatalog), one per tab - merged into one so
+    // a tag created from any tab is visible (and deletable) from all three;
+    // see docs/tag-feature.md. Readable by anyone with access to at least
+    // one of the three tabs that use tags, since a tag might have been
+    // created from any of them. Written only via the addSharedTagFn/
+    // deleteSharedTagFn callables (Admin SDK bypasses this rule).
+    match /sharedTagCatalog/{docId} {
+      allow read: if hasAnyRole() && (tabAllowed("standup") || tabAllowed("dailyTodo") || tabAllowed("issue"));
+      allow write: if false;
+    }
+
+    // Shared, org-wide "recently used email addresses" catalog for the CW
+    // Email Request tab (2026-08-18) - one doc per field (docId is a fixed
+    // field key like "keycardTenantEmail", not a user or email address),
+    // each holding up to 5 most-recently-used emails for that field, shared
+    // across everyone who uses the tab (not per-browser). Written only via
+    // the addSharedEmailHistory/deleteSharedEmailHistory callables (Admin
+    // SDK bypasses this rule), same pattern as sharedTagCatalog above.
+    match /sharedEmailHistory/{fieldKey} {
+      allow read: if hasAnyRole() && tabAllowed("emailRequestAttachmentsEmbed");
+      allow write: if false;
+    }
+
+    // Shared, org-wide "recently used phone numbers" catalog (2026-08-19) -
+    // same shape/reason as sharedEmailHistory above, added for the
+    // Replacement Tenant Phone field. Written only via the
+    // addSharedPhoneHistory/deleteSharedPhoneHistory callables (Admin SDK
+    // bypasses this rule).
+    match /sharedPhoneHistory/{fieldKey} {
+      allow read: if hasAnyRole() && tabAllowed("emailRequestAttachmentsEmbed");
+      allow write: if false;
+    }
+
+    // Keycard Form fill/sign audit log (added 2026-08-19) - one doc per
+    // Save from the Keycard Form modal, written only via the
+    // logKeycardFormSignature callable (Admin SDK bypasses this rule).
+    // Read access matches sharedEmailHistory above - anyone who can use the
+    // CW Email Request tab can look up a prior signing record.
+    match /keycardFormSignatureAudit/{docId} {
+      allow read: if hasAnyRole() && tabAllowed("emailRequestAttachmentsEmbed");
+      allow write: if false;
+    }
+
+    // Keycard Form remote e-signature requests (2026-08-18) - docId is a
+    // 256-bit random token, not the client-facing credential path (the
+    // tenant reaches their own request through the public
+    // getSignatureRequest/submitSignatureRequest Cloud Functions, which use
+    // the Admin SDK and bypass this rule entirely - they have no Firebase
+    // Auth session to satisfy hasAnyRole() with in the first place). This
+    // rule only covers STAFF viewing pending/completed status live in the
+    // CW Email Request tab. Written only via createKeycardSignatureRequest/
+    // submitSignatureRequest (Admin SDK bypasses this rule).
+    match /signatureRequests/{token} {
+      allow read: if hasAnyRole() && tabAllowed("emailRequestAttachmentsEmbed");
+      allow write: if false;
+    }
+
+    // Keycard Submission History (2026-08-19) - one doc per Keycard-mode
+    // send, docId is a client-minted requestId (not a signature token),
+    // tracking status ("pending"/"complete") plus photo IDs through the
+    // signing process. See functions/keycardHistory.js and
+    // docs/email-request-attachments-embed-tab.md. Written only via the
+    // recordKeycardSubmission/uploadKeycardPhotoId/updateKeycardHistoryStatus/
+    // deleteKeycardHistory callables and submitSignatureRequest (Admin SDK
+    // bypasses this rule).
+    match /keycardRequestHistory/{requestId} {
+      allow read: if hasAnyRole() && tabAllowed("emailRequestAttachmentsEmbed");
+      allow write: if false;
+    }
+  }
+}

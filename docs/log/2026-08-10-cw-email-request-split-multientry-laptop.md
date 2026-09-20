@@ -1,0 +1,11 @@
+# 2026-08-10 — CW Email Request: rename, Company/Tenant split, multi-entry everywhere, Laptop mode, tag color de-dup
+
+All scoped to `emailRequestAttachmentsEmbed` ("Email Request V2" at the time), not the main Keycard dashboard tab. Renamed "Email (Attach.) Inline" to "CW Email Request" everywhere (`app.js` constants, nav button, Access-tab checkbox, `MANAGEABLE_TABS` label, and the ported form's own `era-h1` heading), and hid `.era-fallback-link` ("Experimental..." text + "Open 'Email (Attachments)...'" button) via `display:none` without deleting the handler.
+
+Split the merged "Company / Tenant Name" field into "Company Name" (required) + "Tenant Name" (optional) across all request types; every entry now carries `companyName`/`tenantName`, with a new `eraCompanyDisplay(entry)` helper in `Code.js` rendering `"CompanyName / TenantName"` when they differ or just `"CompanyName"` otherwise (subjects still use `companyName` alone). Extended Keycard's "+ Add another" multi-entry mechanic to Wi-Fi, Printer, and Application/Software via a new generic `ERA_SIMPLE_MODES`/`eraCreateSimpleEntry()`/`eraReadSimpleEntry()` mechanic (Keycard kept its own bespoke template/function since its Activate/De-activate + per-entry Fee shape doesn't fit the generic mold). Added a sixth request type, "Laptop," mirroring Application/Software's shape.
+
+Fixed `sharedNextTagColor()`'s color-duplication bug: it was a plain rotation keyed off array length, so colors repeated once there were more than 8 custom tags and never un-stuck after a repeated-color tag was deleted. Now picks the first palette color (expanded 8→16) not already in use by any tag, falling back to a golden-angle-spaced generated HSL color once exhausted.
+
+The real submission handler for this tab lives outside this repo, in `Google Script/email-request-attachments/Code.js` (a separate Apps Script project) — it was updated in the same pass to match the new payload shape (Company/Tenant split, multi-entry, Laptop mode), but needs its own `clasp push` + Apps Script "New version" deploy alongside this repo's `firebase deploy`; not yet live-tested end-to-end as of this session.
+
+Files: `public/index.html` (embedded `<script>`), `public/app.js`, `Google Script/email-request-attachments/Code.js`

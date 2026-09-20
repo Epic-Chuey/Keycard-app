@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Keycard Request — Cubework</title>
+<script>window.self!==window.top&&document.documentElement.classList.add("cw-embedded");
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>:root{--green:#2fb457;--green-600:#26974a;--green-700:#1d7a3b;--green-50:#10241a;--green-100:#16351f;--ink:#0d1b12;--ink-2:#16261c;--card:#232326;--page:#1b1b1d;--surface:#232326;--border:#38383c;--border-strong:#4a4a50;--text:#f4f4f5;--muted:#a6a6ad;--danger:#dc2626;--radius:18px;--shadow:0 1px 2px rgba(13,27,18,.04),0 8px 24px -12px rgba(13,27,18,.14);--shadow-lg:0 24px 60px -24px rgba(13,27,18,.35);--header-bg:var(--ink);--header-bg2:var(--ink-2);--accent:var(--green);--accent-dark:var(--green-600)}*{box-sizing:border-box;margin:0;padding:0;font-family:"Inter","Segoe UI",system-ui,-apple-system,Arial,sans-serif}@media (prefers-reduced-motion:no-preference){*{scroll-behavior:smooth}}body{background:var(--page);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}.wrap{max-width:1120px;margin:0 auto 32px;padding:0 24px;position:relative;z-index:2}.cw-embedded .tabs{display:none}.tabs{display:flex;width:fit-content;margin:0 auto 20px;gap:6px;flex-wrap:wrap;background:#232326;padding:6px;border-radius:999px;border:1px solid var(--border);box-shadow:var(--shadow)}.tab{padding:10px 22px;border-radius:999px;border:1px solid transparent;background:transparent;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;letter-spacing:-.1px;transition:all .16s ease;user-select:none}.tab:hover{color:var(--text);background:var(--surface)}.tab.active{background:var(--ink);color:#fff;font-weight:700;border-color:var(--ink);box-shadow:0 6px 16px -8px rgba(13,27,18,.7)}.tab.active:hover{background:var(--ink);color:#fff}.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:26px 26px 28px;margin-bottom:16px;box-shadow:var(--shadow)}.card h2{font-size:18px;font-weight:800;letter-spacing:-.5px;margin-bottom:20px;color:var(--text);display:flex;align-items:center;gap:12px}.card h2 .step{width:28px;height:28px;flex:none;border-radius:9px;background:var(--green);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:800;letter-spacing:0;box-shadow:0 4px 12px -4px rgba(47,180,87,.7)}.card .hint{font-size:13.5px;color:var(--muted);margin:-12px 0 18px 40px;line-height:1.5}label{display:block;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.3px;text-transform:uppercase;margin:0 0 7px 1px}select,input[type=text],input[type=email],input[type=tel]{width:100%;padding:12px 14px;border:1px solid var(--border-strong);border-radius:11px;font-size:14.5px;background:#141416;color:var(--text);transition:border-color .15s,box-shadow .15s}input::placeholder{color:#6b6b70}select:focus,input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3.5px rgba(47,180,87,.16)}.invalid{border-color:var(--danger)!important;background:#2a1414}.invalid:focus{box-shadow:0 0 0 3.5px rgba(220,38,38,.14)!important}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.grid .full{grid-column:1/-1}@media(max-width:640px){.grid{grid-template-columns:1fr}}.entry{border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px;background:var(--surface);position:relative}.entry .etitle{font-size:11.5px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--green-700);margin-bottom:16px}.entry .remove{position:absolute;top:15px;right:15px;border:1px solid var(--border-strong);background:#141416;color:var(--muted);border-radius:999px;padding:5px 13px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s ease}.entry .remove:hover{background:#2a1414;color:#f87171;border-color:#7f1d1d}.filebox{margin-top:14px}.filebox input[type=file]{display:none}.filebtn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:11px;border:1.5px dashed var(--border-strong);background:#141416;color:var(--text);font-size:13.5px;font-weight:600;cursor:pointer}.filebtn:hover{background:var(--green-50);border-color:var(--green);color:var(--green-700)}.filename{font-size:13px;color:var(--muted);margin-left:10px}.filename.ok{color:var(--green-700);font-weight:600}.filehint{font-size:11.5px;color:var(--muted);margin-top:6px;margin-left:2px}.syscheck{display:flex;gap:22px;flex-wrap:wrap;align-items:center}.syscheck label{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:600;color:var(--text);text-transform:none;letter-spacing:0;margin:0;cursor:pointer}.syscheck input[type=checkbox]{width:18px;height:18px;accent-color:var(--green);cursor:pointer;flex:none}.btnrow{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:4px}.btn{padding:13px 26px;border-radius:999px;border:1.5px solid transparent;font-size:14.5px;font-weight:700;letter-spacing:-.1px;cursor:pointer;transition:transform .12s ease,background .15s ease,box-shadow .15s ease}.btn:active{transform:translateY(1px)}.btn.add{background:#141416;color:var(--text);border-color:var(--border-strong)}.btn.add:hover{background:var(--green-50);border-color:var(--green);color:var(--green-700)}.btn.gen{background:var(--green);color:#fff;box-shadow:0 10px 24px -12px rgba(47,180,87,.95)}.btn.gen:hover{background:var(--green-600);box-shadow:0 14px 28px -12px rgba(47,180,87,.95)}.btn.outlook{background:var(--ink);color:#fff;text-decoration:none;display:inline-block}.btn.outlook:hover{background:var(--ink-2)}.error{color:#f87171;background:#2a1414;border:1px solid #7f1d1d;border-radius:12px;padding:13px 16px;font-size:13.5px;line-height:1.6;margin-top:16px;display:none}#previewCard{display:none}.meta{font-size:14px;margin-bottom:7px;color:var(--text)}.meta b{display:inline-block;width:74px;color:var(--muted);font-weight:700;font-size:11.5px;letter-spacing:.4px;text-transform:uppercase}.bodypre{white-space:pre-wrap;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:12px;padding:20px;font-size:14px;line-height:1.65;margin:18px 0 20px}.attachnote{background:#241d0d;border:1px solid #b45309;border-radius:12px;padding:13px 16px;font-size:13px;color:#fbbf24;margin-bottom:16px;line-height:1.55}.attachnote ul{margin:6px 0 0 18px}footer{background:var(--ink);color:#fff;overflow:hidden;padding:13px 24px;border-top:1px solid rgba(255,255,255,.08);box-shadow:0 -8px 30px -12px rgba(0,0,0,.45)}.footer-inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}.footer-inner .fbrand{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:800;letter-spacing:-.3px;color:#fff}.footer-inner .fbrand .mark{width:20px;height:20px;flex:none;display:block}.wfCredit{font-size:11.5px;color:rgba(255,255,255,.5);letter-spacing:.1px}.gateOverlay{display:none;position:fixed;inset:0;background:rgba(9,20,13,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);align-items:center;justify-content:center;z-index:2147483000;padding:20px;box-sizing:border-box;overflow:auto}.gateBox{background:#232326;border-radius:20px;max-width:440px;width:100%;box-shadow:var(--shadow-lg);overflow:hidden;margin:auto;max-height:calc(100% - 8px)}.gateBox.gateDragging{user-select:none}.gateBox .gateHead{background:var(--ink);color:#fff;padding:20px 26px 18px;font-size:17px;font-weight:800;letter-spacing:-.4px;border-bottom:3px solid var(--green);cursor:grab;touch-action:none}.gateBox .gateHead:active{cursor:grabbing}.gateBox .gateBody{padding:24px 26px;font-size:15px;line-height:1.6;color:var(--text)}.gateBox .gateBtns{display:flex;gap:12px;padding:0 26px 26px;flex-wrap:wrap}.gateBox .gateBtns .btn{flex:1;padding:13px 18px}.btn.gateYes{background:var(--green);color:#fff;box-shadow:0 10px 24px -12px rgba(47,180,87,.95)}.btn.gateYes:hover{background:var(--green-600)}.btn.gateNo{background:#141416;color:var(--muted);border-color:var(--border-strong)}.btn.gateNo:hover{background:#2a1414;color:#f87171;border-color:#7f1d1d}.btn.gateOk{background:var(--ink);color:#fff}.btn.gateOk:hover{background:var(--ink-2)}</style>
+</head>
+<body>
+
+<!-- No top nav or hero here - this page is always embedded in an iframe
+     inside the main dashboard (index.html), which already has its own
+     identical CUBEWORK / "Property Associates Portal" / "IT Helpdesk"
+     header, and (via HERO_COPY in the host's app.js) the same "Email
+     Request" eyebrow/title/subtitle hero, right above this iframe - so
+     second copies of either in here would just be duplicates. -->
+<div class="wrap">
+  <div class="tabs">
+    <div class="tab active" id="tabKeycard" onclick="switchMode('keycard')">🔑 Keycard</div>
+    <div class="tab" id="tabWifi" onclick="switchMode('wifi')">📶 Wi-Fi</div>
+    <div class="tab" id="tabPrinter" onclick="switchMode('printer')">🖨️ Printer</div>
+    <div class="tab" id="tabPhone" onclick="switchMode('phone')">☎️ Phone</div>
+    <div class="tab" id="tabApp" onclick="switchMode('app')">💻 Application/Software</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step">1</span>Cubework Location</h2>
+    <label for="locationInput">Location</label>
+    <input type="text" id="locationInput" list="locationOptions" placeholder="Search the list or type a location manually…" autocomplete="off">
+    <datalist id="locationOptions"></datalist>
+    <!-- Shared by every Keycard entry's Transfer From/To fields (added
+         2026-08-14) - one datalist, populated on the fly for whichever
+         Transfer field the user is currently typing in, same pattern as
+         #locationOptions above. See populateLocationDatalist() in the
+         script below. -->
+    <datalist id="transferLocationOptions"></datalist>
+    <div style="margin-top:12px;">
+      <label for="requesterEmailInput">Your email (Cc'd on the request)</label>
+      <input type="email" id="requesterEmailInput" placeholder="you@cubework.com" autocomplete="email">
+    </div>
+  </div>
+
+  <div class="card" id="keycardEntriesCard">
+    <h2 id="keycardEntriesLabel"><span class="step">2</span>Tenant Entries</h2>
+    <div id="entries"></div>
+    <div class="btnrow">
+      <button class="btn add" type="button" onclick="addEntry({ focus: true })">＋ Add another entry</button>
+    </div>
+  </div>
+
+  <div class="card" id="wifiEntriesCard" style="display:none;">
+    <h2 id="wifiEntriesLabel"><span class="step">2</span>Wi-Fi Entries</h2>
+    <div id="wifiEntries"></div>
+    <div class="btnrow">
+      <button class="btn add" type="button" onclick="addWifiEntry({ focus: true })">＋ Add another entry</button>
+    </div>
+  </div>
+
+  <div class="card" id="printerEntriesCard" style="display:none;">
+    <h2 id="printerEntriesLabel"><span class="step">2</span>Printer Entries</h2>
+    <div id="printerEntries"></div>
+    <div class="btnrow">
+      <button class="btn add" type="button" onclick="addPrinterEntry({ focus: true })">＋ Add another entry</button>
+    </div>
+  </div>
+
+  <div class="card" id="phoneEntriesCard" style="display:none;">
+    <h2 id="phoneEntriesLabel"><span class="step">2</span>Phone Entries</h2>
+    <div id="phoneEntries"></div>
+    <div class="btnrow">
+      <button class="btn add" type="button" onclick="addPhoneEntry({ focus: true })">＋ Add another entry</button>
+    </div>
+  </div>
+
+  <div class="card" id="appEntriesCard" style="display:none;">
+    <h2 id="appEntriesLabel"><span class="step">2</span>Application/Software Entries</h2>
+    <div id="appEntries"></div>
+    <div class="btnrow">
+      <button class="btn add" type="button" onclick="addAppEntry({ focus: true })">＋ Add another entry</button>
+    </div>
+  </div>
+
+  <div class="card" id="accessCard">
+    <h2><span class="step">3</span>Access Level</h2>
+    <div class="grid">
+      <div>
+        <label for="accessSelect">Access</label>
+        <select id="accessSelect" onchange="toggleAccessCustom()">
+          <option value="Standard">Standard</option>
+          <option value="__custom">Other (specify)…</option>
+        </select>
+      </div>
+      <div id="accessCustomWrap" style="display:none;">
+        <label for="accessCustom">Custom access value</label>
+        <input type="text" id="accessCustom" placeholder="e.g. Restricted, 24/7, Level 3">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step" id="generateLabel">4</span>Generate Email</h2>
+    <div class="btnrow">
+      <button class="btn gen" type="button" onclick="openGate()">Generate Outlook Email</button>
+    </div>
+    <div class="error" id="err"></div>
+  </div>
+
+  <div class="card" id="previewCard">
+    <h2><span class="step">✓</span>Email Preview</h2>
+    <div class="meta"><b>To:</b> <span id="pTo"></span></div>
+    <div class="meta"><b>Cc:</b> <span id="pCc"></span></div>
+    <div class="meta"><b>Subject:</b> <span id="pSubject"></span></div>
+    <div class="bodypre" id="pBody"></div>
+    <div class="btnrow">
+      <button class="btn outlook" type="button" onclick="openOutlook()">Open in Outlook ↗</button>
+    </div>
+  </div>
+</div>
+
+<footer id="pageFooter">
+  <div class="footer-inner">
+    <div class="fbrand">
+      <svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <path d="M16 2.6 28.4 9v14L16 29.4 3.6 23V9L16 2.6Z" fill="#2fb457"/>
+        <path d="M16 2.6 28.4 9 16 15.4 3.6 9 16 2.6Z" fill="#5fd383"/>
+        <path d="M16 15.4V29.4L3.6 23V9l12.4 6.4Z" fill="#1d7a3b"/>
+      </svg>
+      CUBEWORK
+    </div>
+    <div class="wfCredit">Made by Huy Nguyen 2026</div>
+  </div>
+</footer>
+
+<div class="gateOverlay" id="gateAskOverlay">
+  <div class="gateBox" id="gateAskBox">
+    <div class="gateHead" title="Drag to move">Before you generate…</div>
+    <div class="gateBody">Do you have <b>ALL</b> the required documents prepared?</div>
+    <div class="gateBtns">
+      <button class="btn gateNo" type="button" data-gate-action="no">No</button>
+      <button class="btn gateYes" type="button" data-gate-action="yes">Yes</button>
+    </div>
+  </div>
+</div>
+
+<div class="gateOverlay" id="gateRemindOverlay">
+  <div class="gateBox" id="gateRemindBox">
+    <div class="gateHead" title="Drag to move">Hold on</div>
+    <div class="gateBody">Please have the required signed document ready — PA/FL/FM must have it prepared before this request can be sent. Once it's ready, click "Generate Outlook Email" again.</div>
+    <div class="gateBtns">
+      <button class="btn gateOk" type="button" data-gate-action="ok">OK</button>
+    </div>
+  </div>
+</div>
+
+<script src="locations.js"></script>
+<script>const LOCATIONS=window.CUBEWORK_LOCATIONS||[],TO_EMAIL="helpdesk@unisco.com",TO_NAME="IT Helpdesk",CC_EMAIL="keycard@cubework.com",CC_NAME="",CC_EMAILS_WIFI=["huy.nguyen@cubework.com","jose.ortiz@cubework.com"],CC_NAMES_WIFI=["Huy Nguyen","Jose Ortiz"];function fmtAddr(t,e){return t?t+" <"+e+">":e}let currentMode="keycard";const SIMPLE_MODES=["wifi","printer","phone","app"],MODE_TAB_IDS={keycard:"tabKeycard",wifi:"tabWifi",printer:"tabPrinter",phone:"tabPhone",app:"tabApp"},MODE_CARD_IDS={wifi:"wifiEntriesCard",printer:"printerEntriesCard",phone:"phoneEntriesCard",app:"appEntriesCard"};function switchMode(t){currentMode=t,Object.entries(MODE_TAB_IDS).forEach(([e,n])=>{document.getElementById(n).classList.toggle("active",t===e)}),Object.entries(MODE_CARD_IDS).forEach(([e,n])=>{document.getElementById(n).style.display=t===e?"":"none"}),document.getElementById("keycardEntriesCard").style.display=t==="keycard"?"":"none",document.getElementById("accessCard").style.display=t==="keycard"?"":"none",document.getElementById("generateLabel").textContent=t==="keycard"?"4":"3",document.getElementById("err").style.display="none",document.getElementById("previewCard").style.display="none",saveDraftState()}function toggleAccessCustom(){const t=document.getElementById("accessSelect").value==="__custom";document.getElementById("accessCustomWrap").style.display=t?"block":"none",t||document.getElementById("accessCustom").classList.remove("invalid")}const locInput=document.getElementById("locationInput"),locOptions=document.getElementById("locationOptions"),MAX_LOCATION_SUGGESTIONS=8,requesterEmailInput=document.getElementById("requesterEmailInput"),EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;function populateLocationDatalist(t,e){if(t.innerHTML="",!e||LOCATIONS.some(s=>s.label.toLowerCase()===e.toLowerCase()))return;const a=e.toLowerCase();LOCATIONS.filter(s=>s.label.toLowerCase().includes(a)).slice(0,MAX_LOCATION_SUGGESTIONS).forEach(s=>{const p=document.createElement("option");p.value=s.label,t.appendChild(p)})}function populateLocationOptions(t){populateLocationDatalist(locOptions,t)}locInput.addEventListener("input",()=>populateLocationOptions(locInput.value.trim()));const transferLocOptions=document.getElementById("transferLocationOptions");document.addEventListener("input",t=>{t.target.matches(".f-transfer-from, .f-transfer-to")&&populateLocationDatalist(transferLocOptions,t.target.value.trim())});function formatPhone(t){const e=t.replace(/\D/g,"").slice(0,10);let n="";return e.length>0&&(n+=e.slice(0,3)),e.length>=3&&(n+="-"),e.length>3&&(n+=e.slice(3,6)),e.length>=6&&(n+="-"),e.length>6&&(n+=e.slice(6,10)),n}let entryCount=0;function scrollNewEntryIntoView(t){const e=performance.now()+1500;function n(){const a=window.frameElement,s=t.offsetTop+t.offsetHeight;!a||a.clientHeight>=s||performance.now()>=e?t.scrollIntoView({behavior:"smooth",block:"nearest"}):requestAnimationFrame(n)}requestAnimationFrame(n)}function addEntry(t){entryCount++;const e=document.createElement("div");e.className="entry",e.innerHTML=`
+    <div class="etitle">Entry</div>
+    <button class="remove" type="button" onclick="removeEntry(this)">\u2715 Remove</button>
+    <div class="grid">
+      <div class="full">
+        <label>Serves</label>
+        <select class="f-serves">
+          <option value="" disabled selected>Select\u2026</option>
+          <option value="Cubework">Cubework</option>
+          <option value="Unis">Unis</option>
+        </select>
+        <div class="filehint">Cubework \u2014 Cubework Tenant or Employee. Unis \u2014 Unis Employee.</div>
+      </div>
+      <div class="full">
+        <label>Keycard Action</label>
+        <div class="syscheck">
+          <label><input type="checkbox" class="f-activate" onchange="toggleKeycardAction(this)"> Activate</label>
+          <label><input type="checkbox" class="f-deactivate" onchange="toggleKeycardAction(this)"> De-activate</label>
+          <label><input type="checkbox" class="f-transfer" onchange="toggleKeycardAction(this)"> Transfer</label>
+        </div>
+      </div>
+      <div class="f-transfer-wrap" style="display:none;">
+        <label>Transfer From Location</label>
+        <input type="text" class="f-transfer-from" list="transferLocationOptions" placeholder="Search the list or type a location manually\u2026" autocomplete="off">
+      </div>
+      <div class="f-transfer-wrap" style="display:none;">
+        <label>Transfer To Location</label>
+        <input type="text" class="f-transfer-to" list="transferLocationOptions" placeholder="Search the list or type a location manually\u2026" autocomplete="off">
+      </div>
+      <div class="full">
+        <label>Access System(s)</label>
+        <div class="syscheck">
+          <label><input type="checkbox" class="f-hikcentral"> HikCentral</label>
+          <label><input type="checkbox" class="f-unifi"> Unifi</label>
+          <label><input type="checkbox" class="f-fee" onchange="toggleFeeDescription(this)"> Fee</label>
+        </div>
+        <div class="filehint">Select one or both \u2014 some locations run only one of these systems. Tick Fee if this request involves a billable fee.</div>
+      </div>
+      <div class="full f-fee-wrap" style="display:none;">
+        <label>Fee Description</label>
+        <input type="text" class="f-fee-desc" placeholder="Describe the fee...">
+      </div>
+      <div class="full">
+        <label>Tenant Company Name</label>
+        <input type="text" class="f-company" placeholder="Enter Tenant Company Name...">
+      </div>
+      <div>
+        <label>Tenant First Name</label>
+        <input type="text" class="f-first" placeholder="Enter Tenant First Name...">
+      </div>
+      <div>
+        <label>Tenant Last Name</label>
+        <input type="text" class="f-last" placeholder="Enter Tenant Last Name...">
+      </div>
+      <div>
+        <label>Keycard Number (10 digits)</label>
+        <input type="text" class="f-keycard" placeholder="0123456789" inputmode="numeric" maxlength="10"
+               oninput="this.value=this.value.replace(/D/g,'').slice(0,10)">
+      </div>
+      <div class="f-email-wrap">
+        <label>Email</label>
+        <input type="email" class="f-email" placeholder="Enter Tenant's email to use for Unifi System...">
+      </div>
+      <div class="f-phone-wrap">
+        <label>Phone Number</label>
+        <input type="tel" class="f-phone" placeholder="000-000-0000" maxlength="12"
+               oninput="this.value=formatPhone(this.value)">
+      </div>
+    </div>`,document.getElementById("entries").appendChild(e),renumber(),t&&t.focus&&scrollNewEntryIntoView(e)}function removeEntry(t){document.querySelectorAll("#entries .entry").length<=1||(t.closest(".entry").remove(),renumber())}function updateRemoveButtons(){const t=document.querySelectorAll("#entries .entry");t.forEach(e=>{e.querySelector(".remove").style.display=t.length>1?"":"none"})}function renumber(){document.querySelectorAll("#entries .entry").forEach((t,e)=>{t.querySelector(".etitle").textContent="Entry "+(e+1)}),updateRemoveButtons(),saveDraftState()}function addWifiEntry(t){const e=document.createElement("div");e.className="entry",e.innerHTML=`
+    <div class="etitle">Entry</div>
+    <button class="remove" type="button" onclick="removeWifiEntry(this)">\u2715 Remove</button>
+    <div class="grid">
+      <div class="full">
+        <label>Request Type</label>
+        <div class="syscheck">
+          <label><input type="checkbox" class="wf-create"> Create Wi-Fi</label>
+          <label><input type="checkbox" class="wf-troubleshoot" onchange="toggleWifiIssue(this)"> Troubleshoot</label>
+          <label><input type="checkbox" class="wf-deactivate" onchange="toggleWifiDeactivate(this)"> De-activate Wi-Fi</label>
+        </div>
+      </div>
+      <div class="full wf-issue-wrap" style="display:none;">
+        <label>Troubleshoot Details</label>
+        <input type="text" class="wf-issue" placeholder="Describe the issue...">
+      </div>
+      <div>
+        <label>Company Name</label>
+        <input type="text" class="wf-company" placeholder="Enter Tenant Company Name...">
+      </div>
+      <div>
+        <label>Unit Code</label>
+        <input type="text" class="wf-unit" placeholder="e.g. Suite 200">
+      </div>
+      <div class="wf-ap-wrap">
+        <label>Near AP/Node</label>
+        <input type="text" class="wf-ap" placeholder="e.g. AP-14 / Node near dock 3">
+      </div>
+      <div class="wf-type-wrap">
+        <label>Office or Warehouse</label>
+        <select class="wf-type">
+          <option value="" disabled selected>Select\u2026</option>
+          <option value="Office">Office</option>
+          <option value="Warehouse">Warehouse</option>
+        </select>
+      </div>
+      <div class="wf-email-wrap">
+        <label>Email</label>
+        <input type="email" class="wf-email" placeholder="Enter Tenant's email...">
+      </div>
+      <div class="wf-phone-wrap">
+        <label>Phone Number</label>
+        <input type="tel" class="wf-phone" placeholder="000-000-0000" maxlength="12"
+               oninput="this.value=formatPhone(this.value)">
+      </div>
+    </div>`,document.getElementById("wifiEntries").appendChild(e),renumberWifi(),t&&t.focus&&scrollNewEntryIntoView(e)}function toggleWifiIssue(t){const e=t.closest(".entry")?.querySelector(".wf-issue-wrap");e&&(e.style.display=t.checked?"":"none")}function toggleWifiDeactivate(t){const e=t.closest(".entry");if(!e)return;const n=t.checked;[".wf-ap-wrap",".wf-type-wrap",".wf-email-wrap",".wf-phone-wrap"].forEach(a=>{const s=e.querySelector(a);s&&(s.style.display=n?"none":"")}),n&&[".wf-ap",".wf-type",".wf-email",".wf-phone"].forEach(a=>{e.querySelector(a)?.classList.remove("invalid")}),saveDraftState()}function toggleFeeDescription(t){const e=t.closest(".entry")?.querySelector(".f-fee-wrap");if(e&&(e.style.display=t.checked?"":"none"),!t.checked){const n=t.closest(".entry")?.querySelector(".f-fee-desc");n&&n.classList.remove("invalid")}}function toggleKeycardAction(t){const e=t.closest(".entry");if(!e)return;const n=e.querySelector(".f-activate"),a=e.querySelector(".f-deactivate"),s=e.querySelector(".f-transfer");t.checked&&[n,a,s].forEach(v=>{v!==t&&(v.checked=!1)});const p=a.checked,u=e.querySelector(".f-email-wrap"),f=e.querySelector(".f-phone-wrap");u&&(u.style.display=p?"none":""),f&&(f.style.display=p?"none":""),p&&(e.querySelector(".f-email")?.classList.remove("invalid"),e.querySelector(".f-phone")?.classList.remove("invalid"));const w=s.checked;e.querySelectorAll(".f-transfer-wrap").forEach(v=>{v.style.display=w?"":"none"}),w||(e.querySelector(".f-transfer-from")?.classList.remove("invalid"),e.querySelector(".f-transfer-to")?.classList.remove("invalid")),saveDraftState()}function removeWifiEntry(t){document.querySelectorAll("#wifiEntries .entry").length<=1||(t.closest(".entry").remove(),renumberWifi())}function updateWifiRemoveButtons(){const t=document.querySelectorAll("#wifiEntries .entry");t.forEach(e=>{e.querySelector(".remove").style.display=t.length>1?"":"none"})}function renumberWifi(){document.querySelectorAll("#wifiEntries .entry").forEach((t,e)=>{t.querySelector(".etitle").textContent="Entry "+(e+1)}),updateWifiRemoveButtons(),saveDraftState()}function addPrinterEntry(t){const e=document.createElement("div");e.className="entry",e.innerHTML=`
+    <div class="etitle">Entry</div>
+    <button class="remove" type="button" onclick="removePrinterEntry(this)">\u2715 Remove</button>
+    <div class="grid">
+      <div class="full">
+        <label>Serves</label>
+        <div class="syscheck">
+          <label><input type="checkbox" class="pr-cubework" onchange="togglePrinterServes(this)"> Cubework</label>
+          <label><input type="checkbox" class="pr-tenant" onchange="togglePrinterServes(this)"> Tenant</label>
+        </div>
+      </div>
+      <div class="full">
+        <label>Request Type</label>
+        <div class="syscheck">
+          <label><input type="checkbox" class="pr-create"> Setup New Printer</label>
+          <label><input type="checkbox" class="pr-troubleshoot" onchange="togglePrinterIssue(this)"> Troubleshoot</label>
+        </div>
+      </div>
+      <div class="full pr-issue-wrap" style="display:none;">
+        <label>Troubleshoot Details</label>
+        <input type="text" class="pr-issue" placeholder="Describe the issue...">
+      </div>
+      <div>
+        <label class="pr-company-label">Company Name</label>
+        <input type="text" class="pr-company" placeholder="Enter Company Name...">
+      </div>
+      <div>
+        <label>Unit Code</label>
+        <input type="text" class="pr-unit" placeholder="e.g. Suite 200">
+      </div>
+      <div>
+        <label>Printer Model / Location</label>
+        <input type="text" class="pr-model" placeholder="e.g. HP LaserJet M404 / Front desk">
+      </div>
+      <div>
+        <label>Office or Warehouse</label>
+        <select class="pr-type">
+          <option value="" disabled selected>Select\u2026</option>
+          <option value="Office">Office</option>
+          <option value="Warehouse">Warehouse</option>
+        </select>
+      </div>
+      <div>
+        <label>Email</label>
+        <input type="email" class="pr-email" placeholder="Enter Tenant's email...">
+      </div>
+      <div>
+        <label>Phone Number</label>
+        <input type="tel" class="pr-phone" placeholder="000-000-0000" maxlength="12"
+               oninput="this.value=formatPhone(this.value)">
+      </div>
+    </div>`,document.getElementById("printerEntries").appendChild(e),renumberPrinter(),t&&t.focus&&scrollNewEntryIntoView(e)}function togglePrinterIssue(t){const e=t.closest(".entry")?.querySelector(".pr-issue-wrap");e&&(e.style.display=t.checked?"":"none")}function togglePrinterServes(t){const e=t.closest(".entry");if(!e)return;const n=e.querySelector(".pr-cubework")?.checked,a=e.querySelector(".pr-tenant")?.checked,s=e.querySelector(".pr-company-label"),p=e.querySelector(".pr-company");let u="Company Name",f="Enter Company Name...";n&&a?(u="Cubework / Tenant Company Name",f="Enter Cubework and Tenant Company Name..."):n?(u="Cubework Company Name",f="Enter Cubework Company Name..."):a&&(u="Tenant Company Name",f="Enter Tenant Company Name..."),s&&(s.textContent=u),p&&(p.placeholder=f),saveDraftState()}function removePrinterEntry(t){document.querySelectorAll("#printerEntries .entry").length<=1||(t.closest(".entry").remove(),renumberPrinter())}function updatePrinterRemoveButtons(){const t=document.querySelectorAll("#printerEntries .entry");t.forEach(e=>{e.querySelector(".remove").style.display=t.length>1?"":"none"})}function renumberPrinter(){document.querySelectorAll("#printerEntries .entry").forEach((t,e)=>{t.querySelector(".etitle").textContent="Entry "+(e+1)}),updatePrinterRemoveButtons(),saveDraftState()}function addPhoneEntry(t){const e=document.createElement("div");e.className="entry",e.innerHTML=`
+    <div class="etitle">Entry</div>
+    <button class="remove" type="button" onclick="removePhoneEntry(this)">\u2715 Remove</button>
+    <div class="grid">
+      <div class="full">
+        <label>Request Type</label>
+        <div class="syscheck">
+          <label><input type="checkbox" class="ph-create"> New Phone Line</label>
+          <label><input type="checkbox" class="ph-troubleshoot" onchange="togglePhoneIssue(this)"> Troubleshoot</label>
+        </div>
+      </div>
+      <div class="full ph-issue-wrap" style="display:none;">
+        <label>Troubleshoot Details</label>
+        <input type="text" class="ph-issue" placeholder="Describe the issue...">
+      </div>
+      <div>
+        <label>Company Name</label>
+        <input type="text" class="ph-company" placeholder="Enter Tenant Company Name...">
+      </div>
+      <div>
+        <label>Unit Code</label>
+        <input type="text" class="ph-unit" placeholder="e.g. Suite 200">
+      </div>
+      <div>
+        <label>Extension / DID</label>
+        <input type="text" class="ph-ext" placeholder="e.g. Ext. 204 / DID 555-123-4567">
+      </div>
+      <div>
+        <label>Office or Warehouse</label>
+        <select class="ph-type">
+          <option value="" disabled selected>Select\u2026</option>
+          <option value="Office">Office</option>
+          <option value="Warehouse">Warehouse</option>
+        </select>
+      </div>
+      <div>
+        <label>Email</label>
+        <input type="email" class="ph-email" placeholder="Enter Tenant's email...">
+      </div>
+      <div>
+        <label>Phone Number</label>
+        <input type="tel" class="ph-phone" placeholder="000-000-0000" maxlength="12"
+               oninput="this.value=formatPhone(this.value)">
+      </div>
+    </div>`,document.getElementById("phoneEntries").appendChild(e),renumberPhone(),t&&t.focus&&scrollNewEntryIntoView(e)}function togglePhoneIssue(t){const e=t.closest(".entry")?.querySelector(".ph-issue-wrap");e&&(e.style.display=t.checked?"":"none")}function removePhoneEntry(t){document.querySelectorAll("#phoneEntries .entry").length<=1||(t.closest(".entry").remove(),renumberPhone())}function updatePhoneRemoveButtons(){const t=document.querySelectorAll("#phoneEntries .entry");t.forEach(e=>{e.querySelector(".remove").style.display=t.length>1?"":"none"})}function renumberPhone(){document.querySelectorAll("#phoneEntries .entry").forEach((t,e)=>{t.querySelector(".etitle").textContent="Entry "+(e+1)}),updatePhoneRemoveButtons(),saveDraftState()}function addAppEntry(t){const e=document.createElement("div");e.className="entry",e.innerHTML=`
+    <div class="etitle">Entry</div>
+    <button class="remove" type="button" onclick="removeAppEntry(this)">\u2715 Remove</button>
+    <div class="grid">
+      <div class="full">
+        <label>Request Type</label>
+        <div class="syscheck">
+          <label><input type="checkbox" class="ap-create"> New Install / Access</label>
+          <label><input type="checkbox" class="ap-troubleshoot" onchange="toggleAppIssue(this)"> Troubleshoot</label>
+        </div>
+      </div>
+      <div class="full ap-issue-wrap" style="display:none;">
+        <label>Troubleshoot Details</label>
+        <input type="text" class="ap-issue" placeholder="Describe the issue...">
+      </div>
+      <div>
+        <label>Company Name</label>
+        <input type="text" class="ap-company" placeholder="Enter Tenant Company Name...">
+      </div>
+      <div>
+        <label>Unit Code</label>
+        <input type="text" class="ap-unit" placeholder="e.g. Suite 200">
+      </div>
+      <div>
+        <label>Application Name</label>
+        <input type="text" class="ap-app" placeholder="e.g. Microsoft Office / QuickBooks / Salesforce">
+      </div>
+      <div>
+        <label>Office or Warehouse</label>
+        <select class="ap-type">
+          <option value="" disabled selected>Select\u2026</option>
+          <option value="Office">Office</option>
+          <option value="Warehouse">Warehouse</option>
+        </select>
+      </div>
+      <div>
+        <label>Email</label>
+        <input type="email" class="ap-email" placeholder="Enter Tenant's email...">
+      </div>
+      <div>
+        <label>Phone Number</label>
+        <input type="tel" class="ap-phone" placeholder="000-000-0000" maxlength="12"
+               oninput="this.value=formatPhone(this.value)">
+      </div>
+    </div>`,document.getElementById("appEntries").appendChild(e),renumberApp(),t&&t.focus&&scrollNewEntryIntoView(e)}function toggleAppIssue(t){const e=t.closest(".entry")?.querySelector(".ap-issue-wrap");e&&(e.style.display=t.checked?"":"none")}function removeAppEntry(t){document.querySelectorAll("#appEntries .entry").length<=1||(t.closest(".entry").remove(),renumberApp())}function updateAppRemoveButtons(){const t=document.querySelectorAll("#appEntries .entry");t.forEach(e=>{e.querySelector(".remove").style.display=t.length>1?"":"none"})}function renumberApp(){document.querySelectorAll("#appEntries .entry").forEach((t,e)=>{t.querySelector(".etitle").textContent="Entry "+(e+1)}),updateAppRemoveButtons(),saveDraftState()}function getScrollHost(){try{return window.parent&&window.parent!==window?window.parent:window}catch{return window}}function getGateHostDoc(){try{return window.top&&window.top!==window?window.top.document:document}catch{return document}}const GATE_STYLE_CSS=`
+  .gateOverlay{
+    display:none;position:fixed;inset:0;background:rgba(9,20,13,.62);
+    -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+    align-items:center;justify-content:center;z-index:2147483000;padding:20px;
+    box-sizing:border-box;overflow:auto;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  .gateOverlay,.gateOverlay *{box-sizing:border-box;}
+  .gateBox{
+    background:#232326;border-radius:20px;max-width:440px;width:100%;
+    box-shadow:0 24px 60px -24px rgba(13,27,18,.5);overflow:hidden;margin:auto;
+    max-height:calc(100% - 8px);position:relative;
+  }
+  .gateBox.gateDragging{user-select:none;}
+  .gateBox .gateHead{
+    background:#0d1b12;color:#fff;padding:20px 26px 18px;
+    font-size:17px;font-weight:800;letter-spacing:-.4px;line-height:1.35;
+    border-bottom:3px solid #2fb457;cursor:grab;touch-action:none;
+  }
+  .gateBox .gateHead:active{cursor:grabbing;}
+  .gateBox .gateBody{padding:24px 26px;font-size:15px;line-height:1.6;color:#f4f4f5;}
+  .gateBox .gateBtns{display:flex;gap:12px;padding:0 26px 26px;flex-wrap:wrap;}
+  .gateBox .gateBtns .btn{
+    flex:1;padding:13px 18px;border-radius:999px;border:1.5px solid transparent;
+    font-size:14.5px;font-weight:700;letter-spacing:-.1px;cursor:pointer;
+    transition:transform .12s ease, background .15s ease, box-shadow .15s ease;
+  }
+  .gateBox .gateBtns .btn:active{transform:translateY(1px);}
+  .gateBox .btn.gateYes{background:#2fb457;color:#fff;box-shadow:0 10px 24px -12px rgba(47,180,87,.95);}
+  .gateBox .btn.gateYes:hover{background:#26974a;}
+  .gateBox .btn.gateNo{background:#141416;color:#a6a6ad;border-color:#4a4a50;}
+  .gateBox .btn.gateNo:hover{background:#2a1414;color:#f87171;border-color:#7f1d1d;}
+  .gateBox .btn.gateOk{background:#0d1b12;color:#fff;}
+  .gateBox .btn.gateOk:hover{background:#16261c;}
+`;function ensureGateStylesInjected(t){if(t.getElementById("gateInjectedStyles"))return;const e=t.createElement("style");e.id="gateInjectedStyles",e.textContent=GATE_STYLE_CSS,(t.head||t.documentElement).appendChild(e)}function ensureGateInDoc(t,e,n){ensureGateStylesInjected(n),t.ownerDocument!==n&&n.body.appendChild(t)}function clampGatePosition(t,e,n){const a=t.ownerDocument.defaultView||window,s=t.getBoundingClientRect(),p=Math.max(0,a.innerWidth-s.width),u=Math.max(0,a.innerHeight-s.height);return{left:Math.min(Math.max(e,0),p),top:Math.min(Math.max(n,0),u)}}function makeGateDraggable(t){if(t.dataset.dragBound)return;t.dataset.dragBound="1";const e=t.querySelector(".gateHead");if(!e)return;let n=!1,a=0,s=0,p=0,u=0;function f(b){if(b.button!==void 0&&b.button!==0)return;const L=t.getBoundingClientRect();n=!0,t.classList.add("gateDragging"),a=b.clientX,s=b.clientY,p=L.left,u=L.top,Object.assign(t.style,{position:"fixed",left:p+"px",top:u+"px",margin:"0"}),e.setPointerCapture&&e.setPointerCapture(b.pointerId),b.preventDefault()}function w(b){if(!n)return;const L=b.clientX-a,E=b.clientY-s,{left:B,top:k}=clampGatePosition(t,p+L,u+E);t.style.left=B+"px",t.style.top=k+"px"}function v(){n=!1,t.classList.remove("gateDragging")}e.addEventListener("pointerdown",f),e.addEventListener("pointermove",w),e.addEventListener("pointerup",v),e.addEventListener("pointercancel",v)}function resetGatePosition(t){t.style.position="relative",t.style.left="",t.style.top="",t.style.margin="auto"}const gateAskOverlayEl=document.getElementById("gateAskOverlay"),gateAskBoxEl=document.getElementById("gateAskBox"),gateRemindOverlayEl=document.getElementById("gateRemindOverlay"),gateRemindBoxEl=document.getElementById("gateRemindBox");function keycardIsDeactivateOnly(){const t=document.querySelectorAll("#entries .entry");if(!t.length)return!1;let e=!1,n=!1;return t.forEach(a=>{a.querySelector(".f-activate")?.checked&&(e=!0),a.querySelector(".f-deactivate")?.checked&&(n=!0)}),n&&!e}function openGate(){if(currentMode==="keycard"&&keycardIsDeactivateOnly()){generate();return}ensureGateInDoc(gateAskOverlayEl,gateAskBoxEl,getGateHostDoc()),makeGateDraggable(gateAskBoxEl),resetGatePosition(gateAskBoxEl),gateAskOverlayEl.style.display="flex"}function gateAnswer(t){gateAskOverlayEl.style.display="none",t?generate():(ensureGateInDoc(gateRemindOverlayEl,gateRemindBoxEl,getGateHostDoc()),makeGateDraggable(gateRemindBoxEl),resetGatePosition(gateRemindBoxEl),gateRemindOverlayEl.style.display="flex")}function closeGateRemind(){gateRemindOverlayEl.style.display="none"}document.querySelectorAll("[data-gate-action]").forEach(t=>{const e=t.getAttribute("data-gate-action");t.addEventListener("click",()=>{e==="no"?gateAnswer(!1):e==="yes"?gateAnswer(!0):e==="ok"&&closeGateRemind()})});function generate(){currentMode==="wifi"?generateWifi():currentMode==="printer"?generatePrinter():currentMode==="phone"?generatePhone():currentMode==="app"?generateApp():generateKeycard()}function generateKeycard(){const t=document.getElementById("err");t.style.display="none",document.querySelectorAll(".invalid").forEach(c=>c.classList.remove("invalid")),locInput.classList.remove("invalid"),requesterEmailInput.classList.remove("invalid"),document.getElementById("accessCustom").classList.remove("invalid");const e=[];locInput.value.trim()||(locInput.classList.add("invalid"),e.push("Enter or select a Cubework location."));const n=requesterEmailInput.value.trim();(!n||!EMAIL_RE.test(n))&&(requesterEmailInput.classList.add("invalid"),e.push("Enter your email so you can be Cc'd on the request."));const a=document.getElementById("accessSelect"),s=document.getElementById("accessCustom");let p="";a.value==="__custom"?(p=s.value.trim(),p||(s.classList.add("invalid"),e.push("Enter a custom access value or switch back to Standard."))):p="Standard";const u=[];if(document.querySelectorAll("#entries .entry").forEach((c,C)=>{const y=O=>c.querySelector(O),m={serves:y(".f-serves").value,activate:y(".f-activate").checked,deactivate:y(".f-deactivate").checked,transfer:y(".f-transfer").checked,transferFrom:y(".f-transfer-from").value.trim(),transferTo:y(".f-transfer-to").value.trim(),hikcentral:y(".f-hikcentral").checked,unifi:y(".f-unifi").checked,fee:y(".f-fee").checked,feeDesc:y(".f-fee-desc").value.trim(),company:y(".f-company").value.trim(),first:y(".f-first").value.trim(),last:y(".f-last").value.trim(),keycard:y(".f-keycard").value.trim(),email:y(".f-email").value.trim(),phone:y(".f-phone").value.trim()};(m.deactivate?[".f-company",".f-last",".f-first",".f-keycard"]:[".f-company",".f-last",".f-first",".f-keycard",".f-email",".f-phone"]).forEach(O=>{y(O).value.trim()||y(O).classList.add("invalid")}),m.serves||y(".f-serves").classList.add("invalid"),!m.hikcentral&&!m.unifi&&e.push("Entry "+(C+1)+": select at least one access system (HikCentral or Unifi)."),m.fee&&!m.feeDesc&&(y(".f-fee-desc").classList.add("invalid"),e.push("Entry "+(C+1)+": enter a Fee description.")),m.transfer&&(!m.transferFrom||!m.transferTo)&&(m.transferFrom||y(".f-transfer-from").classList.add("invalid"),m.transferTo||y(".f-transfer-to").classList.add("invalid"),e.push("Entry "+(C+1)+": enter both Transfer From and Transfer To locations.")),(m.deactivate?m.serves&&m.company&&m.first&&m.last&&m.keycard:m.serves&&m.company&&m.first&&m.last&&m.keycard&&m.email&&m.phone)?/^\d{10}$/.test(m.keycard)||(y(".f-keycard").classList.add("invalid"),e.push("Entry "+(C+1)+": keycard number must be exactly 10 digits.")):e.push("Entry "+(C+1)+": fill in all fields."),!m.deactivate&&m.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m.email)&&(y(".f-email").classList.add("invalid"),e.push("Entry "+(C+1)+": enter a valid email address.")),u.push(m)}),e.length){t.innerHTML=e.join("<br>"),t.style.display="block",document.getElementById("previewCard").style.display="none";return}const f=locInput.value.trim(),v=LOCATIONS.find(c=>c.label.toLowerCase()===f.toLowerCase())||{subjectName:f,bodyLine:f},b=v.subjectName+" - Keycard Request",L=c=>[c.hikcentral?"HikCentral":null,c.unifi?"Unifi":null].filter(Boolean).join(", "),E=u.map(c=>{const C=[c.serves+" - "+c.company+" - "+c.first+" "+c.last+" - "+c.keycard,"Systems: "+L(c)];return c.deactivate||C.push("Email: "+c.email+`
+Phone: `+c.phone),c.activate?C.push("Action: Activate"):c.deactivate?C.push("Action: De-activate"):c.transfer&&C.push(`Action: Transfer
+From: `+c.transferFrom+`
+To: `+c.transferTo),c.fee&&C.push("Fee: "+c.feeDesc),C.join(`
+`)}),B="Requests submitted without a completed and signed keycard authorization form will not be processed.",k="For multiple keycard assignments, all users may sign the same authorization form, provided a valid photo ID for each user is included.",A="https://cubework365.sharepoint.com/:v:/s/Cubework_PropertyManagement/IQCvNT-3osupSoNyJUtJpUj6AW7GFpHOtwQl5cYh3fscmWg?e=6J2tU1",I=u.some(c=>c.unifi),x=["ar@cubework365.onmicrosoft.com","Novie.boston@cubework.com"],T=u.some(c=>c.fee),S="How to add Tenant to Unifi: "+A+`
+Or you can call/msg Huy.`,o='<a href="'+A+'">How to add Tenant to Unifi</a> or you can call/msg Huy.',d=u.some(c=>c.activate),l=u.some(c=>c.deactivate),i=u.some(c=>c.transfer),r=l&&!d&&!i,h=r?"Please De-activate the keycard(s).":i&&!d&&!l?"Please transfer the keycard(s).":"Please activate the keycard(s).",R=`Hello Team,
+
+`+(r?"":B+`
+`+k+`
+
+`)+h+`
+
+`+v.bodyLine+`
+
+`+E.join(`
+
+`)+`
+Access: `+p+(I?`
+
+`+S:""),P=c=>c.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"),N=I?R.slice(0,R.length-S.length):R,M=P(N).replace(P(B),'<span style="color:#f87171;font-weight:bold;font-size:20px;">'+P(B)+"</span>").replace(/\n/g,"<br>")+(I?o:""),j=(T?[fmtAddr(TO_NAME,TO_EMAIL),...x]:[fmtAddr(TO_NAME,TO_EMAIL)]).join(", "),U=fmtAddr(CC_NAME,CC_EMAIL)+", "+n,H="mailto:"+encodeURIComponent(j)+"?cc="+encodeURIComponent(U)+"&subject="+encodeURIComponent(b)+"&body="+encodeURIComponent(R),W="https://outlook.office.com/mail/deeplink/compose?mailtouri="+encodeURIComponent(H);window._draft={url:W},document.getElementById("pTo").textContent=(T?[TO_EMAIL,...x]:[TO_EMAIL]).join(", "),document.getElementById("pCc").textContent=CC_EMAIL+", "+n,document.getElementById("pSubject").textContent=b,document.getElementById("pBody").innerHTML=M;const D=document.getElementById("previewCard");D.style.display="block",D.scrollIntoView({behavior:"smooth"})}function generateWifi(){const t=document.getElementById("err");t.style.display="none",document.querySelectorAll(".invalid").forEach(r=>r.classList.remove("invalid")),locInput.classList.remove("invalid"),requesterEmailInput.classList.remove("invalid");const e=[];locInput.value.trim()||(locInput.classList.add("invalid"),e.push("Enter or select a Cubework location."));const n=requesterEmailInput.value.trim();(!n||!EMAIL_RE.test(n))&&(requesterEmailInput.classList.add("invalid"),e.push("Enter your email so you can be Cc'd on the request."));const a=[];if(document.querySelectorAll("#wifiEntries .entry").forEach((r,q)=>{const h=N=>r.querySelector(N),g={create:h(".wf-create").checked,troubleshoot:h(".wf-troubleshoot").checked,deactivate:h(".wf-deactivate").checked,issue:h(".wf-issue").value.trim(),company:h(".wf-company").value.trim(),unit:h(".wf-unit").value.trim(),ap:h(".wf-ap").value.trim(),type:h(".wf-type").value,email:h(".wf-email").value.trim(),phone:h(".wf-phone").value.trim()};(g.deactivate?[".wf-company",".wf-unit"]:[".wf-company",".wf-unit",".wf-ap",".wf-email",".wf-phone"]).forEach(N=>{h(N).value.trim()||h(N).classList.add("invalid")}),!g.deactivate&&!g.type&&h(".wf-type").classList.add("invalid"),(g.deactivate?g.company&&g.unit:g.company&&g.unit&&g.ap&&g.type&&g.email&&g.phone)||e.push("Entry "+(q+1)+": fill in all fields."),g.troubleshoot&&!g.issue&&(h(".wf-issue").classList.add("invalid"),e.push("Entry "+(q+1)+": describe the issue, or untick Troubleshoot.")),!g.deactivate&&g.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(g.email)&&(h(".wf-email").classList.add("invalid"),e.push("Entry "+(q+1)+": enter a valid email address.")),a.push(g)}),e.length){t.innerHTML=e.join("<br>"),t.style.display="block",document.getElementById("previewCard").style.display="none";return}const s=locInput.value.trim(),u=LOCATIONS.find(r=>r.label.toLowerCase()===s.toLowerCase())||{subjectName:s,bodyLine:s},f=u.subjectName+" - WiFi Request",w=a.map(r=>{const q=[r.create?"Create Wi-Fi":null,r.troubleshoot?"Troubleshoot":null,r.deactivate?"De-activate Wi-Fi":null].filter(Boolean).join(", ");let h=r.deactivate?r.company+" - "+r.unit:r.company+" - "+r.unit+" - "+r.ap+`
+`+r.type+`
+Email: `+r.email+`
+Phone: `+r.phone;return q&&(h+=`
+Request: `+q),r.troubleshoot&&r.issue&&(h+=`
+Issue: `+r.issue),h}),v=a.some(r=>r.create),b=a.some(r=>r.troubleshoot),L=a.some(r=>r.deactivate),E=`SSID - Cubework is free for the office. (Even in the WH as long as Cubework build the office there.)
+Everywhere else need the signed Contract or Addendum showing WiFi +$ on there monthly.`,B=v?"Please activate Wi-Fi:":L?"Please de-activate Wi-Fi:":b?"Please help troubleshoot Wi-Fi:":"Please activate Wi-Fi:";let k=`Hello Team,
+
+`+(v?`REQUEST WILL BE IGNORED WITHOUT MANDATORY SIGNED DOCUMENT CONTRACT OR ADDENDUM
+
+`:"")+B+`
+
+`+u.bodyLine+`
+`+w.join(`
+
+`);v&&(k+=`
+
+`+E);const A=r=>r.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"),I="REQUEST WILL BE IGNORED WITHOUT MANDATORY SIGNED DOCUMENT ",x="CONTRACT OR ADDENDUM",T=A(k).replace(I+x,'<span style="color:#f87171;font-weight:600;font-size:14px;">'+I+'</span><span style="color:#f87171;font-weight:bold;font-size:20px;">'+x+"</span>").replace(/\n/g,"<br>"),o=CC_EMAILS_WIFI.map((r,q)=>fmtAddr(CC_NAMES_WIFI[q],r)).concat(n).join(", "),d="mailto:"+encodeURIComponent(fmtAddr(TO_NAME,TO_EMAIL))+"?cc="+encodeURIComponent(o)+"&subject="+encodeURIComponent(f)+"&body="+encodeURIComponent(k),l="https://outlook.office.com/mail/deeplink/compose?mailtouri="+encodeURIComponent(d);window._draft={url:l},document.getElementById("pTo").textContent=TO_EMAIL,document.getElementById("pCc").textContent=CC_EMAILS_WIFI.concat(n).join(", "),document.getElementById("pSubject").textContent=f,document.getElementById("pBody").innerHTML=T;const i=document.getElementById("previewCard");i.style.display="block",i.scrollIntoView({behavior:"smooth"})}function generatePrinter(){const t=document.getElementById("err");t.style.display="none",document.querySelectorAll(".invalid").forEach(o=>o.classList.remove("invalid")),locInput.classList.remove("invalid"),requesterEmailInput.classList.remove("invalid");const e=[];locInput.value.trim()||(locInput.classList.add("invalid"),e.push("Enter or select a Cubework location."));const n=requesterEmailInput.value.trim();(!n||!EMAIL_RE.test(n))&&(requesterEmailInput.classList.add("invalid"),e.push("Enter your email so you can be Cc'd on the request."));const a=[];if(document.querySelectorAll("#printerEntries .entry").forEach((o,d)=>{const l=r=>o.querySelector(r),i={cubework:l(".pr-cubework").checked,tenant:l(".pr-tenant").checked,create:l(".pr-create").checked,troubleshoot:l(".pr-troubleshoot").checked,issue:l(".pr-issue").value.trim(),company:l(".pr-company").value.trim(),unit:l(".pr-unit").value.trim(),model:l(".pr-model").value.trim(),type:l(".pr-type").value,email:l(".pr-email").value.trim(),phone:l(".pr-phone").value.trim()};[".pr-company",".pr-unit",".pr-model",".pr-email",".pr-phone"].forEach(r=>{l(r).value.trim()||l(r).classList.add("invalid")}),i.type||l(".pr-type").classList.add("invalid"),(!i.company||!i.unit||!i.model||!i.type||!i.email||!i.phone)&&e.push("Entry "+(d+1)+": fill in all fields."),i.troubleshoot&&!i.issue&&(l(".pr-issue").classList.add("invalid"),e.push("Entry "+(d+1)+": describe the issue, or untick Troubleshoot.")),i.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(i.email)&&(l(".pr-email").classList.add("invalid"),e.push("Entry "+(d+1)+": enter a valid email address.")),a.push(i)}),e.length){t.innerHTML=e.join("<br>"),t.style.display="block",document.getElementById("previewCard").style.display="none";return}const s=locInput.value.trim(),u=LOCATIONS.find(o=>o.label.toLowerCase()===s.toLowerCase())||{subjectName:s,bodyLine:s},f=u.subjectName+" - Printer Request",w=a.map(o=>{const d=[o.create?"Setup New Printer":null,o.troubleshoot?"Troubleshoot":null].filter(Boolean).join(", "),l=[o.cubework?"Cubework":null,o.tenant?"Tenant":null].filter(Boolean).join(", ");let i=o.company+" - "+o.unit+" - "+o.model+`
+`+o.type+`
+Email: `+o.email+`
+Phone: `+o.phone;return l&&(i+=`
+Serves: `+l),d&&(i+=`
+Request: `+d),o.troubleshoot&&o.issue&&(i+=`
+Issue: `+o.issue),i}),v=a.some(o=>o.create),b=a.some(o=>o.troubleshoot),E=`Hello Team,
+
+`+(v||!b?"Please set up printer:":"Please help troubleshoot printer:")+`
+
+`+u.bodyLine+`
+`+w.join(`
+
+`),k=(o=>o.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"))(E).replace(/\n/g,"<br>"),I=CC_EMAILS_WIFI.map((o,d)=>fmtAddr(CC_NAMES_WIFI[d],o)).concat(n).join(", "),x="mailto:"+encodeURIComponent(fmtAddr(TO_NAME,TO_EMAIL))+"?cc="+encodeURIComponent(I)+"&subject="+encodeURIComponent(f)+"&body="+encodeURIComponent(E),T="https://outlook.office.com/mail/deeplink/compose?mailtouri="+encodeURIComponent(x);window._draft={url:T},document.getElementById("pTo").textContent=TO_EMAIL,document.getElementById("pCc").textContent=CC_EMAILS_WIFI.concat(n).join(", "),document.getElementById("pSubject").textContent=f,document.getElementById("pBody").innerHTML=k;const S=document.getElementById("previewCard");S.style.display="block",S.scrollIntoView({behavior:"smooth"})}function generatePhone(){const t=document.getElementById("err");t.style.display="none",document.querySelectorAll(".invalid").forEach(o=>o.classList.remove("invalid")),locInput.classList.remove("invalid"),requesterEmailInput.classList.remove("invalid");const e=[];locInput.value.trim()||(locInput.classList.add("invalid"),e.push("Enter or select a Cubework location."));const n=requesterEmailInput.value.trim();(!n||!EMAIL_RE.test(n))&&(requesterEmailInput.classList.add("invalid"),e.push("Enter your email so you can be Cc'd on the request."));const a=[];if(document.querySelectorAll("#phoneEntries .entry").forEach((o,d)=>{const l=r=>o.querySelector(r),i={create:l(".ph-create").checked,troubleshoot:l(".ph-troubleshoot").checked,issue:l(".ph-issue").value.trim(),company:l(".ph-company").value.trim(),unit:l(".ph-unit").value.trim(),ext:l(".ph-ext").value.trim(),type:l(".ph-type").value,email:l(".ph-email").value.trim(),phone:l(".ph-phone").value.trim()};[".ph-company",".ph-unit",".ph-ext",".ph-email",".ph-phone"].forEach(r=>{l(r).value.trim()||l(r).classList.add("invalid")}),i.type||l(".ph-type").classList.add("invalid"),(!i.company||!i.unit||!i.ext||!i.type||!i.email||!i.phone)&&e.push("Entry "+(d+1)+": fill in all fields."),i.troubleshoot&&!i.issue&&(l(".ph-issue").classList.add("invalid"),e.push("Entry "+(d+1)+": describe the issue, or untick Troubleshoot.")),i.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(i.email)&&(l(".ph-email").classList.add("invalid"),e.push("Entry "+(d+1)+": enter a valid email address.")),a.push(i)}),e.length){t.innerHTML=e.join("<br>"),t.style.display="block",document.getElementById("previewCard").style.display="none";return}const s=locInput.value.trim(),u=LOCATIONS.find(o=>o.label.toLowerCase()===s.toLowerCase())||{subjectName:s,bodyLine:s},f=u.subjectName+" - Phone Request",w=a.map(o=>{const d=[o.create?"New Phone Line":null,o.troubleshoot?"Troubleshoot":null].filter(Boolean).join(", ");let l=o.company+" - "+o.unit+" - "+o.ext+`
+`+o.type+`
+Email: `+o.email+`
+Phone: `+o.phone;return d&&(l+=`
+Request: `+d),o.troubleshoot&&o.issue&&(l+=`
+Issue: `+o.issue),l}),v=a.some(o=>o.create),b=a.some(o=>o.troubleshoot),E=`Hello Team,
+
+`+(v||!b?"Please set up phone:":"Please help troubleshoot phone:")+`
+
+`+u.bodyLine+`
+`+w.join(`
+
+`),k=(o=>o.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"))(E).replace(/\n/g,"<br>"),I=CC_EMAILS_WIFI.map((o,d)=>fmtAddr(CC_NAMES_WIFI[d],o)).concat(n).join(", "),x="mailto:"+encodeURIComponent(fmtAddr(TO_NAME,TO_EMAIL))+"?cc="+encodeURIComponent(I)+"&subject="+encodeURIComponent(f)+"&body="+encodeURIComponent(E),T="https://outlook.office.com/mail/deeplink/compose?mailtouri="+encodeURIComponent(x);window._draft={url:T},document.getElementById("pTo").textContent=TO_EMAIL,document.getElementById("pCc").textContent=CC_EMAILS_WIFI.concat(n).join(", "),document.getElementById("pSubject").textContent=f,document.getElementById("pBody").innerHTML=k;const S=document.getElementById("previewCard");S.style.display="block",S.scrollIntoView({behavior:"smooth"})}function generateApp(){const t=document.getElementById("err");t.style.display="none",document.querySelectorAll(".invalid").forEach(o=>o.classList.remove("invalid")),locInput.classList.remove("invalid"),requesterEmailInput.classList.remove("invalid");const e=[];locInput.value.trim()||(locInput.classList.add("invalid"),e.push("Enter or select a Cubework location."));const n=requesterEmailInput.value.trim();(!n||!EMAIL_RE.test(n))&&(requesterEmailInput.classList.add("invalid"),e.push("Enter your email so you can be Cc'd on the request."));const a=[];if(document.querySelectorAll("#appEntries .entry").forEach((o,d)=>{const l=r=>o.querySelector(r),i={create:l(".ap-create").checked,troubleshoot:l(".ap-troubleshoot").checked,issue:l(".ap-issue").value.trim(),company:l(".ap-company").value.trim(),unit:l(".ap-unit").value.trim(),app:l(".ap-app").value.trim(),type:l(".ap-type").value,email:l(".ap-email").value.trim(),phone:l(".ap-phone").value.trim()};[".ap-company",".ap-unit",".ap-app",".ap-email",".ap-phone"].forEach(r=>{l(r).value.trim()||l(r).classList.add("invalid")}),i.type||l(".ap-type").classList.add("invalid"),(!i.company||!i.unit||!i.app||!i.type||!i.email||!i.phone)&&e.push("Entry "+(d+1)+": fill in all fields."),i.troubleshoot&&!i.issue&&(l(".ap-issue").classList.add("invalid"),e.push("Entry "+(d+1)+": describe the issue, or untick Troubleshoot.")),i.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(i.email)&&(l(".ap-email").classList.add("invalid"),e.push("Entry "+(d+1)+": enter a valid email address.")),a.push(i)}),e.length){t.innerHTML=e.join("<br>"),t.style.display="block",document.getElementById("previewCard").style.display="none";return}const s=locInput.value.trim(),u=LOCATIONS.find(o=>o.label.toLowerCase()===s.toLowerCase())||{subjectName:s,bodyLine:s},f=u.subjectName+" - Application/Software Request",w=a.map(o=>{const d=[o.create?"New Install / Access":null,o.troubleshoot?"Troubleshoot":null].filter(Boolean).join(", ");let l=o.company+" - "+o.unit+" - "+o.app+`
+`+o.type+`
+Email: `+o.email+`
+Phone: `+o.phone;return d&&(l+=`
+Request: `+d),o.troubleshoot&&o.issue&&(l+=`
+Issue: `+o.issue),l}),v=a.some(o=>o.create),b=a.some(o=>o.troubleshoot),E=`Hello Team,
+
+`+(v||!b?"Please set up application/software:":"Please help troubleshoot application/software:")+`
+
+`+u.bodyLine+`
+`+w.join(`
+
+`),k=(o=>o.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"))(E).replace(/\n/g,"<br>"),I=CC_EMAILS_WIFI.map((o,d)=>fmtAddr(CC_NAMES_WIFI[d],o)).concat(n).join(", "),x="mailto:"+encodeURIComponent(fmtAddr(TO_NAME,TO_EMAIL))+"?cc="+encodeURIComponent(I)+"&subject="+encodeURIComponent(f)+"&body="+encodeURIComponent(E),T="https://outlook.office.com/mail/deeplink/compose?mailtouri="+encodeURIComponent(x);window._draft={url:T},document.getElementById("pTo").textContent=TO_EMAIL,document.getElementById("pCc").textContent=CC_EMAILS_WIFI.concat(n).join(", "),document.getElementById("pSubject").textContent=f,document.getElementById("pBody").innerHTML=k;const S=document.getElementById("previewCard");S.style.display="block",S.scrollIntoView({behavior:"smooth"})}function openOutlook(){const t=window._draft;t&&(window.open(t.url,"_blank","noopener,noreferrer"),resetAfterSend())}function resetAfterSend(){locInput.value="",requesterEmailInput.value="",document.getElementById("accessSelect").value="Standard",document.getElementById("accessCustom").value="",toggleAccessCustom(),document.getElementById("entries").innerHTML="",addEntry(),document.getElementById("wifiEntries").innerHTML="",addWifiEntry(),document.getElementById("printerEntries").innerHTML="",addPrinterEntry(),document.getElementById("phoneEntries").innerHTML="",addPhoneEntry(),document.getElementById("appEntries").innerHTML="",addAppEntry(),document.getElementById("err").style.display="none",document.getElementById("previewCard").style.display="none",saveDraftState();try{getScrollHost().scrollTo({top:0,behavior:"smooth"})}catch{}}const DRAFT_STORAGE_KEY="cwEmailRequestDraft";function collectKeycardEntryState(t){const e=n=>t.querySelector(n);return{serves:e(".f-serves").value,activate:e(".f-activate").checked,deactivate:e(".f-deactivate").checked,transfer:e(".f-transfer").checked,transferFrom:e(".f-transfer-from").value,transferTo:e(".f-transfer-to").value,hikcentral:e(".f-hikcentral").checked,unifi:e(".f-unifi").checked,fee:e(".f-fee").checked,feeDesc:e(".f-fee-desc").value,company:e(".f-company").value,first:e(".f-first").value,last:e(".f-last").value,keycard:e(".f-keycard").value,email:e(".f-email").value,phone:e(".f-phone").value}}function collectWifiEntryState(t){const e=n=>t.querySelector(n);return{create:e(".wf-create").checked,troubleshoot:e(".wf-troubleshoot").checked,deactivate:e(".wf-deactivate").checked,issue:e(".wf-issue").value,company:e(".wf-company").value,unit:e(".wf-unit").value,ap:e(".wf-ap").value,type:e(".wf-type").value,email:e(".wf-email").value,phone:e(".wf-phone").value}}function collectPrinterEntryState(t){const e=n=>t.querySelector(n);return{cubework:e(".pr-cubework").checked,tenant:e(".pr-tenant").checked,create:e(".pr-create").checked,troubleshoot:e(".pr-troubleshoot").checked,issue:e(".pr-issue").value,company:e(".pr-company").value,unit:e(".pr-unit").value,model:e(".pr-model").value,type:e(".pr-type").value,email:e(".pr-email").value,phone:e(".pr-phone").value}}function collectPhoneEntryState(t){const e=n=>t.querySelector(n);return{create:e(".ph-create").checked,troubleshoot:e(".ph-troubleshoot").checked,issue:e(".ph-issue").value,company:e(".ph-company").value,unit:e(".ph-unit").value,ext:e(".ph-ext").value,type:e(".ph-type").value,email:e(".ph-email").value,phone:e(".ph-phone").value}}function collectAppEntryState(t){const e=n=>t.querySelector(n);return{create:e(".ap-create").checked,troubleshoot:e(".ap-troubleshoot").checked,issue:e(".ap-issue").value,company:e(".ap-company").value,unit:e(".ap-unit").value,app:e(".ap-app").value,type:e(".ap-type").value,email:e(".ap-email").value,phone:e(".ap-phone").value}}let isRestoringDraft=!1;function saveDraftState(){if(!isRestoringDraft)try{const t={mode:currentMode,location:locInput.value,requesterEmail:requesterEmailInput.value,accessValue:document.getElementById("accessSelect").value,accessCustom:document.getElementById("accessCustom").value,keycardEntries:Array.from(document.querySelectorAll("#entries .entry")).map(collectKeycardEntryState),wifiEntries:Array.from(document.querySelectorAll("#wifiEntries .entry")).map(collectWifiEntryState),printerEntries:Array.from(document.querySelectorAll("#printerEntries .entry")).map(collectPrinterEntryState),phoneEntries:Array.from(document.querySelectorAll("#phoneEntries .entry")).map(collectPhoneEntryState),appEntries:Array.from(document.querySelectorAll("#appEntries .entry")).map(collectAppEntryState)};sessionStorage.setItem(DRAFT_STORAGE_KEY,JSON.stringify(t))}catch{}}function fillKeycardEntryState(t,e){const n=p=>t.querySelector(p);e.serves&&(n(".f-serves").value=e.serves);const a=n(".f-activate");a.checked=!!e.activate,n(".f-deactivate").checked=!!e.deactivate,n(".f-transfer").checked=!!e.transfer,n(".f-transfer-from").value=e.transferFrom||"",n(".f-transfer-to").value=e.transferTo||"",toggleKeycardAction(a),n(".f-hikcentral").checked=!!e.hikcentral,n(".f-unifi").checked=!!e.unifi;const s=n(".f-fee");s.checked=!!e.fee,n(".f-fee-desc").value=e.feeDesc||"",toggleFeeDescription(s),n(".f-company").value=e.company||"",n(".f-first").value=e.first||"",n(".f-last").value=e.last||"",n(".f-keycard").value=e.keycard||"",n(".f-email").value=e.email||"",n(".f-phone").value=formatPhone(e.phone||"")}function fillWifiEntryState(t,e){const n=p=>t.querySelector(p);n(".wf-create").checked=!!e.create;const a=n(".wf-troubleshoot");a.checked=!!e.troubleshoot,n(".wf-issue").value=e.issue||"",toggleWifiIssue(a);const s=n(".wf-deactivate");s.checked=!!e.deactivate,toggleWifiDeactivate(s),n(".wf-company").value=e.company||"",n(".wf-unit").value=e.unit||"",n(".wf-ap").value=e.ap||"",e.type&&(n(".wf-type").value=e.type),n(".wf-email").value=e.email||"",n(".wf-phone").value=formatPhone(e.phone||"")}function fillPrinterEntryState(t,e){const n=p=>t.querySelector(p);n(".pr-cubework").checked=!!e.cubework;const a=n(".pr-tenant");a.checked=!!e.tenant,togglePrinterServes(a),n(".pr-create").checked=!!e.create;const s=n(".pr-troubleshoot");s.checked=!!e.troubleshoot,n(".pr-issue").value=e.issue||"",togglePrinterIssue(s),n(".pr-company").value=e.company||"",n(".pr-unit").value=e.unit||"",n(".pr-model").value=e.model||"",e.type&&(n(".pr-type").value=e.type),n(".pr-email").value=e.email||"",n(".pr-phone").value=formatPhone(e.phone||"")}function fillPhoneEntryState(t,e){const n=s=>t.querySelector(s);n(".ph-create").checked=!!e.create;const a=n(".ph-troubleshoot");a.checked=!!e.troubleshoot,n(".ph-issue").value=e.issue||"",togglePhoneIssue(a),n(".ph-company").value=e.company||"",n(".ph-unit").value=e.unit||"",n(".ph-ext").value=e.ext||"",e.type&&(n(".ph-type").value=e.type),n(".ph-email").value=e.email||"",n(".ph-phone").value=formatPhone(e.phone||"")}function fillAppEntryState(t,e){const n=s=>t.querySelector(s);n(".ap-create").checked=!!e.create;const a=n(".ap-troubleshoot");a.checked=!!e.troubleshoot,n(".ap-issue").value=e.issue||"",toggleAppIssue(a),n(".ap-company").value=e.company||"",n(".ap-unit").value=e.unit||"",n(".ap-app").value=e.app||"",e.type&&(n(".ap-type").value=e.type),n(".ap-email").value=e.email||"",n(".ap-phone").value=formatPhone(e.phone||"")}function restoreDraftState(){isRestoringDraft=!0;let t=null;try{const e=sessionStorage.getItem(DRAFT_STORAGE_KEY);e&&(t=JSON.parse(e))}catch{t=null}t?.keycardEntries?.length?(document.getElementById("entries").innerHTML="",t.keycardEntries.forEach(()=>addEntry()),document.querySelectorAll("#entries .entry").forEach((e,n)=>fillKeycardEntryState(e,t.keycardEntries[n]))):addEntry(),t?.wifiEntries?.length?(document.getElementById("wifiEntries").innerHTML="",t.wifiEntries.forEach(()=>addWifiEntry()),document.querySelectorAll("#wifiEntries .entry").forEach((e,n)=>fillWifiEntryState(e,t.wifiEntries[n]))):addWifiEntry(),t?.printerEntries?.length?(document.getElementById("printerEntries").innerHTML="",t.printerEntries.forEach(()=>addPrinterEntry()),document.querySelectorAll("#printerEntries .entry").forEach((e,n)=>fillPrinterEntryState(e,t.printerEntries[n]))):addPrinterEntry(),t?.phoneEntries?.length?(document.getElementById("phoneEntries").innerHTML="",t.phoneEntries.forEach(()=>addPhoneEntry()),document.querySelectorAll("#phoneEntries .entry").forEach((e,n)=>fillPhoneEntryState(e,t.phoneEntries[n]))):addPhoneEntry(),t?.appEntries?.length?(document.getElementById("appEntries").innerHTML="",t.appEntries.forEach(()=>addAppEntry()),document.querySelectorAll("#appEntries .entry").forEach((e,n)=>fillAppEntryState(e,t.appEntries[n]))):addAppEntry(),t&&(locInput.value=t.location||"",requesterEmailInput.value=t.requesterEmail||"",t.accessValue&&(document.getElementById("accessSelect").value=t.accessValue),toggleAccessCustom(),t.accessCustom&&(document.getElementById("accessCustom").value=t.accessCustom),SIMPLE_MODES.includes(t.mode)&&switchMode(t.mode)),isRestoringDraft=!1,saveDraftState()}restoreDraftState(),document.addEventListener("input",saveDraftState),document.addEventListener("change",saveDraftState);
+</script>
+</body>
+</html>
