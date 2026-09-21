@@ -56,7 +56,21 @@ ${SIGNATURE_NOTICE}`,i=getSignatureBase64(t)?`<br><br><img src="cid:${signatureC
 // neither "yes" nor "no", so this was silently blocking every Preview and
 // every real Send for any Activate/Replacement entry. Removed outright,
 // same reasoning as the client-side removal.
-const i=["companyName","tenantName"];if(s.forEach((o,P)=>{const E=`Entry ${P+1}: `,W=entryKeycardAction(o);if(W==="requestcard"||W==="replacement"||isKeycardCubeworkHikTroubleshootEntry(e,o)||i.forEach(_=>{String(o[_]||"").trim()||n.push(`${E}fill in every field (missing: ${_}).`)}),W==="troubleshoot"&&!String(o.issue||"").trim()&&n.push(`${E}describe the issue, or switch off Troubleshoot.`),W==="transfer"&&(String(o.transferFrom||"").trim()||n.push(`${E}enter the Transfer From location.`),String(o.transferTo||"").trim()||n.push(`${E}enter the Transfer To location.`),(Array.isArray(o.transferExtraLocations)?o.transferExtraLocations:[]).forEach((lp,idx)=>{const hf=String(lp&&lp.from||"").trim(),ht=String(lp&&lp.to||"").trim();(hf||ht)&&!(hf&&ht)&&n.push(`${E}fill in both Transfer From and Transfer To for location ${idx+2}.`)}),(Array.isArray(o.transferExtraKeycards)?o.transferExtraKeycards:[]).forEach((kc,idx)=>{if(!kc)return;const has=kc.companyName||kc.tenantName||kc.keycard;has&&(String(kc.companyName||"").trim()||n.push(`${E}enter Company Name ${idx+2}.`),String(kc.tenantName||"").trim()||n.push(`${E}enter Tenant First and Last Name ${idx+2}.`),kc.keycard&&!/^\d{10}$/.test(String(kc.keycard).trim())&&n.push(`${E}Keycard Number ${idx+2} must be exactly 10 digits.`))})),W==="replacement"&&((o.replServesCubework||o.replServesUnis)&&(o.replServesHikcentral||o.replServesUnifi)&&(String(o.replCompanyName||"").trim()||n.push(`${E}enter the company name.`),String(o.replTenantName||"").trim()||n.push(`${E}enter the tenant name.`),(Array.isArray(o.replPairs)?o.replPairs:[]).filter(p=>String(p&&p.oldKeycard||"").trim()||String(p&&p.newKeycard||"").trim()).length||n.push(`${E}add at least one Old Keycard -> New Keycard pair.`),(Array.isArray(o.replPairs)?o.replPairs:[]).forEach(p=>{(String(p&&p.oldKeycard||"").trim()&&String(p&&p.newKeycard||"").trim())||n.push(`${E}fill in both the old and new keycard number for each Old Keycard -> New Keycard pair.`)}))),W==="requestcard"){String(o.location||"").trim()||n.push(`${E}enter a location.`);const _=String(o.quantity||"").trim(),H=Number(_);(!_||!Number.isInteger(H)||H<1||H>50)&&n.push(`${E}enter a keycard quantity between 1 and 50.`),String(o.managerEmail||"").trim()?EMAIL_RE.test(o.managerEmail)||n.push(`${E}enter a valid manager email.`):n.push(`${E}enter the manager's email.`)}o.keycard&&!/^\d{10}$/.test(String(o.keycard).trim())&&n.push(`${E}keycard number must be exactly 10 digits.`),o.phone&&!/^\d{10}$/.test(String(o.phone).replace(/\D/g,""))&&n.push(`${E}tenant phone must be exactly 10 digits.`),o.email&&!EMAIL_RE.test(o.email)&&n.push(`${E}enter a valid tenant email.`),o.replPhone&&!/^\d{10}$/.test(String(o.replPhone).replace(/\D/g,""))&&n.push(`${E}tenant phone must be exactly 10 digits.`),o.replEmail&&!EMAIL_RE.test(o.replEmail)&&n.push(`${E}enter a valid tenant email.`)}),n.length)return{ok:!1,problems:n};const l=t.locationBodyLine||t.locationText,d=t.locationSubjectName||t.locationText,h=entryKeycardAction(s[0]),firstNameOf=nm=>String(nm||"").trim().split(/\s+/)[0]||"",subjCompany=h==="replacement"?(s[0].replCompanyName||""):(e.licenseeCompanyName||""),subjFirst=h==="replacement"?firstNameOf(s[0].replTenantName):firstNameOf(s[0].tenantName),u=[subjCompany,subjFirst].filter(Boolean).join(" - ")||(isKeycardCubeworkHikTroubleshootEntry(e,s[0])?"HikCentral":""),A=h==="requestcard"?`${d} - Request Blank Keycard (${s[0].quantity})`:h==="replacement"?`${d} - Keycard Replacement${u?` - ${u}`:""}`:`${d} - Keycard ${h==="deactivate"?"De-Activate":h==="troubleshoot"?"Troubleshoot":h==="transfer"?"Transfer":"Activate"} - ${u}`,j=[e.hikcentral?"HikCentral":null,e.unifi?"Unifi":null].filter(Boolean).join(", "),L="%%CW_LINE_START%%",S="%%CW_LINE_END%%",w="%%CW_FROMTO_START%%",b="%%CW_FROMTO_END%%",
+const i=["companyName","tenantName"];if(s.forEach((o,P)=>{const E=`Entry ${P+1}: `,W=entryKeycardAction(o);if(W==="requestcard"||W==="replacement"||isKeycardCubeworkHikTroubleshootEntry(e,o)||i.forEach(_=>{String(o[_]||"").trim()||n.push(`${E}fill in every field (missing: ${_}).`)}),W==="troubleshoot"&&!String(o.issue||"").trim()&&n.push(`${E}describe the issue, or switch off Troubleshoot.`),W==="transfer"&&(String(o.transferFrom||"").trim()||n.push(`${E}enter the Transfer From location.`),String(o.transferTo||"").trim()||n.push(`${E}enter the Transfer To location.`),(Array.isArray(o.transferExtraLocations)?o.transferExtraLocations:[]).forEach((lp,idx)=>{const hf=String(lp&&lp.from||"").trim(),ht=String(lp&&lp.to||"").trim();(hf||ht)&&!(hf&&ht)&&n.push(`${E}fill in both Transfer From and Transfer To for location ${idx+2}.`)}),(Array.isArray(o.transferExtraKeycards)?o.transferExtraKeycards:[]).forEach((kc,idx)=>{if(!kc)return;const has=kc.companyName||kc.tenantName||kc.keycard;has&&(String(kc.companyName||"").trim()||n.push(`${E}enter Company Name ${idx+2}.`),String(kc.tenantName||"").trim()||n.push(`${E}enter Tenant First and Last Name ${idx+2}.`),kc.keycard&&!/^\d{10}$/.test(String(kc.keycard).trim())&&n.push(`${E}Keycard Number ${idx+2} must be exactly 10 digits.`))})),W==="replacement"&&((o.replServesCubework||o.replServesUnis)&&(o.replServesHikcentral||o.replServesUnifi)&&(String(o.replCompanyName||"").trim()||n.push(`${E}enter the company name.`),String(o.replTenantName||"").trim()||n.push(`${E}enter the tenant name.`),(Array.isArray(o.replPairs)?o.replPairs:[]).filter(p=>String(p&&p.oldKeycard||"").trim()||String(p&&p.newKeycard||"").trim()).length||n.push(`${E}add at least one Old Keycard -> New Keycard pair.`),(Array.isArray(o.replPairs)?o.replPairs:[]).forEach(p=>{(String(p&&p.oldKeycard||"").trim()&&String(p&&p.newKeycard||"").trim())||n.push(`${E}fill in both the old and new keycard number for each Old Keycard -> New Keycard pair.`)}))),W==="requestcard"){String(o.location||"").trim()||n.push(`${E}enter a location.`);const _=String(o.quantity||"").trim(),H=Number(_);(!_||!Number.isInteger(H)||H<1||H>50)&&n.push(`${E}enter a keycard quantity between 1 and 50.`),String(o.managerEmail||"").trim()?EMAIL_RE.test(o.managerEmail)||n.push(`${E}enter a valid manager email.`):n.push(`${E}enter the manager's email.`)}o.keycard&&!/^\d{10}$/.test(String(o.keycard).trim())&&n.push(`${E}keycard number must be exactly 10 digits.`),o.phone&&!/^\d{10}$/.test(String(o.phone).replace(/\D/g,""))&&n.push(`${E}tenant phone must be exactly 10 digits.`),o.email&&!EMAIL_RE.test(o.email)&&n.push(`${E}enter a valid tenant email.`),o.replPhone&&!/^\d{10}$/.test(String(o.replPhone).replace(/\D/g,""))&&n.push(`${E}tenant phone must be exactly 10 digits.`),o.replEmail&&!EMAIL_RE.test(o.replEmail)&&n.push(`${E}enter a valid tenant email.`)}),n.length)return{ok:!1,problems:n};const l=t.locationBodyLine||t.locationText,d=t.locationSubjectName||t.locationText,h=entryKeycardAction(s[0]),firstNameOf=nm=>String(nm||"").trim().split(/\s+/)[0]||"",subjCompany=h==="replacement"?(s[0].replCompanyName||""):(e.licenseeCompanyName||""),subjFirst=h==="replacement"?firstNameOf(s[0].replTenantName):firstNameOf(s[0].tenantName),u=[subjCompany,subjFirst].filter(Boolean).join(" - ")||(isKeycardCubeworkHikTroubleshootEntry(e,s[0])?"HikCentral":""),
+// Transfer's own Preview Email subject (2026-09-20, per Huy's request):
+// "[Start Location] - Keycard Transfer - [Tenant Company Name] - [Tenant
+// First and Last Name]" - Start Location is THIS entry's own Transfer From
+// field (transferLocLine() below, the same street+city helper the Transfer
+// body already uses for its "Location" block), never the shared/hidden
+// top-of-form Location field `d` (which stays whatever it last held, or
+// blank, since that field is hidden for an all-Transfer request - see
+// eraKeycardAllTransfer() in index.html) and never transferTo. Company/
+// Tenant reuse the same mode-level Company Name (e.licenseeCompanyName) and
+// full (not first-name-only) tenant name as the "Cubework - Company -
+// Tenant - Number" line below, instead of subjCompany/subjFirst above
+// (which truncate the tenant to a first name for every other action).
+transferSubjName=[String(e.licenseeCompanyName||"").trim(),String(s[0].tenantName||"").trim()].filter(Boolean).join(" - "),
+A=h==="requestcard"?`${d} - Request Blank Keycard (${s[0].quantity})`:h==="replacement"?`${d} - Keycard Replacement${u?` - ${u}`:""}`:h==="transfer"?`${transferLocLine(s[0].transferFrom)} - Keycard Transfer${transferSubjName?` - ${transferSubjName}`:""}`:`${d} - Keycard ${h==="deactivate"?"De-Activate":h==="troubleshoot"?"Troubleshoot":"Activate"} - ${u}`,j=[e.hikcentral?"HikCentral":null,e.unifi?"Unifi":null].filter(Boolean).join(", "),L="%%CW_LINE_START%%",S="%%CW_LINE_END%%",w="%%CW_FROMTO_START%%",b="%%CW_FROMTO_END%%",
 // Troubleshoot-only bold+red wrap (2026-09-05, per Huy's request): the
 // Serves/Company/Tenant/Keycard line, the "Access: >" line and the "Issue:"
 // line all render bold+red in the HTML body regardless of Serves (so it
@@ -199,7 +213,21 @@ function transferLocLine(addr){const parts=String(addr||"").split(",").map(x=>x.
 // existing/default formatting. Falls back to whichever single side is
 // present (no " > ") when only one of the two was filled in.
 function transferPairLine(from,to,wrap){const F=transferLocLine(from),T=transferLocLine(to),Tw=T&&wrap?`${TRNEWS}${T}${TRNEWE}`:T;return F&&T?`${F} > ${Tw}`:F||Tw}
-function transferKcLine(serves,companyCo,tenantNm,keycard,wrap){const namePart=tenantNm?(companyCo&&companyCo.toLowerCase()!==tenantNm.toLowerCase()?`${companyCo} - ${tenantNm}`:tenantNm):"",H=namePart?` - ${namePart}`:"",K=keycard?` - ${keycard}`:"",line=`${serves}${H}${K}`;return wrap?`${L}${line}${S}`:line}
+// Always show Company Name AND Tenant Name (2026-09-20, per Huy's request) -
+// this used to collapse to just one when they matched case-insensitively
+// (same shortcut every other action's namePart still uses, since their
+// entry-level companyName is only ever a mirror of tenantName - see the
+// "Per-entry ... line" comment above), which is exactly backwards for
+// Transfer: unlike Activate/Replacement/RequestCard, Transfer's Company
+// Name field (era-k-companyName-wrap) is NOT hidden/mirrored - it's shown
+// as its own genuinely distinct, directly-typed input (see the
+// era-k-companyName-wrap toggle in public/index.html, shown for
+// Deactivate/Troubleshoot/Transfer), so collapsing it with tenantNm
+// dropped the company whenever a tester (or a real request) happened to
+// enter the same text in both, e.g. "Cubework - def - 1234567890" instead
+// of "Cubework - Company - Tenant - 1234567890". Mirrors Troubleshoot's own
+// always-both namePart a few lines up.
+function transferKcLine(serves,companyCo,tenantNm,keycard,wrap){const namePart=[companyCo,tenantNm].filter(Boolean).join(" - "),H=namePart?` - ${namePart}`:"",K=keycard?` - ${keycard}`:"",line=`${serves}${H}${K}`;return wrap?`${L}${line}${S}`:line}
 // Rebuilt (2026-09-06, per Huy's request) to add a "Location" label above
 // every Transfer From/To location entered (flattened across every entry,
 // each pulled down to street+city via transferLocLine() above - no more
@@ -211,14 +239,23 @@ function transferKcLine(serves,companyCo,tenantNm,keycard,wrap){const namePart=t
 // entry's note filled in). Fee checkbox handling is untouched - see
 // feeCcTrigger/transferFeeCount above, unaffected by this function.
 function buildTransferFlat(P){
-  const locLines=[],kcLines=[],notesLines=[],licenseeCoOuter=String(e.licenseeCompanyName||"").trim();
+  const locLines=[],kcLines=[],notesLines=[];
   s.forEach(o=>{
     [{from:o.transferFrom,to:o.transferTo}].concat(Array.isArray(o.transferExtraLocations)?o.transferExtraLocations:[]).forEach(lp=>{
       if(!lp)return;
       const line=transferPairLine(lp.from,lp.to,P);
       line&&locLines.push(line);
     });
-    kcLines.push(transferKcLine(e.serves,licenseeCoOuter,String(o.tenantName||"").trim(),o.keycard,P));
+    // Line 1's own Company Name field (o.companyName, era-k-companyName)
+    // was being ignored here in favor of the unrelated mode-level "Deal &
+    // Licensee" card's Company Name (e.licenseeCompanyName, era_k_
+    // licenseeCompanyName - only meant to pre-fill the Keycard Form PDF) -
+    // 2026-09-21 bug report: a real Transfer submission with Company Name
+    // filled in showed just "Cubework - <tenant> - <keycard>" with no
+    // company, because that PDF field was (correctly) left blank. Extra
+    // keycard groups never had this bug - they already read their own
+    // k.companyName at the forEach below.
+    kcLines.push(transferKcLine(e.serves,String(o.companyName||"").trim(),String(o.tenantName||"").trim(),o.keycard,P));
     (Array.isArray(o.transferExtraKeycards)?o.transferExtraKeycards:[]).forEach(k=>{
       k&&(k.companyName||k.tenantName||k.keycard)&&kcLines.push(transferKcLine(e.serves,k.companyName,k.tenantName,k.keycard,P));
     });
