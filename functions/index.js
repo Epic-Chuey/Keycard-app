@@ -1201,6 +1201,23 @@ exports.submitSignatureRequest = onRequest({ timeoutSeconds: 60 }, async (req, r
       // (2026-09-20 pass) - falls back to just the signer's typed name if
       // neither companyName nor tenantName was on file for this request.
       const signedByLabel = [d.companyName, d.tenantName].filter(Boolean).join(" - ") || signerName;
+      // Keycard Number must come from the SAME authoritative source as the
+      // signed PDF itself (pdfInputs.fieldValues, built off the LIVE
+      // keycardRequestHistory doc by buildSigningPdfInputsFromHistory above)
+      // rather than d.fieldValues - the narrow snapshot captured back when
+      // the signature request was first sent, which goes stale if the card
+      // was edited in the meantime. cardNumber is re-derived from
+      // d.targetField the same way buildSigningPdfInputsFromHistory does,
+      // since d never stored it as its own field. Falls back to the stale
+      // snapshot only when the live lookup didn't have it (deleted history
+      // record, older non-History-linked request).
+      const notifyCardMatch = /^card([1-7])_signature$/.exec(d.targetField || "");
+      const notifyCardNumber = notifyCardMatch ? notifyCardMatch[1] : "";
+      const keycardNumber =
+        (notifyCardNumber &&
+          ((pdfInputs.fieldValues && pdfInputs.fieldValues["card" + notifyCardNumber + "_keycard_number"]) ||
+            (d.fieldValues && d.fieldValues["card" + notifyCardNumber + "_keycard_number"]))) ||
+        "";
       await sendPlainHtmlEmail(graphClient, {
         toEmail: d.createdBy,
         subject: "Signed: Cubework Keycard Form" + (d.tenantName ? " — " + escapeHtmlForEmail(d.tenantName) : ""),
@@ -1208,7 +1225,9 @@ exports.submitSignatureRequest = onRequest({ timeoutSeconds: 60 }, async (req, r
           `<p>${escapeHtmlForEmail(signedByLabel)} just signed the Keycard Authorization Form${
             d.locationText ? " for " + escapeHtmlForEmail(d.locationText) : ""
           }.</p>` +
-          `<p>Open the CW Email Request Tab, click on Submission, click on Edit, and ensure the Signature and Photo ID are attached.</p>`,
+          `<p>Keycard Number: ${keycardNumber ? escapeHtmlForEmail(keycardNumber) : "N/A"}</p>` +
+          `<p>Open the CW Email Request Tab, click on Submission, click on Edit, and ensure the Signature and Photo ID are attached.</p>` +
+          `<p><a href="${PUBLIC_APP_ORIGIN}/">Open CW Email Request</a></p>`,
       });
     } catch (notifyErr) {
       console.error("submitSignatureRequest: staff notification email failed (signature still saved):", notifyErr);
