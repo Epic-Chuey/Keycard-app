@@ -481,7 +481,7 @@ ${u}`;let j=esc(Am).replace(/\n/g,"<br>");j=j.split(LOC.START).join('<span style
 // era_lt_remove addition below - no field group of its own (falls through
 // to the same "no dedicated fields" default every other unlisted action
 // already gets, same as Replacement/Activate), just its own label/greeting.
-const PHONE_ACTION_LABELS={create:"New Phone Line",troubleshoot:"Troubleshoot",replacement:"Replacement",activate:"Activate",remove:"Remove"};
+const PHONE_ACTION_LABELS={create:"New Phone Line",troubleshoot:"Troubleshoot",replacement:"Replacement",activate:"Activate",remove:"Remove",accesshikcentral:"Access HikCentral",accessunifi:"Access Unifi",accessappcw:"Access App.CW.Com"};
 // Phone subject line (2026-09-10, per Huy's request) - the Preview/sent
 // subject needs just the street + city, no state/zip/extra text. Whatever
 // address string it's fed (the shared top-of-card locationSubjectName,
@@ -507,7 +507,7 @@ function buildPhone(t){const e=t.fields||{},n=[];const s=Array.isArray(e.entries
 `:""),b=s.map(c=>{const f=[`Type: ${PHONE_ACTION_LABELS[c.action]}`];if(c.location&&f.push(`Location: ${c.location}`),c.action==="create"){const r=[c.tempAgent?"Temp Agent":null,c.directHire?"Direct Hire":null].filter(Boolean).join(", ");c.personName&&f.push(`Person: ${c.personName}`),c.title&&f.push(`Title: ${c.title}`),c.employeeId&&f.push(`Employee ID: ${c.employeeId}`),r&&f.push(`Employment: ${r}`),c.responsibilities&&f.push(`Responsibilities: ${c.responsibilities}`),c.managerEmail&&f.push(`Report to Manager: ${c.managerEmail}`)}return c.action==="troubleshoot"&&(c.phoneTag&&f.push(`Phone Tag: ${c.phoneTag}`),f.push(`User: ${c.userFirstName} ${c.userLastName}`.trim()),c.userPhone&&f.push(`User Phone: ${formatPhoneForDisplay(c.userPhone)}`),f.push(`Issue: ${c.issue}`)),c.notes&&f.push(`Notes: ${c.notes}`),f.join(`
 `)}).join(`
 
-`),greeting=actionsPresent.length>1?"Please process the phone request(s) below:":{create:"Please set up phone:",troubleshoot:"Please help troubleshoot phone:",replacement:"Please process the phone replacement(s) below:",activate:"Please activate the phone line(s) below:",remove:"Please remove the phone line(s) below:"}[actionsPresent[0]]||"Please process the phone request below:",N=`Hello Team,
+`),greeting=actionsPresent.length>1?"Please process the phone request(s) below:":{create:"Please set up phone:",troubleshoot:"Please help troubleshoot phone:",replacement:"Please process the phone replacement(s) below:",activate:"Please activate the phone line(s) below:",remove:"Please remove the phone line(s) below:",accesshikcentral:"Please set up HikCentral access for the phone line(s) below:",accessunifi:"Please set up Unifi access for the phone line(s) below:",accessappcw:"Please set up App.CW.Com access for the phone line(s) below:"}[actionsPresent[0]]||"Please process the phone request below:",N=`Hello Team,
 
 ${greeting}
 
@@ -525,7 +525,14 @@ ${b}`;let B=esc(Nm).replace(/\n/g,"<br>");B=B.split(LOC.START).join('<span style
 // same "no extra required fields" minimal shape Phone's own Replacement/
 // Activate/Remove actions already use, so no new validation branch is
 // needed below - only the subject/Request line/greeting need a rem case.
-rem=!!e.remove;if(s.forEach((r,g)=>{const p=`Entry ${g+1}: `;String(r.location||"").trim()||n.push(`${p}enter a location.`),String(r.employeeName||"").trim()||n.push(`${p}enter the employee name.`),a&&(String(r.jobTitle||"").trim()||n.push(`${p}select a job title.`),String(r.managerEmail||"").trim()?EMAIL_RE.test(r.managerEmail)||n.push(`${p}enter a valid manager email.`):n.push(`${p}enter the reporting manager's email.`)),r.email&&!EMAIL_RE.test(r.email)&&n.push(`${p}enter a valid email.`)}),i&&!String(e.issue||"").trim()&&n.push("Describe the issue, or untick Troubleshoot."),a&&(!Array.isArray(t.attachments)||t.attachments.length===0)&&n.push("Attach the IT Form for this Laptop request before submitting."),!1)return{ok:!1,problems:n};const l=t.locationBodyLine||t.locationText,LOC=buildLocationLines(l,t.extraLocationBodyLines),
+rem=!!e.remove,
+// ah/au/aa (2026-09-21, per Huy's request): Access HikCentral/Unifi/
+// App.CW.Com are a 4th/5th/6th mutually-exclusive pick alongside New
+// Laptop/Troubleshoot/Remove (era_lt_accessHikcentral/accessUnifi/accessAppcw
+// on the client) - same "no extra required fields" minimal shape Remove
+// already uses, so no new validation branch is needed below either - only
+// the subject/Request line/greeting need a case for each.
+ah=!!e.accessHikcentral,au=!!e.accessUnifi,aa=!!e.accessAppcw;if(s.forEach((r,g)=>{const p=`Entry ${g+1}: `;String(r.location||"").trim()||n.push(`${p}enter a location.`),String(r.employeeName||"").trim()||n.push(`${p}enter the employee name.`),a&&(String(r.jobTitle||"").trim()||n.push(`${p}select a job title.`),String(r.managerEmail||"").trim()?EMAIL_RE.test(r.managerEmail)||n.push(`${p}enter a valid manager email.`):n.push(`${p}enter the reporting manager's email.`)),r.email&&!EMAIL_RE.test(r.email)&&n.push(`${p}enter a valid email.`)}),i&&!String(e.issue||"").trim()&&n.push("Describe the issue, or untick Troubleshoot."),a&&(!Array.isArray(t.attachments)||t.attachments.length===0)&&n.push("Attach the IT Form for this Laptop request before submitting."),!1)return{ok:!1,problems:n};const l=t.locationBodyLine||t.locationText,LOC=buildLocationLines(l,t.extraLocationBodyLines),
 // Laptop subject line (2026-09-10, per Huy's request) - same bug/fix as
 // Phone's own subject (see locationWithoutState()/buildPhone() above):
 // pull Location from the entry's own per-entry field first (falls back to
@@ -534,9 +541,9 @@ rem=!!e.remove;if(s.forEach((r,g)=>{const p=`Entry ${g+1}: `;String(r.location||
 // mirrors Phone's Title-on-create-only rule) so the subject reads
 // "<street+city> - <Request> - <Title> - <Employee Name>" - e.g.
 // "218 Machlin Ct Walnut - New Laptop - Property Management - Baby Boo".
-LAPTOP_ACTION_LABEL=a?"New Laptop":i?"Troubleshoot":rem?"Remove":"New Laptop",
+LAPTOP_ACTION_LABEL=a?"New Laptop":i?"Troubleshoot":rem?"Remove":ah?"Access HikCentral":au?"Access Unifi":aa?"Access App.CW.Com":"New Laptop",
 u=[locationWithoutState(String(s[0].location||"").trim()||(t.locationSubjectName||t.locationText)),LAPTOP_ACTION_LABEL,a?String(s[0].jobTitle||"").trim():"",s[0].employeeName].filter(p=>p&&String(p).trim()).join(" - "),
-y=[a?"New Laptop":null,i?"Troubleshoot":null,rem?"Remove":null].filter(Boolean).join(", ");let A=`Serves: Cubework
+y=[a?"New Laptop":null,i?"Troubleshoot":null,rem?"Remove":null,ah?"Access HikCentral":null,au?"Access Unifi":null,aa?"Access App.CW.Com":null].filter(Boolean).join(", ");let A=`Serves: Cubework
 `;y&&(A+=`Request: ${y}
 `),i&&e.issue&&(A+=`Issue: ${e.issue}
 `);const j="%%CW_ISSUE_START%%",L="%%CW_ISSUE_END%%";let S=`Serves: Cubework
@@ -545,7 +552,7 @@ y=[a?"New Laptop":null,i?"Troubleshoot":null,rem?"Remove":null].filter(Boolean).
 `);const w=i?" or CW":"",v=s.map(r=>{const g=[`Location: ${r.location}`];return a&&r.jobTitle&&g.push(`Job Title: ${r.jobTitle}`),i&&r.sbn&&g.push(`Laptop SBN#: ${r.sbn}`),g.push(`Employee Name: ${r.employeeName}`),r.employeeId&&g.push(`Employee ID: ${r.employeeId}`),a&&r.managerEmail&&g.push(`Report to Manager: ${r.managerEmail}`),r.email&&g.push(`Employee Personal Email${w}: ${r.email}`),r.phone&&g.push(`Employee Personal Phone${w}: ${formatPhoneForDisplay(r.phone)}`),g.join(`
 `)}).join(`
 
-`),N=a?"Please set up laptop:":i?"Please help troubleshoot laptop:":rem?"Please remove the laptop(s) below:":"Please process the laptop request below:",
+`),N=a?"Please set up laptop:":i?"Please help troubleshoot laptop:":rem?"Please remove the laptop(s) below:":ah?"Please set up HikCentral access for the laptop(s) below:":au?"Please set up Unifi access for the laptop(s) below:":aa?"Please setup App.CW.Com access for the laptop(s) below:":"Please process the laptop request below:",
 // Bold+red "Please set up laptop"/"Please help troubleshoot laptop" greeting
 // (2026-09-10, per Huy's request; extended same day, second pass, to also
 // cover Troubleshoot) - same %%...START/END%% sentinel-swap technique
@@ -553,7 +560,13 @@ y=[a?"New Laptop":null,i?"Troubleshoot":null,rem?"Remove":null].filter(Boolean).
 // create greeting already use; fires for New Laptop and Troubleshoot,
 // Remove/generic greetings are untouched. Own sentinel names (not j/L,
 // already used above for the Issue block) so the two swaps don't collide.
-LTG_START="%%CW_LTG_START%%",LTG_END="%%CW_LTG_END%%",
+// Bold+BLUE "Please setup App.CW.Com access" greeting (2026-09-21, per Huy's
+// request, Software > Access App.CW.Com spec item 5): same sentinel-swap
+// technique, own LTGB_* names/color so it doesn't collide with LTG's red -
+// fires only for Access App.CW.Com (aa), same "descriptive text included in
+// the Preview/Submission output" the form's own era_lt_appcwNote text
+// mirrors (public/index.html).
+LTG_START="%%CW_LTG_START%%",LTG_END="%%CW_LTG_END%%",LTGB_START="%%CW_LTGB_START%%",LTGB_END="%%CW_LTGB_END%%",
 B=`Hello Team,
 
 ${N}
@@ -562,11 +575,11 @@ ${LOC.plain}
 ${A}
 ${v}`,C=`Hello Team,
 
-${a||i?`${LTG_START}${N}${LTG_END}`:N}
+${a||i?`${LTG_START}${N}${LTG_END}`:aa?`${LTGB_START}${N}${LTGB_END}`:N}
 
 ${LOC.marked}
 ${S}
-${v}`;let k=esc(C).replace(/\n/g,"<br>");k=k.split(j).join('<span style="color:#dc2626;font-weight:700;">').split(L).join("</span>");k=k.split(LOC.START).join('<span style="color:#dc2626;font-weight:700;">').split(LOC.END).join("</span>");k=k.split(LTG_START).join('<span style="color:#dc2626;font-weight:700;">').split(LTG_END).join("</span>");const R=CC_EMAILS_LAPTOP.map((r,g)=>({name:CC_NAMES_LAPTOP[g],email:r})).concat([{name:null,email:t.requesterEmail}]).concat(a?collectDistinctEmails(s,"managerEmail"):[]),c=[{name:TO_NAME,email:TO_EMAIL}],f=appendSignature("laptop",B,k);return{ok:!0,subject:u,textBody:f.body,htmlBody:f.htmlBody,toRecipients:c,ccRecipients:R,mode:"laptop"}}function buildEmailRequest(t){const e=[],n=(t.requesterEmail||"").trim(),
+${v}`;let k=esc(C).replace(/\n/g,"<br>");k=k.split(j).join('<span style="color:#dc2626;font-weight:700;">').split(L).join("</span>");k=k.split(LOC.START).join('<span style="color:#dc2626;font-weight:700;">').split(LOC.END).join("</span>");k=k.split(LTG_START).join('<span style="color:#dc2626;font-weight:700;">').split(LTG_END).join("</span>");k=k.split(LTGB_START).join('<span style="color:#2563eb;font-weight:700;">').split(LTGB_END).join("</span>");const R=CC_EMAILS_LAPTOP.map((r,g)=>({name:CC_NAMES_LAPTOP[g],email:r})).concat([{name:null,email:t.requesterEmail}]).concat(a?collectDistinctEmails(s,"managerEmail"):[]),c=[{name:TO_NAME,email:TO_EMAIL}],f=appendSignature("laptop",B,k);return{ok:!0,subject:u,textBody:f.body,htmlBody:f.htmlBody,toRecipients:c,ccRecipients:R,mode:"laptop"}}function buildEmailRequest(t){const e=[],n=(t.requesterEmail||"").trim(),
 // requesterEmail is only required where the client actually shows a "your
 // email" field for it - Keycard's era_requesterEmailLocal, Phone's
 // era_ph_yourEmail, Laptop's era_lt_yourEmail (eraSyncYourEmailGroupVisibility(),

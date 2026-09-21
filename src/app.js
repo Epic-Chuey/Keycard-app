@@ -1117,8 +1117,8 @@ const ERA_TREE = {
       CUBEWORK: {
         label: "Cubework",
         children: {
-          LAPTOP: { label: "Laptop", children: { NEW_INSTALL: "New Install", TROUBLESHOOT: "Troubleshoot", REMOVE: "Remove" } },
-          PHONE: { label: "Phone", children: { NEW_INSTALL: "New Install", TROUBLESHOOT: "Troubleshoot", REMOVE: "Remove" } },
+          LAPTOP: { label: "Laptop", children: { NEW_INSTALL: "New Install", TROUBLESHOOT: "Troubleshoot", REMOVE: "Remove", ACCESS_HIKCENTRAL: "Access HikCentral", ACCESS_UNIFI: "Access Unifi", ACCESS_APP_CW: "Access App.CW.Com" } },
+          PHONE: { label: "Phone", children: { NEW_INSTALL: "New Install", TROUBLESHOOT: "Troubleshoot", REMOVE: "Remove", ACCESS_HIKCENTRAL: "Access HikCentral", ACCESS_UNIFI: "Access Unifi", ACCESS_APP_CW: "Access App.CW.Com" } },
         },
       },
       UNIS: {

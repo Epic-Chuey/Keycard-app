@@ -60,8 +60,8 @@ const ERA_TREE={
   }},
   SOFTWARE:{label:"Software",children:{
     CUBEWORK:{label:"Cubework",children:{
-      LAPTOP:{label:"Laptop",children:{NEW_INSTALL:"New Install",TROUBLESHOOT:"Troubleshoot",REMOVE:"Remove"}},
-      PHONE:{label:"Phone",children:{NEW_INSTALL:"New Install",TROUBLESHOOT:"Troubleshoot",REMOVE:"Remove"}},
+      LAPTOP:{label:"Laptop",children:{NEW_INSTALL:"New Install",TROUBLESHOOT:"Troubleshoot",REMOVE:"Remove",ACCESS_HIKCENTRAL:"Access HikCentral",ACCESS_UNIFI:"Access Unifi",ACCESS_APP_CW:"Access App.CW.Com"}},
+      PHONE:{label:"Phone",children:{NEW_INSTALL:"New Install",TROUBLESHOOT:"Troubleshoot",REMOVE:"Remove",ACCESS_HIKCENTRAL:"Access HikCentral",ACCESS_UNIFI:"Access Unifi",ACCESS_APP_CW:"Access App.CW.Com"}},
     }},
     UNIS:{label:"Unis",children:{
       LAPTOP:{label:"Laptop",children:{NEW_INSTALL:"New Install",TROUBLESHOOT:"Troubleshoot",REMOVE:"Remove"}},
@@ -102,12 +102,15 @@ function sanitizeEraPermissions(t){return Array.isArray(t)?[...new Set(t.filter(
 // case null.
 function eraHasLeaf(grantedLeaves,leafId){return grantedLeaves.includes(leafId)}
 function eraHasAnyLeafUnder(grantedLeaves,pathPrefix){return grantedLeaves.some(leaf=>leaf===pathPrefix||leaf.startsWith(pathPrefix+"."))}
-// True only if EVERY leaf under pathPrefix is granted - used where an
-// unmapped action (no single corresponding ERA_TREE leaf) must not be
-// satisfied by holding just one narrower leaf under that branch, which
-// would grant broader access than what was actually checked on the Access
-// Page (see requireEraAccess's Phone "replacement"/"activate" handling).
-function eraHasAllLeavesUnder(grantedLeaves,pathPrefix){const leaves=eraLeavesUnder(pathPrefix);return leaves.length>0&&leaves.every(leaf=>grantedLeaves.includes(leaf))}
+// The 3 original Software>Phone leaf keys (pre-2026-09-21, before the Access
+// HikCentral/Unifi/App.CW.Com addition) - requireEraAccess's Phone
+// "replacement"/"activate" fallback (no 1:1 ERA_TREE leaf for either) checks
+// that ALL of these 3 are granted under one serves branch, since holding
+// just one narrower Phone leaf would grant broader access than what was
+// actually checked on the Access Page. Deliberately scoped to just these 3
+// (not the 3 newer Access leaves too), so adding those doesn't retroactively
+// tighten what Replacement/Activate already required.
+const PHONE_UNMAPPED_FALLBACK_LEAF_KEYS=["NEW_INSTALL","TROUBLESHOOT","REMOVE"];
 
 // One-time-migration + read-time-fallback mapping from the legacy flat
 // eraModes/eraKeycardActions/eraHardwareCategories fields to the new nested
@@ -1734,23 +1737,29 @@ exports.migrateAccessControlPermissions=onCall({timeoutSeconds:120},async t=>{
 //    from fields.serves + create/troubleshoot/deactivate (GENERIC_CONFIG.
 //    electrical's hasPlainServes/hasDeactivateToggle).
 //  - laptop: SOFTWARE.<CUBEWORK|UNIS>.LAPTOP.<NEW_INSTALL|TROUBLESHOOT|
-//    REMOVE> from fields.serves + create/troubleshoot/remove, OR
-//    HARDWARE.LAPTOP_PHONE.LAPTOP - either menu path (Software's own
+//    REMOVE|ACCESS_HIKCENTRAL|ACCESS_UNIFI|ACCESS_APP_CW> from fields.serves
+//    + create/troubleshoot/remove/accessHikcentral/accessUnifi/accessAppcw,
+//    OR HARDWARE.LAPTOP_PHONE.LAPTOP - either menu path (Software's own
 //    cascade, or Hardware > Laptop/Phone > Laptop) unlocks this one real
 //    backend action, per the plan's explicit dual-location design.
 //  - phone: same OR shape, phone leaves, from each entry's own `action`
 //    field (buildPhone/PHONE_ACTION_LABELS). NOTE: PHONE_ACTION_LABELS has
-//    5 actions (create/troubleshoot/replacement/activate/remove) but
-//    ERA_TREE's Software>Phone branch only has 3 leaves (NEW_INSTALL/
-//    TROUBLESHOOT/REMOVE) - a gap in the tree itself, not this enforcement.
+//    8 actions (create/troubleshoot/replacement/activate/remove/
+//    accesshikcentral/accessunifi/accessappcw) but ERA_TREE's Software>Phone
+//    branch has no leaf for "replacement"/"activate" - a gap in the tree
+//    itself, not this enforcement (the 3 Access actions DO each have their
+//    own leaf, added 2026-09-21 alongside NEW_INSTALL/TROUBLESHOOT/REMOVE).
 //    "replacement"/"activate" have no single corresponding leaf, so holding
 //    just one narrower Phone leaf (e.g. only NEW_INSTALL) must NOT be
 //    enough - that would grant broader access than what was actually
-//    checked on the Access Page. These two require ALL THREE Phone leaves
-//    under one serves branch (eraHasAllLeavesUnder) instead, or the
-//    coarser HARDWARE.LAPTOP_PHONE.PHONE leaf; flagged in this rebuild's
-//    own report as needing a tree decision (add REPLACEMENT/ACTIVATE
-//    leaves, or fold them into an existing one) from Huy.
+//    checked on the Access Page. These two require ALL THREE of the
+//    original Phone leaves under one serves branch instead (see
+//    PHONE_UNMAPPED_FALLBACK_LEAF_KEYS - deliberately not the 3 newer
+//    Access leaves too, so this fallback isn't retroactively tightened by
+//    adding them), or the coarser HARDWARE.LAPTOP_PHONE.PHONE leaf; flagged
+//    in the original rebuild's own report as needing a tree decision (add
+//    REPLACEMENT/ACTIVATE leaves, or fold them into an existing one) from
+//    Huy - still open.
 //  - printer: HARDWARE.PRINTER.<CUBEWORK|TENANT>.<SETUP_NEW_PRINTER|
 //    NEW_REPLACE_PRINTER|TROUBLESHOOT> from fields.cubework/tenant +
 //    create/troubleshoot/newreplace (GENERIC_CONFIG.printer's hasServes).
@@ -1795,7 +1804,7 @@ async function requireEraAccess(t,e){
   }
   if(mode==="laptop"){
     const serves=fields.serves==="Unis"?"UNIS":"CUBEWORK";
-    const action=fields.create?"NEW_INSTALL":fields.troubleshoot?"TROUBLESHOOT":fields.remove?"REMOVE":null;
+    const action=fields.create?"NEW_INSTALL":fields.troubleshoot?"TROUBLESHOOT":fields.remove?"REMOVE":fields.accessHikcentral?"ACCESS_HIKCENTRAL":fields.accessUnifi?"ACCESS_UNIFI":fields.accessAppcw?"ACCESS_APP_CW":null;
     const softwareOk=action&&eraHasLeaf(granted,`SOFTWARE.${serves}.LAPTOP.${action}`);
     if(!softwareOk&&!eraHasLeaf(granted,"HARDWARE.LAPTOP_PHONE.LAPTOP"))deny();
     return;
@@ -1804,20 +1813,25 @@ async function requireEraAccess(t,e){
     const entries=Array.isArray(fields.entries)?fields.entries:[];
     for(const entry of entries){
       const act=entry&&entry.action;
-      const action=act==="create"?"NEW_INSTALL":act==="troubleshoot"?"TROUBLESHOOT":act==="remove"?"REMOVE":null;
-      // PHONE_ACTION_LABELS (functions/emailRequest.js) has 5 real,
+      const action=act==="create"?"NEW_INSTALL":act==="troubleshoot"?"TROUBLESHOOT":act==="remove"?"REMOVE":act==="accesshikcentral"?"ACCESS_HIKCENTRAL":act==="accessunifi"?"ACCESS_UNIFI":act==="accessappcw"?"ACCESS_APP_CW":null;
+      // PHONE_ACTION_LABELS (functions/emailRequest.js) has 8 real,
       // submittable actions - create/troubleshoot/replacement/activate/
-      // remove - but ERA_TREE's Software>Phone branch only has the 3 the
-      // task's spec calls for (NEW_INSTALL/TROUBLESHOOT/REMOVE). For
-      // "replacement"/"activate" (action stays null above), there is no
-      // single corresponding leaf - requiring just ANY one Phone leaf (e.g.
-      // only NEW_INSTALL) would grant broader access than what was actually
-      // checked on the Access Page, so this requires ALL THREE Phone leaves
-      // under one serves branch instead (or the coarser
-      // HARDWARE.LAPTOP_PHONE.PHONE leaf, same as the mapped-action case).
+      // remove/accesshikcentral/accessunifi/accessappcw - but ERA_TREE's
+      // Software>Phone branch has no leaf for "replacement"/"activate"
+      // (action stays null above; the 3 Access actions above DO each have
+      // their own leaf, same as create/troubleshoot/remove). For
+      // "replacement"/"activate", there is no single corresponding leaf -
+      // requiring just ANY one Phone leaf (e.g. only NEW_INSTALL) would
+      // grant broader access than what was actually checked on the Access
+      // Page, so this requires ALL of the three ORIGINAL Phone leaves under
+      // one serves branch instead (or the coarser HARDWARE.LAPTOP_PHONE.PHONE
+      // leaf, same as the mapped-action case) - deliberately NOT the 3 new
+      // Access leaves too, so a user granted only New Install/Troubleshoot/
+      // Remove (not any Access leaf) keeps their existing Replacement/
+      // Activate access unchanged by this addition.
       const softwareOk=action
         ? (eraHasLeaf(granted,`SOFTWARE.CUBEWORK.PHONE.${action}`)||eraHasLeaf(granted,`SOFTWARE.UNIS.PHONE.${action}`))
-        : (eraHasAllLeavesUnder(granted,"SOFTWARE.CUBEWORK.PHONE")||eraHasAllLeavesUnder(granted,"SOFTWARE.UNIS.PHONE"));
+        : (PHONE_UNMAPPED_FALLBACK_LEAF_KEYS.every(k=>eraHasLeaf(granted,`SOFTWARE.CUBEWORK.PHONE.${k}`))||PHONE_UNMAPPED_FALLBACK_LEAF_KEYS.every(k=>eraHasLeaf(granted,`SOFTWARE.UNIS.PHONE.${k}`)));
       if(!softwareOk&&!eraHasLeaf(granted,"HARDWARE.LAPTOP_PHONE.PHONE"))deny();
     }
     return;
