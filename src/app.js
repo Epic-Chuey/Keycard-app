@@ -170,6 +170,51 @@ function initThemeToggle() {
 }
 initThemeToggle();
 
+// Sidebar collapse/expand (2026-09-22, per Huy's request) - lets the left
+// nav shrink to the same icon-only rail the narrow @media(max-width:640px)
+// breakpoint already uses, but toggled manually (body.sidebar-manual-
+// collapsed, see index.html's CSS block) so the content area can claim the
+// freed-up width on any screen size, not just narrow ones. Persisted in
+// localStorage so the choice survives a reload.
+const SIDEBAR_COLLAPSE_STORAGE_KEY = "cw_sidebar_collapsed";
+
+function applySidebarCollapsed(collapsed) {
+  document.body.classList.toggle("sidebar-manual-collapsed", collapsed);
+  const btn = document.getElementById("sidebarToggleBtn");
+  if (btn) {
+    // The arrow inside #sidebarToggleBtn's svg flips via a pure-CSS rule
+    // keyed off this same aria-pressed attribute (see
+    // .sidebar-toggle-fab[aria-pressed="true"] in index.html) - no separate
+    // icon-swap needed here.
+    btn.setAttribute("aria-pressed", String(collapsed));
+    btn.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
+    btn.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
+  }
+}
+
+function initSidebarCollapse() {
+  let initial = false;
+  try {
+    initial = localStorage.getItem(SIDEBAR_COLLAPSE_STORAGE_KEY) === "1";
+  } catch (e) {
+    // localStorage unavailable - just start expanded.
+  }
+  applySidebarCollapsed(initial);
+  const btn = document.getElementById("sidebarToggleBtn");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    const next = !document.body.classList.contains("sidebar-manual-collapsed");
+    applySidebarCollapsed(next);
+    try {
+      localStorage.setItem(SIDEBAR_COLLAPSE_STORAGE_KEY, next ? "1" : "0");
+    } catch (e) {
+      // localStorage unavailable - the toggle still works for the rest of
+      // this session, it just won't persist across reloads.
+    }
+  });
+}
+initSidebarCollapse();
+
 // Email OTP sign-in (2026-08-27) - a second, self-service way in alongside
 // the Microsoft popup above, for anyone without (or who'd rather not use)
 // the 365 popup: type a @cubework.com address, get a 6-digit code by email,
@@ -330,54 +375,12 @@ async function resolveAttachmentUrl(path) {
 
 const signInScreen = document.getElementById("signInScreen");
 const appScreen = document.getElementById("app");
-const headerEl = document.querySelector("header");
 
-// Keeps a --header-h CSS custom property in sync with the real, rendered
-// height of the sticky top header, so #roadmapControlsRow (Planning/Active/
-// .../List/Timeline/All states, on Roadmap) can stick directly under it -
-// see the position:sticky rule using var(--header-h) in index.html - instead
-// of a hardcoded guess that'd drift if the header ever wraps to two lines
-// (long email address, narrow window, etc.).
-function syncHeaderHeightVar() {
-  if (!headerEl) return;
-  document.documentElement.style.setProperty("--header-h", `${headerEl.offsetHeight}px`);
-}
-syncHeaderHeightVar();
-window.addEventListener("resize", syncHeaderHeightVar);
-if (headerEl && "ResizeObserver" in window) {
-  new ResizeObserver(syncHeaderHeightVar).observe(headerEl);
-}
-// Targets the text-only span inside the h1, not the h1 itself - the h1 also
-// holds the Cubework logo mark (an <svg>), and setting .textContent directly
-// on the h1 would silently wipe that svg out every time the header text
-// changes (on load and on every tab switch).
-// Random header slogan (2026-09-03, per Huy's request: "a new random slogan
-// each time a staff member loads or refreshes the page"). Runs once at
-// module load (this file is loaded as a <script type="module">, so it
-// naturally executes exactly once per page load/refresh, no DOMContentLoaded
-// needed) and just picks one entry - no persistence, no rotation logic, so a
-// refresh a second later can land on the same one again by chance, same as
-// any other "random on load" pick.
-const APP_SLOGANS = [
-  "Keeping Cubework moving, one ticket at a time.",
-  "Access granted. Chaos avoided.",
-  "Behind every badge, a helpdesk that cares.",
-  "New hires in, issues out.",
-  "Small requests, fast fixes.",
-  "The keys to the building start here.",
-  "Every door has a story. We track them all.",
-  "Helpdesk today, hero by lunch.",
-];
-const appSloganEl = document.getElementById("appSlogan");
-if (appSloganEl) {
-  appSloganEl.textContent = APP_SLOGANS[Math.floor(Math.random() * APP_SLOGANS.length)];
-}
+// Targets the text-only span inside the header brand, not the brand itself -
+// kept for screen readers only since the 2026-09-22 header redesign folded
+// the app switcher into the header bar and removed the standalone visible
+// title/slogan this used to drive - see syncHeaderForCurrentApp() below.
 const appHeading = document.getElementById("appHeadingLabel");
-const appHeroEl = document.getElementById("appHero");
-const appHeroCopyEl = document.getElementById("appHeroCopy");
-const appHeroEyebrowEl = document.getElementById("appHeroEyebrow");
-const appHeroTitleEl = document.getElementById("appHeroTitle");
-const appHeroSubtitleEl = document.getElementById("appHeroSubtitle");
 const signedInAs = document.getElementById("signedInAs");
 const listEl = document.getElementById("list");
 const loadingEl = document.getElementById("loading");
@@ -388,21 +391,11 @@ const sortOrderEl = document.getElementById("sortOrder");
 const sortByDeploymentOptionEl = document.getElementById("sortByDeploymentOption");
 const appSwitcherEl = document.getElementById("appSwitcher");
 
-// Same idea as syncHeaderHeightVar above, for the Roadmap/Email Request/
-// Access switcher - now a sticky element of its own (docked directly under
-// the header, see #appSwitcher's position:sticky rule in index.html) rather
-// than living inside the hero. #roadmapControlsRow docks under
-// var(--header-h) + this so the two sticky bars stack cleanly instead of
-// overlapping once both are stuck.
-function syncAppSwitcherHeightVar() {
-  if (!appSwitcherEl) return;
-  document.documentElement.style.setProperty("--app-switcher-h", `${appSwitcherEl.offsetHeight}px`);
-}
-syncAppSwitcherHeightVar();
-window.addEventListener("resize", syncAppSwitcherHeightVar);
-if (appSwitcherEl && "ResizeObserver" in window) {
-  new ResizeObserver(syncAppSwitcherHeightVar).observe(appSwitcherEl);
-}
+// #appSwitcher lives inside <header>, which is now a fixed-left sidebar
+// (2026-09-22 sidebar-nav redesign) rather than a horizontal top bar - the
+// old --header-h sync (headerEl.offsetHeight, used to offset sticky content
+// below the bar) is gone along with every var(--header-h) consumer in
+// index.html, since nothing sits above content vertically anymore.
 
 const actionTabsEl = document.getElementById("actionTabs");
 const roadmapAddRowEl = document.getElementById("roadmapAddRow");
@@ -890,7 +883,7 @@ const NO_ACCESS_LABEL = "No access";
 // simplest of the special-cased tabs.
 const EMAIL_REQUEST_APP_KEY = "emailRequest";
 const EMAIL_REQUEST_LABEL = "Email Request";
-const EMAIL_REQUEST_ATTACHMENTS_EMBED_LABEL = "CW Email Request";
+const EMAIL_REQUEST_ATTACHMENTS_EMBED_LABEL = "Cubework Email Request";
 
 // Standup is a sixth "app" tab: no Firestore-synced mail collection of its
 // own - instead #standupWorkflowNav holds one button
@@ -1071,7 +1064,7 @@ const MANAGEABLE_TABS = [
   { key: STANDUP_APP_KEY, label: "Standup" },
   { key: DAILY_TODO_APP_KEY, label: "Daily To-Do" },
   { key: ROADMAP_APP_KEY, label: "Roadmap" },
-  { key: EMAIL_REQUEST_ATTACHMENTS_EMBED_APP_KEY, label: "CW Email Request" },
+  { key: EMAIL_REQUEST_ATTACHMENTS_EMBED_APP_KEY, label: "Cubework Email Request" },
   { key: ISSUE_APP_KEY, label: "Issue" },
 ];
 
@@ -1232,9 +1225,11 @@ function eraHasBranch(pathPrefix) {
 }
 
 
-// Roadmap is the default landing tab (see appSwitcher's static "active"
-// class in index.html, which must be kept in sync with this).
-let currentApp = ROADMAP_APP_KEY;
+// Cubework Email Request is the default landing tab (2026-09-22, per Huy's
+// request - it lands on that tab's own Dashboard sub-page, see
+// eraActivateMode's `dashboard` default in index.html). See appSwitcher's
+// static "active" class in index.html, which must be kept in sync with this.
+let currentApp = EMAIL_REQUEST_ATTACHMENTS_EMBED_APP_KEY;
 let currentActionFilter = "";
 // Only meaningful while currentApp === ROADMAP_APP_KEY - "list" is the
 // original card view, "timeline" plots each item's "Deployment: <date> -
@@ -1352,15 +1347,6 @@ function updateAppChrome() {
   // step/region/status navigation instead) have none of the shared chrome
   // at all (no search/sort/tabs) - i.e. everyone except Roadmap now.
   const hideSharedChrome = !isRoadmap;
-  // Drives the hero's "float the roadmap controls row over its bottom edge"
-  // CSS (see .app-hero.has-controls-row in index.html) - true for everyone
-  // except Email Request, whose #roadmapControlsRow is always left empty
-  // (its own Keycard/Wi-Fi tabs live in its embedded iframe instead - see
-  // has-embedded-tabs just below).
-  if (appHeroEl) appHeroEl.classList.toggle("has-controls-row", !isEmailRequest);
-  // Same idea, but for Email Request's own Keycard/Wi-Fi tabs, which live
-  // inside its embedded iframe instead (see .app-hero.has-embedded-tabs).
-  if (appHeroEl) appHeroEl.classList.toggle("has-embedded-tabs", isEmailRequest);
 
   if (toolbarEl) toolbarEl.style.display = hideSharedChrome ? "none" : "flex";
   if (actionTabsEl) actionTabsEl.style.display = hideSharedChrome ? "none" : "flex";
@@ -1468,60 +1454,10 @@ function updateAppChrome() {
   updateRoadmapGrandTotalBar();
 }
 
-// Marketing-style hero banner copy for all five tabs - every one of them
-// shows the same shared #appHero (switcher tabs + this eyebrow/title/
-// subtitle) now, just with different copy swapped in per tab (see
-// syncHeaderForCurrentApp below). Email Request's copy used to live in a
-// second, near-identical hero inside its own iframe (email-request.html) -
-// that was pulled out and folded in here so there's only ever the one
-// shared hero, matching every other tab.
-const HERO_COPY = {
-  [ROADMAP_APP_KEY]: {
-    eyebrow: "Project Roadmap",
-    title: "Every deployment, one clear timeline.",
-    subtitle: "Track equipment, costs, and rollout dates across every Cubework location in one place.",
-  },
-  [EMAIL_REQUEST_APP_KEY]: {
-    eyebrow: "Email Request",
-    title: "Keycard & Wi-Fi requests, done in a minute.",
-    subtitle: "Pick your location, add your tenants, and we'll build a correctly formatted Outlook draft to the IT Helpdesk — no template hunting, no missed fields.",
-  },
-  [EMAIL_REQUEST_ATTACHMENTS_EMBED_APP_KEY]: {
-    eyebrow: "CW Email Request",
-    title: "Same request, real attachments — without leaving this tab.",
-    subtitle: "Same tool as \"Email Request (Attachments) ↗\", ported in directly instead of opening a new tab. Experimental — the original tab is still there if this ever misbehaves.",
-  },
-  [ACCESS_APP_KEY]: {
-    eyebrow: "Manage Access",
-    title: "Roles and permissions, all in one place.",
-    subtitle: "Add teammates, set their view, edit, or full access, and choose which tabs they land on from day one.",
-  },
-  [STANDUP_APP_KEY]: {
-    eyebrow: "Standup",
-    title: "Daily standup reports, all in one place.",
-    subtitle: "This tab is a placeholder for now — functionality is coming soon.",
-  },
-  [DAILY_TODO_APP_KEY]: {
-    eyebrow: "Daily To-Do",
-    title: "Talk it out, we'll write it down.",
-    subtitle: "Log to-dos by voice as the day happens, then roll them into an end-of-day report you can save or send to Standup.",
-  },
-  [ISSUE_APP_KEY]: {
-    eyebrow: "Issue",
-    title: "Every open issue, tracked to close.",
-    subtitle: "Log facilities and IT issues by location, split Cali vs. Outside Cali, and follow each one from Active through Complete.",
-  },
-  [NO_ACCESS_APP_KEY]: {
-    eyebrow: "No access",
-    title: "No tabs are visible to you yet.",
-    subtitle: "Ask an admin to grant you access from the Manage Access tab.",
-  },
-};
-
-// Sets the header text + search placeholder + hero banner to match whatever
-// currentApp currently is - shared by the tab-click handler below and the
-// initial sign-in flow, so none of these ever have to be duplicated (and
-// can't drift) between "user clicked a tab" and "page just loaded with its
+// Sets the header text + search placeholder to match whatever currentApp
+// currently is - shared by the tab-click handler below and the initial
+// sign-in flow, so none of these ever have to be duplicated (and can't
+// drift) between "user clicked a tab" and "page just loaded with its
 // default tab already set".
 function syncHeaderForCurrentApp() {
   if (appHeading) {
@@ -1535,30 +1471,20 @@ function syncHeaderForCurrentApp() {
     else if (currentApp === NO_ACCESS_APP_KEY) appHeading.textContent = NO_ACCESS_LABEL;
   }
   if (currentApp === ROADMAP_APP_KEY) searchInput.placeholder = ROADMAP_SEARCH_PLACEHOLDER;
-
-  // #appHero itself always stays visible now - the app-switcher tabs live
-  // inside it (see index.html) and need its dark background on every tab,
-  // including Access and Email Request. Only the eyebrow/title/subtitle
-  // copy block (#appHeroCopy) - and the extra hero padding + roadmap
-  // controls row overlap that depend on it, via the "has-copy" class - are
-  // specific to tabs that have a HERO_COPY entry.
-  const hero = HERO_COPY[currentApp];
-  if (appHeroEl) appHeroEl.classList.toggle("has-copy", Boolean(hero));
-  if (appHeroCopyEl) {
-    appHeroCopyEl.style.display = hero ? "" : "none";
-    if (hero) {
-      if (appHeroEyebrowEl) appHeroEyebrowEl.textContent = hero.eyebrow;
-      if (appHeroTitleEl) appHeroTitleEl.textContent = hero.title;
-      if (appHeroSubtitleEl) appHeroSubtitleEl.textContent = hero.subtitle;
-    }
-  }
 }
 
 appSwitcherEl?.addEventListener("click", (e) => {
   const btn = e.target.closest(".tab");
   if (!btn) return;
   const appKey = btn.dataset.app;
-  if (!appKey || appKey === currentApp) return;
+  // Cubework Email Request sub-nav (2026-09-22, per Huy's request) - the six
+  // .tab-sub buttons under it share the parent's own data-app value (so the
+  // rest of this handler's canSeeTab/currentApp plumbing applies to them
+  // for free) plus their own data-era-mode identifying which #era_tabs mode
+  // to open, forwarded to window.eraGoToMode() (index.html's own "CW Email
+  // Request embed logic" script) below.
+  const eraMode = btn.dataset.eraMode;
+  if (!appKey) return;
   if (appKey === ACCESS_APP_KEY && !isOwner()) return;
   if (appKey !== ACCESS_APP_KEY && !canSeeTab(appKey)) return;
   // Email Request (Attachments) is a link, not a tab - see
@@ -1570,14 +1496,43 @@ appSwitcherEl?.addEventListener("click", (e) => {
     window.open(EMAIL_REQUEST_ATTACHMENTS_URL, "_blank", "noopener,noreferrer");
     return;
   }
+  if (appKey === currentApp) {
+    // Already on this tab - a sub-nav click still needs to switch the
+    // in-page mode; a re-click of the already-active top-level tab itself
+    // (no data-era-mode) stays a no-op, same as before this sub-nav existed.
+    if (eraMode) window.eraGoToMode?.(eraMode);
+    return;
+  }
 
   currentApp = appKey;
-  appSwitcherEl.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t === btn));
+  // .tab-sub excluded here (2026-09-22) - all six share data-app with their
+  // parent, so matching on t===btn like before would highlight only
+  // whichever one was clicked and, wrongly, un-highlight the parent when
+  // that's a sub-item. Matching on data-app instead correctly highlights the
+  // parent whenever any of its subs (or itself) is clicked; the specific
+  // sub-item's own highlight is handled separately by eraActivateMode's
+  // sidebar-sync (index.html), the single source of truth for that.
+  appSwitcherEl.querySelectorAll(".tab:not(.tab-sub)").forEach((t) => t.classList.toggle("active", t.dataset.app === appKey));
   searchInput.value = "";
   syncHeaderForCurrentApp();
   updateAppChrome();
+  if (eraMode) window.eraGoToMode?.(eraMode);
   if (currentApp !== ACCESS_APP_KEY && currentApp !== EMAIL_REQUEST_APP_KEY && currentApp !== EMAIL_REQUEST_ATTACHMENTS_EMBED_APP_KEY && currentApp !== STANDUP_APP_KEY && currentApp !== DAILY_TODO_APP_KEY && currentApp !== ISSUE_APP_KEY) renderActionTabs();
   subscribeToCurrentApp();
+});
+
+// Help (account menu, 2026-09-22, per Huy's request). Reuses the app's own
+// routing - a click on the Cubework Email Request switcher tab, same as the
+// person clicking it themselves - then opens that tab's existing Video
+// Tutorials player (window.eraOpenVideoTutorials, index.html) rather than a
+// second help/tutorial system. Hidden for anyone who can't see that tab
+// (see the per-user tab-visibility loop in onAuthStateChanged below).
+const helpBtnEl = document.getElementById("helpBtn");
+helpBtnEl?.addEventListener("click", () => {
+  document.getElementById("userPopover")?.classList.remove("open");
+  if (!canSeeTab(EMAIL_REQUEST_ATTACHMENTS_EMBED_APP_KEY)) return;
+  appSwitcherEl?.querySelector(`.tab[data-app="${EMAIL_REQUEST_ATTACHMENTS_EMBED_APP_KEY}"]`)?.click();
+  window.eraOpenVideoTutorials?.();
 });
 
 // Completed state per thread, synced live from the threadStatus collection.
@@ -7035,7 +6990,11 @@ onAuthStateChanged(auth, async (user) => {
   // Per-user "no animation" preference set in Manage Access - a plain CSS
   // class toggle (see the .no-animations rule in index.html) rather than
   // hunting down every individual transition/animation in app.js.
-  document.body.classList.toggle("no-animations", disableAnimations);
+  // Standard staff get it unconditionally (2026-09-22, per Huy's request:
+  // "remove all animations for standard employee/staff users") - anyone
+  // below the "full" (admin) role. Admins keep their own Manage Access
+  // preference as before.
+  document.body.classList.toggle("no-animations", disableAnimations || role !== "full");
 
   if (!role) {
     alert("You don't have access to this dashboard yet. Ask someone with full access to add your email.");
@@ -7067,6 +7026,7 @@ onAuthStateChanged(auth, async (user) => {
     if (key === EMAIL_REQUEST_APP_KEY || key === EMAIL_REQUEST_ATTACHMENTS_APP_KEY) return;
     btn.style.display = canSeeTab(key) ? "" : "none";
   });
+  if (helpBtnEl) helpBtnEl.style.display = canSeeTab(EMAIL_REQUEST_ATTACHMENTS_EMBED_APP_KEY) ? "" : "none";
   if (currentApp === ACCESS_APP_KEY && !isOwner()) {
     // Role/identity was downgraded since this tab was last open (e.g.
     // re-signing in as someone else) - don't strand the UI on a tab it can
@@ -7096,7 +7056,10 @@ onAuthStateChanged(auth, async (user) => {
         (t) => t.key !== EMAIL_REQUEST_ATTACHMENTS_APP_KEY && t.key !== EMAIL_REQUEST_APP_KEY && canSeeTab(t.key),
       )?.key || NO_ACCESS_APP_KEY;
   }
-  appSwitcherEl?.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.app === currentApp));
+  // .tab-sub excluded (2026-09-22) - see the appSwitcher click handler's own
+  // comment above; their highlight is owned by eraActivateMode's
+  // sidebar-sync (index.html), not this generic data-app match.
+  appSwitcherEl?.querySelectorAll(".tab:not(.tab-sub)").forEach((t) => t.classList.toggle("active", t.dataset.app === currentApp));
   syncHeaderForCurrentApp();
   updateAppChrome();
   if (currentApp !== ACCESS_APP_KEY && currentApp !== EMAIL_REQUEST_APP_KEY && currentApp !== EMAIL_REQUEST_ATTACHMENTS_EMBED_APP_KEY && currentApp !== STANDUP_APP_KEY && currentApp !== DAILY_TODO_APP_KEY && currentApp !== ISSUE_APP_KEY) renderActionTabs();

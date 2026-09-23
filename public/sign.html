@@ -17,8 +17,8 @@
     background: #ffffff; border-radius: 14px; width: 100%; max-width: 520px;
     box-shadow: 0 1px 3px rgba(15,23,42,.08); padding: 24px 20px 28px;
   }
-  .sign-logo { font-weight: 800; font-size: 15px; letter-spacing: .02em; color: #0f172a; margin-bottom: 4px; }
-  .sign-title { font-size: 19px; font-weight: 700; margin: 0 0 4px; }
+  .sign-logo { font-weight: 800; font-size: 17px; letter-spacing: .02em; color: #38d430; margin-bottom: 4px; }
+  .sign-title { font-size: 19px; font-weight: 700; margin: 0 0 4px; color: #194f90; }
   .sign-sub { font-size: 13px; color: #64748b; margin: 0 0 18px; }
   .sign-summary { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; margin-bottom: 18px; font-size: 13.5px; }
   .sign-summary div { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; }
@@ -29,12 +29,6 @@
     width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid #cbd5e1;
     font-size: 14.5px; font-family: inherit;
   }
-  .photoid-file-btn {
-    display: inline-block; margin-top: 2px; padding: 9px 14px; border-radius: 8px;
-    border: 1px solid #cbd5e1; background: #f8fafc; color: #0f172a;
-    font-size: 13.5px; font-weight: 600; cursor: pointer;
-  }
-  .photoid-status { font-size: 12.5px; color: #16a34a; margin-top: 6px; display: block; }
   #sigCanvas { width: 100%; max-width: 100%; height: 140px; border: 1px dashed #94a3b8; border-radius: 10px; background: #f8fafc; touch-action: none; cursor: crosshair; display: block; }
   .sig-actions { display: flex; justify-content: flex-end; margin-top: 6px; }
   .sig-actions button { background: none; border: none; color: #475569; font-size: 12.5px; cursor: pointer; padding: 4px 6px; }
@@ -73,7 +67,8 @@
     <div id="successState" class="sign-state hidden">
       <div class="icon">✅</div>
       <h2>Signed — thank you</h2>
-      <p>Your signature has been recorded and Cubework has been notified. You can close this page.</p>
+      <p>Your signature has been recorded and Cubework has been notified.</p>
+      <p id="closeCountdown" style="font-weight:700;font-size:15px;margin-top:10px;"></p>
     </div>
 
     <form id="signForm" class="hidden">
@@ -88,11 +83,8 @@
       <label class="sign-label" for="signerNameInput">Signer's full name</label>
       <input type="text" id="signerNameInput" autocomplete="name" placeholder="Full name">
 
-      <label class="sign-label" for="photoIdInput">Photo ID<span class="required-tag">Required</span></label>
-      <label for="photoIdInput" class="photoid-file-btn">Upload photo ID</label>
-      <input type="file" id="photoIdInput" accept="image/*" class="hidden">
-      <span class="photoid-status hidden" id="photoIdStatus"></span>
-      <div class="sign-note">A photo of your ID (driver's license, passport, etc.) is required to complete your signature — you can upload it from your phone, laptop, or desktop.</div>
+      <!-- Photo ID removed (2026-09-22): the tenant only reviews, signs and
+           submits. submitSignatureRequest no longer requires one. -->
 
       <label class="consent-row">
         <input type="checkbox" id="consentCheckbox">
@@ -123,12 +115,37 @@
     byId("errorBody").textContent = body;
     showOnly("errorState");
   }
-  // Renders a title + body inside #formError (Signature/Photo ID required
-  // messages, 2026-09-20) rather than a single flat line, so the tenant
-  // sees exactly which of the two required items is missing.
+  // Renders a title + body inside #formError (required-item messages,
+  // 2026-09-20) rather than a single flat line.
   function setFormError(errEl, title, body) {
     errEl.innerHTML = "<strong>" + escapeHtml(title) + "</strong>" + escapeHtml(body);
     errEl.style.display = "block";
+  }
+  // 5-second auto-close countdown (2026-09-23, per Huy's request) - only
+  // started after a REAL submit-success (see the submitSignatureRequest
+  // .then() below), never for the "already completed" early-return in
+  // loadRequest() (someone reopening an old, already-signed link).
+  function startAutoCloseCountdown() {
+    var remaining = 5;
+    var el = byId("closeCountdown");
+    function tick() {
+      if (remaining <= 0) {
+        el.textContent = "Closing…";
+        window.close();
+        // Fallback: some browsers block window.close() on a tab/window the
+        // page itself didn't open (e.g. one the tenant navigated to directly
+        // by clicking an email link that opened a NEW browser instance vs a
+        // script-opened window/tab). If it didn't actually close, say so.
+        setTimeout(function () {
+          el.textContent = "You can close this page now.";
+        }, 300);
+        return;
+      }
+      el.textContent = "This page will close automatically in " + remaining + " second" + (remaining === 1 ? "" : "s") + "…";
+      remaining -= 1;
+      setTimeout(tick, 1000);
+    }
+    tick();
   }
 
   const token = new URLSearchParams(window.location.search).get("t") || "";
@@ -172,41 +189,6 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     hasInk = false;
   });
-
-  // Photo ID upload (2026-08-19) - required before this signature can be
-  // submitted, part of the digital-signature process; works from a phone,
-  // laptop, or desktop, same plain <input type="file"> either way. Read as
-  // base64 with a plain FileReader, no library needed.
-  const photoIdInput = byId("photoIdInput");
-  const photoIdStatus = byId("photoIdStatus");
-  photoIdInput.addEventListener("change", function () {
-    const file = photoIdInput.files && photoIdInput.files[0];
-    if (!file) {
-      photoIdStatus.textContent = "";
-      photoIdStatus.classList.add("hidden");
-      return;
-    }
-    photoIdStatus.textContent = "✓ " + file.name;
-    photoIdStatus.classList.remove("hidden");
-  });
-  function readPhotoIdAsBase64() {
-    const file = photoIdInput.files && photoIdInput.files[0];
-    if (!file) return Promise.resolve(null);
-    return new Promise(function (resolve, reject) {
-      const reader = new FileReader();
-      reader.onload = function () {
-        const result = reader.result || "";
-        const idx = result.indexOf(",");
-        resolve({
-          base64: idx >= 0 ? result.slice(idx + 1) : result,
-          contentType: file.type || "application/octet-stream",
-          fileName: file.name || "photo-id",
-        });
-      };
-      reader.onerror = function () { reject(reader.error || new Error("Could not read the photo ID file.")); };
-      reader.readAsDataURL(file);
-    });
-  }
 
   function loadRequest() {
     fetch("/api/getSignatureRequest?token=" + encodeURIComponent(token))
@@ -254,22 +236,9 @@
     errEl.style.display = "none";
     const signerName = byId("signerNameInput").value.trim();
     const consented = byId("consentCheckbox").checked;
-    // Signature and Photo ID are both hard requirements (2026-09-20 pass) -
-    // check both up front so a tenant missing both sees one combined
-    // message instead of only ever hearing about whichever was checked
-    // first.
-    const missingSignature = !hasInk;
-    const missingPhotoId = !photoIdInput.files || !photoIdInput.files[0];
-    if (missingSignature && missingPhotoId) {
-      setFormError(errEl, "Signature and Photo ID Required", "Please provide your signature and upload your Photo ID before submitting.");
-      return;
-    }
-    if (missingSignature) {
+    // Signature is required; Photo ID is not collected at all (2026-09-22).
+    if (!hasInk) {
       setFormError(errEl, "Signature Required", "Please provide your signature before submitting.");
-      return;
-    }
-    if (missingPhotoId) {
-      setFormError(errEl, "Photo ID Required", "Please upload your Photo ID before submitting.");
       return;
     }
     if (!signerName) { setFormError(errEl, "Name Required", "Please enter your full name."); return; }
@@ -277,25 +246,19 @@
 
     submitBtn.disabled = true;
     submitBtn.textContent = "Submitting…";
-    readPhotoIdAsBase64()
-      .then(function (photoId) {
-        return fetch("/api/submitSignatureRequest", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            token: token,
-            signerName: signerName,
-            consented: true,
-            signaturePngBase64: canvas.toDataURL("image/png"),
-            photoIdBase64: photoId ? photoId.base64 : "",
-            photoIdContentType: photoId ? photoId.contentType : "",
-            photoIdFileName: photoId ? photoId.fileName : "",
-          }),
-        });
-      })
+    fetch("/api/submitSignatureRequest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        token: token,
+        signerName: signerName,
+        consented: true,
+        signaturePngBase64: canvas.toDataURL("image/png"),
+      }),
+    })
       .then(function (res) { return res.json().then(function (json) { return { status: res.status, json: json }; }); })
       .then(function (r) {
-        if (r.json && r.json.ok) { showOnly("successState"); return; }
+        if (r.json && r.json.ok) { showOnly("successState"); startAutoCloseCountdown(); return; }
         submitBtn.disabled = false;
         submitBtn.textContent = "Sign & Submit";
         const err = (r.json && r.json.error) || "unknown";
@@ -306,7 +269,6 @@
           not_found: ["Link Not Valid", "This link isn't valid."],
           consent_required: ["Name and Consent Required", "Please fill in your name and check the consent box."],
           invalid_signature_image: ["Signature Required", "Please provide your signature before submitting."],
-          photo_id_required: ["Photo ID Required", "Please upload your Photo ID before submitting."],
         };
         const m = messages[err] || ["Something Went Wrong", "Please try again."];
         setFormError(errEl, m[0], m[1]);

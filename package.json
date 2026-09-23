@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "@azure/msal-node": "^5.3.1",
-    "firebase-functions": "^7.3.2",
+    "firebase-functions": "^7.4.0",
     "framer-motion": "^13.2.0"
   },
   "devDependencies": {

@@ -44,7 +44,29 @@ ${s}
 www.Cubework.com | LinkedIn
 
 CUBEWORK
-${SIGNATURE_NOTICE}`,i=getSignatureBase64(t)?`<br><br><img src="cid:${signatureContentId(t)}" alt="${s} signature" style="max-width:100%;display:block;border:0;">`:"";return{body:e+a,htmlBody:n+i}}function companyDisplay(t){const e=String(t&&t.companyName||"").trim(),n=String(t&&t.tenantName||"").trim();return n&&n.toLowerCase()!==e.toLowerCase()?`${e} / ${n}`:e}function formatPhoneForDisplay(t){const e=String(t||"").replace(/\D/g,"");return e.length!==10?String(t||"").trim():`${e.slice(0,3)}-${e.slice(3,6)}-${e.slice(6,10)}`}function entryKeycardAction(t){return t.requestcard?"requestcard":t.troubleshoot?"troubleshoot":t.replacement?"replacement":t.transfer?"transfer":t.deactivate?"deactivate":"activate"}function isKeycardCubeworkHikTroubleshootEntry(t,e){return t.serves==="Cubework"&&!!t.hikcentral&&entryKeycardAction(e)==="troubleshoot"}function buildKeycard(t){const e=t.fields||{},n=[];const s=Array.isArray(e.entries)?e.entries:[];s.length||n.push("Add at least one keycard entry."),s.some(o=>entryKeycardAction(o)==="activate")&&(!Array.isArray(t.attachments)||t.attachments.length===0)&&n.push("Attach the signed keycard authorization form (and photo ID, if this covers multiple keycards) before submitting.");
+${SIGNATURE_NOTICE}`,i=getSignatureBase64(t)?`<br><br><img src="cid:${signatureContentId(t)}" alt="${s} signature" style="max-width:100%;display:block;border:0;">`:"";return{body:e+a,htmlBody:n+i}}function companyDisplay(t){const e=String(t&&t.companyName||"").trim(),n=String(t&&t.tenantName||"").trim();return n&&n.toLowerCase()!==e.toLowerCase()?`${e} / ${n}`:e}function formatPhoneForDisplay(t){const e=String(t||"").replace(/\D/g,"");return e.length!==10?String(t||"").trim():`${e.slice(0,3)}-${e.slice(3,6)}-${e.slice(6,10)}`}function entryKeycardAction(t){return t.requestcard?"requestcard":t.troubleshoot?"troubleshoot":t.replacement?"replacement":t.transfer?"transfer":t.deactivate?"deactivate":"activate"}function isKeycardCubeworkHikTroubleshootEntry(t,e){return t.serves==="Cubework"&&!!t.hikcentral&&entryKeycardAction(e)==="troubleshoot"}
+// Preview Email > current date/time under the greeting (2026-09-23, per
+// Huy's request) - Pacific time, "September 23, 2026 at 8:04 AM" shaped.
+// Intl.DateTimeFormat alone doesn't insert "at", so this pulls the parts and
+// joins them by hand. isoString comes from the client's ONE
+// submissionTimestampIso (see Se()/eraBuildKeycardPreview()/
+// eraSendKeycardBatch() in public/index.html), threaded through so every
+// per-card email in a multi-keycard batch - and its Preview - shows the same
+// time rather than each server call's own new Date() jitter; falls back to
+// "now" only for an old cached client that never sent one.
+function formatSubmissionTimestamp(isoString){
+  const d=isoString?new Date(isoString):new Date();
+  const parts=new Intl.DateTimeFormat("en-US",{timeZone:"America/Los_Angeles",year:"numeric",month:"long",day:"numeric",hour:"numeric",minute:"2-digit",hour12:!0}).formatToParts(d).reduce((acc,p)=>(acc[p.type]=p.value,acc),{});
+  return `${parts.month} ${parts.day}, ${parts.year} at ${parts.hour}:${parts.minute} ${(parts.dayPeriod||"").toUpperCase()}`;
+}
+function buildKeycard(t){const e=t.fields||{},n=[];const s=Array.isArray(e.entries)?e.entries:[];s.length||n.push("Add at least one keycard entry.");
+// "Attach the signed keycard authorization form" check removed (2026-09-22,
+// per Huy's request): the Keycard workflow no longer collects a signature,
+// Photo ID or any attachment (the client hides that whole section and sends
+// attachments:[]), so this would block every Activate request. The client
+// now also sends one request per keycard (entries.length===1) - see
+// eraKeycardPerCardFields() in public/index.html - but multi-entry payloads
+// are still accepted here unchanged.
 // "Answer whether you have the physical keycard form" check removed
 // (2026-08-2x, per Huy's request) - the client-side "Do you have the
 // physical keycard form?" card was permanently hidden back on 2026-08-21
@@ -157,6 +179,18 @@ Access: > ${te}`),E==="activate"&&(o.email||o.phone)&&(D+=`
 
 Email: ${o.email||"(not provided)"}
 Phone: ${o.phone?formatPhoneForDisplay(o.phone):"(not provided)"}`),
+// Per-card Deal & Licensee + E-Signature (2026-09-22, Choose an Entry +
+// multi-keycard pass): each Activate card now carries its own Yardi Deal# /
+// Unit # / Floor # (index.html's .era-k-deal-wrap) and optional tenant
+// E-Signature, and every card goes out as its own email - so print them on
+// the card's own block. Only when present, so older/other callers that never
+// send these fields get exactly the body they always did.
+E==="activate"&&(o.dealYardi||o.dealUnit||o.dealFloor)&&(D+=`
+Yardi Deal# / Account#: ${o.dealYardi||"(not provided)"}
+Unit #: ${o.dealUnit||"(not provided)"}${o.dealFloor?`
+Floor #: ${o.dealFloor}`:""}`),
+E==="activate"&&o.esign===!0&&(D+=`
+E-Signature: ${o.esignStatus==="signed"?"Signed by tenant":"Requested - awaiting tenant signature"}`),
 // Troubleshoot's Issue line gets a blank line before it (2026-09-05, per
 // Huy's request), unlike the tight single-newline every other per-entry
 // line above uses.
@@ -311,9 +345,15 @@ ${BS}Hello AR, Novie,${BE}
 Please charge the extra Fee(s) ($${FEE_PER_KEYCARD} per checked Fee box). Total: $${replFeeCount*FEE_PER_KEYCARD}`:I,x="https://cubework365.sharepoint.com/:v:/s/Cubework_PropertyManagement/IQCvNT-3osupSoNyJUtJpUj6AW7GFpHOtwQl5cYh3fscmWg?e=6J2tU1",O=`How to add Tenant to Unifi: ${x}
 Or you can call/msg Huy.`,z=`<a href="${x}">How to add Tenant to Unifi</a> or you can call/msg Huy.`,LOC_START="%%CW_LOC_START%%",LOC_END="%%CW_LOC_END%%",EXTRA_LOCS=(Array.isArray(t.extraLocationBodyLines)?t.extraLocationBodyLines:[]).map(x=>String(x||"").trim()).filter(Boolean),LOC_LINES=EXTRA_LOCS.length?[`Location #1: ${l}`].concat(EXTRA_LOCS.map((loc,idx)=>`Location #${idx+2}: ${loc}`)):null,LOC_PLAIN=`Location(s):
 `+(LOC_LINES?LOC_LINES.join("\n"):l),LOC_MARKED=`${BS}Location(s):${BE}
-`+(LOC_LINES?LOC_LINES.map(line=>`${LOC_START}${line}${LOC_END}`).join("\n"):l),J=`Hello Team,
+`+(LOC_LINES?LOC_LINES.map(line=>`${LOC_START}${line}${LOC_END}`).join("\n"):l),
+// Current date/time, own line directly under the greeting, before the
+// AR/Novie fee note (I/IM) - same submission timestamp for every card of a
+// multi-keycard batch, see formatSubmissionTimestamp() above.
+TS=`
+${formatSubmissionTimestamp(t.submissionTimestampIso)}`,
+J=`Hello Team,
 
-`+q+I+`
+`+q+TS+I+`
 
 `+(gTransfer?"":LOC_PLAIN+`
 
@@ -323,7 +363,7 @@ Or you can call/msg Huy.`,z=`<a href="${x}">How to add Tenant to Unifi</a> or yo
 
 ${O}`:""),M=`Hello Team,
 
-`+qM+IM+`
+`+qM+TS+IM+`
 
 `+(gTransfer?"":LOC_MARKED+`
 

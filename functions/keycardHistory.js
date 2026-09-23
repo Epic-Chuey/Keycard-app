@@ -109,6 +109,25 @@ function sanitizeKeycardFullEntries(arr) {
             .slice(0, 20)
             .map((p) => ({ oldKeycard: str(p.oldKeycard, 40), newKeycard: str(p.newKeycard, 40), fee: bool(p.fee) }))
         : [],
+      // Per-card Access System (2026-09-22) - collected client-side since
+      // that date but dropped here, so Edit fell back to the request-level
+      // hikcentral/unifi for every card.
+      cardHikcentral: bool(e.cardHikcentral),
+      cardUnifi: bool(e.cardUnifi),
+      // Per-card Deal & Licensee + E-Signature (2026-09-22, Choose an Entry
+      // + multi-keycard pass) - each Activate card now carries its own
+      // Licensee/Yardi/Location/Unit/Floor, and whether its tenant was sent
+      // an E-Signature request (esign) / has signed (esignStatus).
+      dealLicensee: str(e.dealLicensee, 200),
+      dealYardi: str(e.dealYardi, 100),
+      dealLocation: str(e.dealLocation, 300),
+      dealExtraLocations: Array.isArray(e.dealExtraLocations)
+        ? e.dealExtraLocations.filter((v) => typeof v === "string" && v.trim()).slice(0, 20).map((v) => v.trim().slice(0, 300))
+        : [],
+      dealUnit: str(e.dealUnit, 40),
+      dealFloor: str(e.dealFloor, 40),
+      esign: bool(e.esign),
+      esignStatus: e.esignStatus === "sent" || e.esignStatus === "signed" ? e.esignStatus : "",
     }));
 }
 
@@ -190,7 +209,17 @@ function sanitizeKeycardSignIdSignatureDataUrl(dataUrl) {
   return dataUrl;
 }
 
-// "complete" iff (a) the request has actually been sent (Preview > Send,
+// Photo ID is no longer part of this (2026-09-22) - the remote E-Signature
+// flow stopped collecting one, so requiring photoIds would leave every
+// request Pending forever. `photoIds` is kept as the first parameter only so
+// the existing call sites don't shift.
+// E-Signature-aware (same date): when the record's fullEntries carry the
+// per-card `esign` flag (written by the Choose an Entry flow), only the cards
+// with esign === true need a signature - a card without E-Signature has no
+// signature requirement at all. Older records (no `esign` key on any entry)
+// keep the original "every card 1..cardCount signed" rule.
+//
+// Original rule, photo ID aside - "complete" iff (a) the request has actually been sent (Preview > Send,
 // not just Save'd as a draft - see the `sent` param, added so a fully
 // signed-and-photo'd-but-never-sent submission doesn't silently drop out of
 // the "Pending" tab before anyone actually emailed it) AND (b) every card
@@ -202,14 +231,19 @@ function sanitizeKeycardSignIdSignatureDataUrl(dataUrl) {
 // bypassed this helper and was marked complete the moment ANY
 // recordKeycardSubmission call touched it (including a plain Save) - see
 // functions/index.js's recordKeycardSubmission.
-function computeKeycardHistoryStatus(photoIds, signedCards, cardCount, sent) {
+function computeKeycardHistoryStatus(photoIds, signedCards, cardCount, sent, fullEntries) {
   if (sent !== true) return "pending";
-  if (!Number.isInteger(cardCount) || cardCount <= 0) return "pending";
-  const ids = photoIds && typeof photoIds === "object" ? photoIds : {};
   const signed = signedCards && typeof signedCards === "object" ? signedCards : {};
+  const entries = Array.isArray(fullEntries) ? fullEntries : [];
+  if (entries.some((e) => e && typeof e === "object" && typeof e.esign === "boolean")) {
+    for (let i = 0; i < entries.length; i++) {
+      if (entries[i] && entries[i].esign === true && !signed[String(i + 1)]) return "pending";
+    }
+    return "complete";
+  }
+  if (!Number.isInteger(cardCount) || cardCount <= 0) return "pending";
   for (let n = 1; n <= cardCount; n++) {
-    const key = String(n);
-    if (!ids[key] || !signed[key]) return "pending";
+    if (!signed[String(n)]) return "pending";
   }
   return "complete";
 }
@@ -233,8 +267,16 @@ function dataUrlToBase64(dataUrl) {
 // old->new pair, if any) same as it always has for this newer per-entry
 // UI - unlike the retired Keycard Form modal's fanOutEntriesForCards(),
 // which fanned one Replacement entry into one card per pair.
-function buildKeycardFormPdfInputsFromHistory(hist) {
+// opts.onlyCard (2026-09-22, Choose an Entry + multi-keycard pass): the
+// remote E-Signature PDF for ONE card. When that card carries its own Deal &
+// Licensee fields (dealLicensee/dealLocation/...), they replace the
+// request-level ones and every OTHER card is left off, so a tenant's signed
+// form names their own company/location/keycard and never another tenant's.
+// Cards without their own deal fields (older records) keep the original
+// whole-submission behavior.
+function buildKeycardFormPdfInputsFromHistory(hist, opts) {
   hist = hist && typeof hist === "object" ? hist : {};
+  const onlyCard = opts && Number.isInteger(opts.onlyCard) ? opts.onlyCard : null;
   const fieldValues = {};
   const checkboxFields = {};
   const photoIdSelections = {};
@@ -255,7 +297,18 @@ function buildKeycardFormPdfInputsFromHistory(hist) {
   const signIdSignatures = hist.signIdSignatures && typeof hist.signIdSignatures === "object" ? hist.signIdSignatures : {};
   const photoIds = hist.photoIds && typeof hist.photoIds === "object" ? hist.photoIds : {};
 
+  const own = onlyCard ? entries[onlyCard - 1] : null;
+  const perCard = !!(own && (own.dealLicensee || own.dealLocation || own.dealYardi || own.dealUnit));
+  if (perCard) {
+    fieldValues.licensee_company_name = own.dealLicensee || "";
+    fieldValues.yardi_deal_account_number = own.dealYardi || "";
+    fieldValues.property_access_location = [own.dealLocation].concat(own.dealExtraLocations || []).filter(Boolean).join("; ");
+    fieldValues.floor_number = own.dealFloor || "";
+    fieldValues.unit_number = own.dealUnit || "";
+  }
+
   entries.slice(0, 7).forEach((entry, idx) => {
+    if (perCard && idx !== onlyCard - 1) return;
     // Replacement no longer uses the Keycard Form fill/sign flow (2026-08-22,
     // per Huy's request - see docs/email-request-attachments-embed-tab.md,
     // "Replacement: doesn't use Keycard Form / doesn't attach to

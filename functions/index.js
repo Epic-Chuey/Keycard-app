@@ -789,6 +789,22 @@ const MAX_SIGNATURE_PNG_BASE64_CHARS = 700000; // ~500KB decoded - generous for 
 function escapeHtmlForEmail(value) {
   return String(value == null ? "" : value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
+// "September 21, 2026 at 8:42 PM PDT" - Pacific local time (auto PDT/PST) for
+// the signed-form staff notification, per Huy's spec (2026-09-21).
+function formatSignedDateTimePacific(date) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZoneName: "short",
+  }).formatToParts(date);
+  const get = (type) => (parts.find((p) => p.type === type) || {}).value || "";
+  return `${get("month")} ${get("day")}, ${get("year")} at ${get("hour")}:${get("minute")} ${get("dayPeriod")} ${get("timeZoneName")}`;
+}
 function sanitizeStringMap(obj, maxKeys, maxValueChars) {
   const out = {};
   if (!obj || typeof obj != "object") return out;
@@ -849,7 +865,12 @@ function sanitizeOtherSignatures(arr, excludeField) {
 // snapshot whenever the history doc can't be resolved (deleted record, no
 // historyRequestId on an older/non-History-linked request) rather than
 // throwing - a signing flow already in flight should still complete.
-async function buildSigningPdfInputsFromHistory(historyRequestId, targetField, signaturePngBase64, staleData) {
+// photoIdProvided (2026-09-22): the remote flow no longer collects a Photo
+// ID, so the card's "Photo ID: Yes" box is only ticked when one actually came
+// in (an older, cached sign.html may still send one). The PDF is built for
+// the signing card alone when that card has its own Deal & Licensee fields
+// (buildKeycardFormPdfInputsFromHistory's onlyCard).
+async function buildSigningPdfInputsFromHistory(historyRequestId, targetField, signaturePngBase64, staleData, photoIdProvided) {
   const fallback = {
     fieldValues: (staleData && staleData.fieldValues) || {},
     checkboxFields: (staleData && staleData.checkboxFields) || {},
@@ -860,10 +881,10 @@ async function buildSigningPdfInputsFromHistory(historyRequestId, targetField, s
   try {
     const histSnap = await db.collection(KEYCARD_REQUEST_HISTORY_COLLECTION).doc(historyRequestId).get();
     if (!histSnap.exists) return fallback;
-    const inputs = buildKeycardFormPdfInputsFromHistory(histSnap.data());
     const cardMatch = /^card([1-7])_signature$/.exec(targetField || "");
     const n = cardMatch ? cardMatch[1] : null;
-    if (n) inputs.photoIdSelections[n] = "yes"; // a photo ID is always submitted alongside the signature itself
+    const inputs = buildKeycardFormPdfInputsFromHistory(histSnap.data(), { onlyCard: n ? Number(n) : null });
+    if (n && photoIdProvided) inputs.photoIdSelections[n] = "yes";
     // Override (not append) this card's own signature with the one just
     // submitted - the history doc's own signIdSignatures[n] (if any) is
     // written by the CLIENT afterward, once this call returns, so it can't
@@ -876,11 +897,19 @@ async function buildSigningPdfInputsFromHistory(historyRequestId, targetField, s
     return fallback;
   }
 }
-async function sendPlainHtmlEmail(graphClient, { toEmail, subject, html }) {
-  await graphClient.api("/me/sendMail").post({
-    message: { subject, body: { contentType: "HTML", content: html }, toRecipients: [{ emailAddress: { address: toEmail } }] },
-    saveToSentItems: true,
-  });
+// attachments (optional, 2026-09-22): [{name, contentType, bytes}] - used to
+// put the signed Keycard Form on the Requester's "Signed" notification.
+async function sendPlainHtmlEmail(graphClient, { toEmail, subject, html, attachments }) {
+  const message = { subject, body: { contentType: "HTML", content: html }, toRecipients: [{ emailAddress: { address: toEmail } }] };
+  if (Array.isArray(attachments) && attachments.length) {
+    message.attachments = attachments.map((a) => ({
+      "@odata.type": "#microsoft.graph.fileAttachment",
+      name: a.name,
+      contentType: a.contentType || "application/octet-stream",
+      contentBytes: Buffer.from(a.bytes).toString("base64"),
+    }));
+  }
+  await graphClient.api("/me/sendMail").post({ message, saveToSentItems: true });
 }
 
 exports.createKeycardSignatureRequest = onCall({ timeoutSeconds: 30 }, async (request) => {
@@ -896,6 +925,16 @@ exports.createKeycardSignatureRequest = onCall({ timeoutSeconds: 30 }, async (re
   }
   const tenantName = typeof data.tenantName === "string" ? data.tenantName.trim().slice(0, 200) : "";
   const companyName = typeof data.companyName === "string" ? data.companyName.trim().slice(0, 200) : "";
+  // Staff/requester address from the Keycard Form's "Your Email..." field -
+  // distinct from tenantEmail above. Persisted here so
+  // submitSignatureRequest can notify the staff member who filed the
+  // request once the tenant signs, instead of notifying the tenant back
+  // (bug report 2026-09-21). Falls back to createdBy (the logged-in
+  // sender's auth email) when a caller doesn't supply a valid one, so an
+  // older client or a blank "Your Email..." field never yields a request
+  // with no staff notification target.
+  const requesterEmailRaw = typeof data.requesterEmail === "string" ? data.requesterEmail.trim() : "";
+  const requesterEmail = SIGNATURE_REQUEST_EMAIL_RE.test(requesterEmailRaw) ? requesterEmailRaw : request.auth.token.email;
   const locationText = typeof data.locationText === "string" ? data.locationText.trim().slice(0, 300) : "";
   const fieldValues = sanitizeStringMap(data.fieldValues, 60, 300);
   const checkboxFields = sanitizeBoolMap(data.checkboxFields, 20);
@@ -917,6 +956,7 @@ exports.createKeycardSignatureRequest = onCall({ timeoutSeconds: 30 }, async (re
     tenantName,
     companyName,
     tenantEmail,
+    requesterEmail,
     locationText,
     fieldValues,
     checkboxFields,
@@ -940,19 +980,23 @@ exports.createKeycardSignatureRequest = onCall({ timeoutSeconds: 30 }, async (re
   // Greeting line per Huy's spec (2026-09-20 pass): "[Company Name] -
   // [Tenant First Last name]", gracefully degrading when either half is
   // missing (companyName is optional - not every card has one on file) so
-  // the greeting never reads as "Hello - ," or "Hello ,".
+  // the greeting never reads as "Hello - ," or "Hello ,". The subject line
+  // (2026-09-22) reuses the same joined name so multi-card requests each get
+  // a subject naming THEIR OWN card's company/tenant, not a shared one -
+  // this function already runs once per targetField/card, so no extra
+  // per-card fan-out is needed here.
   const greetingName = [companyName, tenantName].filter(Boolean).join(" - ");
   try {
     const graphClient = await getGraphClientForSend();
     await sendPlainHtmlEmail(graphClient, {
       toEmail: tenantEmail,
-      subject: "Cubework Keycard Form — signature requested",
+      subject: "Cubework Keycard Form - Signature Requested" + (greetingName ? " - " + greetingName : ""),
       html:
         `<p>Hello${greetingName ? " " + escapeHtmlForEmail(greetingName) : ""},</p>` +
-        `<p>Cubework has requested your signature and photo ID on a Keycard Authorization Form${
+        `<p>Cubework has requested your signature on a Keycard Authorization Form${
           locationText ? " for " + escapeHtmlForEmail(locationText) : ""
         }.</p>` +
-        `<p><a href="${signUrl}">Click Here to Review, Sign, and Upload Photo ID</a></p>` +
+        `<p><a href="${signUrl}">Click Here to Review and Sign</a></p>` +
         `<p>This link is unique to you and expires on ${expiresLabel}. Please don't forward it to anyone else.</p>` +
         `<p>If you weren't expecting this, you can ignore this email.</p>`,
     });
@@ -1026,9 +1070,10 @@ exports.submitSignatureRequest = onRequest({ timeoutSeconds: 60 }, async (req, r
   const signerName = typeof body.signerName === "string" ? body.signerName.trim().slice(0, 200) : "";
   const consented = body.consented === true;
   const signaturePngBase64 = typeof body.signaturePngBase64 === "string" ? body.signaturePngBase64 : "";
-  // Photo ID is a hard requirement of the digital-signature process (both
-  // signing surfaces, in-person and remote) - never trust the client-side
-  // check alone on a public, unauthenticated endpoint like this one.
+  // Photo ID is NO LONGER required (2026-09-22, Choose an Entry +
+  // multi-keycard pass): sign.html stopped collecting it and the tenant signs
+  // and submits without one. A Photo ID that still arrives (an older, cached
+  // copy of sign.html) is kept exactly as before; its absence never blocks.
   const photoIdBase64 = typeof body.photoIdBase64 === "string" ? body.photoIdBase64 : "";
   const photoIdContentType = typeof body.photoIdContentType === "string" ? body.photoIdContentType.slice(0, 100) : "application/octet-stream";
   const photoIdFileName = typeof body.photoIdFileName === "string" && body.photoIdFileName.trim() ? body.photoIdFileName.trim().slice(0, 200) : "photo-id";
@@ -1044,10 +1089,9 @@ exports.submitSignatureRequest = onRequest({ timeoutSeconds: 60 }, async (req, r
     res.status(400).json({ ok: false, error: "invalid_signature_image" });
     return;
   }
-  if (!photoIdBase64 || photoIdBase64.length > MAX_KEYCARD_PHOTO_ID_BASE64_CHARS) {
-    res.status(400).json({ ok: false, error: "photo_id_required" });
-    return;
-  }
+  // Oversized optional Photo ID: dropped, not an error (and never truncated -
+  // a sliced base64 payload is a corrupt file, see pitfall #17).
+  const hasPhotoId = !!photoIdBase64 && photoIdBase64.length <= MAX_KEYCARD_PHOTO_ID_BASE64_CHARS;
 
   const ref = db.collection(SIGNATURE_REQUESTS_COLLECTION).doc(token);
   let claimed;
@@ -1076,7 +1120,7 @@ exports.submitSignatureRequest = onRequest({ timeoutSeconds: 60 }, async (req, r
 
   const d = claimed.data;
   try {
-    const pdfInputs = await buildSigningPdfInputsFromHistory(d.historyRequestId, d.targetField, signaturePngBase64, d);
+    const pdfInputs = await buildSigningPdfInputsFromHistory(d.historyRequestId, d.targetField, signaturePngBase64, d, hasPhotoId);
     const bytes = await buildSignedKeycardFormPdf(pdfInputs);
     const sha256 = signatureSha256Hex(bytes);
     const storagePath = `signatureRequests/${token}.pdf`;
@@ -1109,12 +1153,15 @@ exports.submitSignatureRequest = onRequest({ timeoutSeconds: 60 }, async (req, r
       contentType: "image/png",
       metadata: { cacheControl: "private, max-age=0" },
     });
-    const sanitizedAttachmentPhotoIdName = photoIdFileName.replace(/[^a-zA-Z0-9._-]/g, "_");
-    const photoIdAttachmentPath = `signatureRequests/${token}-photoid-${sanitizedAttachmentPhotoIdName}`;
-    await bucket.file(photoIdAttachmentPath).save(Buffer.from(photoIdBase64, "base64"), {
-      contentType: photoIdContentType,
-      metadata: { cacheControl: "private, max-age=0" },
-    });
+    let photoIdAttachmentPath = null;
+    if (hasPhotoId) {
+      const sanitizedAttachmentPhotoIdName = photoIdFileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+      photoIdAttachmentPath = `signatureRequests/${token}-photoid-${sanitizedAttachmentPhotoIdName}`;
+      await bucket.file(photoIdAttachmentPath).save(Buffer.from(photoIdBase64, "base64"), {
+        contentType: photoIdContentType,
+        metadata: { cacheControl: "private, max-age=0" },
+      });
+    }
 
     const forwardedFor = req.headers["x-forwarded-for"];
     const ip = (typeof forwardedFor === "string" && forwardedFor.split(",")[0].trim()) || req.ip || null;
@@ -1132,14 +1179,20 @@ exports.submitSignatureRequest = onRequest({ timeoutSeconds: 60 }, async (req, r
       signedRemotely: true,
     });
 
+    // Captured once, right here, so the value used in the completedAt field
+    // written below and the value used in the staff notification email
+    // (further down, after the Storage/Firestore writes) are the SAME
+    // instant - the actual moment the tenant's signature+Photo ID submission
+    // was accepted, not whenever the notification email happens to go out.
+    const completedAtDate = new Date();
     await ref.update({
       status: "completed",
       completedAt: FieldValue.serverTimestamp(),
       signedPdfPath: storagePath,
       signaturePngPath,
       photoIdAttachmentPath,
-      photoIdContentType,
-      photoIdFileName,
+      photoIdContentType: hasPhotoId ? photoIdContentType : null,
+      photoIdFileName: hasPhotoId ? photoIdFileName : null,
       sha256,
       signerName,
       signerIp: ip,
@@ -1154,26 +1207,26 @@ exports.submitSignatureRequest = onRequest({ timeoutSeconds: 60 }, async (req, r
         const cardNumberMatch = (d.targetField || "").match(/^card([1-7])_signature$/);
         const cardNumber = cardNumberMatch ? cardNumberMatch[1] : "";
         if (cardNumber) {
-          const sanitizedName = photoIdFileName.replace(/[^a-zA-Z0-9._-]/g, "_");
-          const photoIdPath = `${KEYCARD_PHOTO_ID_STORAGE_PREFIX}/${d.historyRequestId}/card${cardNumber}-remote-${token.slice(0, 8)}-${sanitizedName}`;
-          await bucket.file(photoIdPath).save(Buffer.from(photoIdBase64, "base64"), {
-            contentType: photoIdContentType,
-            metadata: { cacheControl: "private, max-age=0" },
-          });
           const histRef = db.collection(KEYCARD_REQUEST_HISTORY_COLLECTION).doc(d.historyRequestId);
           const histSnap = await histRef.get();
           const histExisting = histSnap.exists ? histSnap.data() : {};
           const cardCount = Number.isInteger(histExisting.cardCount) ? histExisting.cardCount : 0;
-          const photoIds = {
-            ...(histExisting.photoIds || {}),
-            [cardNumber]: {
+          const photoIds = { ...(histExisting.photoIds || {}) };
+          if (hasPhotoId) {
+            const sanitizedName = photoIdFileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+            const photoIdPath = `${KEYCARD_PHOTO_ID_STORAGE_PREFIX}/${d.historyRequestId}/card${cardNumber}-remote-${token.slice(0, 8)}-${sanitizedName}`;
+            await bucket.file(photoIdPath).save(Buffer.from(photoIdBase64, "base64"), {
+              contentType: photoIdContentType,
+              metadata: { cacheControl: "private, max-age=0" },
+            });
+            photoIds[cardNumber] = {
               path: photoIdPath,
               name: photoIdFileName,
               contentType: photoIdContentType,
               uploadedAt: FieldValue.serverTimestamp(),
               uploadedVia: "remote",
-            },
-          };
+            };
+          }
           const signedCards = { ...(histExisting.signedCards || {}), [cardNumber]: true };
           // Manual override (added 2026-08-20) - see recordKeycardSubmission's
           // own comment; a remote signature completing shouldn't silently
@@ -1181,7 +1234,7 @@ exports.submitSignatureRequest = onRequest({ timeoutSeconds: 60 }, async (req, r
           const newStatus =
             histExisting.manualOverride === true
               ? histExisting.status
-              : computeKeycardHistoryStatus(photoIds, signedCards, cardCount, histExisting.sent === true);
+              : computeKeycardHistoryStatus(photoIds, signedCards, cardCount, histExisting.sent === true, histExisting.fullEntries);
           await histRef.set(
             {
               photoIds,
@@ -1221,16 +1274,38 @@ exports.submitSignatureRequest = onRequest({ timeoutSeconds: 60 }, async (req, r
           ((pdfInputs.fieldValues && pdfInputs.fieldValues["card" + notifyCardNumber + "_keycard_number"]) ||
             (d.fieldValues && d.fieldValues["card" + notifyCardNumber + "_keycard_number"]))) ||
         "";
+      // Staff/requester address ("Your Email..." on the Keycard Form),
+      // NOT the tenant who just signed - this notification must go back to
+      // whoever filed the request, never to d.tenantEmail (bug report
+      // 2026-09-21). Falls back to createdBy (the sender's auth email) for
+      // requests created before requesterEmail was persisted.
+      const staffNotifyEmail = d.requesterEmail || d.createdBy;
+      const signedDateTimeLabel = formatSignedDateTimePacific(completedAtDate);
       await sendPlainHtmlEmail(graphClient, {
-        toEmail: d.createdBy,
-        subject: "Signed: Cubework Keycard Form" + (d.tenantName ? " — " + escapeHtmlForEmail(d.tenantName) : ""),
+        toEmail: staffNotifyEmail,
+        // Subject/greeting (2026-09-22 pass) reuse signedByLabel above
+        // ("[Company Name] - [Tenant First Last name]", falling back to the
+        // typed signerName when neither is on file) so subject and body stay
+        // in sync and both degrade the same way.
+        subject: "Signed: Cubework Keycard Form" + (signedByLabel ? " - " + signedByLabel : ""),
         html:
-          `<p>${escapeHtmlForEmail(signedByLabel)} just signed the Keycard Authorization Form${
+          `<p>Hello ${escapeHtmlForEmail(signedByLabel)}, just signed the keycard authorization Form${
             d.locationText ? " for " + escapeHtmlForEmail(d.locationText) : ""
           }.</p>` +
+          `<p>Signed Date &amp; Time: ${escapeHtmlForEmail(signedDateTimeLabel)}</p>` +
           `<p>Keycard Number: ${keycardNumber ? escapeHtmlForEmail(keycardNumber) : "N/A"}</p>` +
-          `<p>Open the CW Email Request Tab, click on Submission, click on Edit, and ensure the Signature and Photo ID are attached.</p>` +
-          `<p><a href="${PUBLIC_APP_ORIGIN}/">Open CW Email Request</a></p>`,
+          `<p>The signed Keycard Form is attached.</p>` +
+          `<p>Open the Cubework Email Request tab, click on Submission, click on Edit, and ensure the Signature is attached.</p>` +
+          `<p><a href="${PUBLIC_APP_ORIGIN}/">Open Cubework Email Request</a></p>`,
+        // The signed Keycard Form itself (2026-09-22) - the same bytes just
+        // stored at signatureRequests/{token}.pdf and served to the app by
+        // getSignedKeycardFormPdf. Named per card so two tenants' forms on
+        // one request never share a filename in the Requester's inbox.
+        attachments: [{
+          name: `Signed_Keycard_Form${notifyCardNumber ? "_Card" + notifyCardNumber : ""}${keycardNumber ? "_" + String(keycardNumber).replace(/[^0-9A-Za-z]/g, "") : ""}.pdf`,
+          contentType: "application/pdf",
+          bytes,
+        }],
       });
     } catch (notifyErr) {
       console.error("submitSignatureRequest: staff notification email failed (signature still saved):", notifyErr);
@@ -1338,7 +1413,7 @@ exports.recordKeycardSubmission = onCall({ timeoutSeconds: 30 }, async (request)
       ? existingData.status
       : path === "yes"
       ? (sentFlag ? "complete" : "pending")
-      : computeKeycardHistoryStatus(existingData.photoIds, existingData.signedCards, cardCount, sentFlag);
+      : computeKeycardHistoryStatus(existingData.photoIds, existingData.signedCards, cardCount, sentFlag, Array.isArray(data.fullEntries) ? sanitizeKeycardFullEntries(data.fullEntries) : existingData.fullEntries);
 
   const updatePayload = {
     status,
@@ -1509,7 +1584,7 @@ exports.updateKeycardHistoryStatus = onCall({ timeoutSeconds: 30 }, async (reque
   // Manual override (added 2026-08-20) - see recordKeycardSubmission's own
   // comment above; a card getting signed in-person shouldn't silently
   // clobber a hand-set status either.
-  const status = existing.manualOverride === true ? existing.status : computeKeycardHistoryStatus(existing.photoIds, signedCards, cardCount, existing.sent === true);
+  const status = existing.manualOverride === true ? existing.status : computeKeycardHistoryStatus(existing.photoIds, signedCards, cardCount, existing.sent === true, existing.fullEntries);
 
   await ref.set(
     {
@@ -1560,9 +1635,37 @@ exports.buildKeycardHistoryFormPdf = onCall({ timeoutSeconds: 60 }, async (reque
   const data = request.data || {};
   const requestId = typeof data.requestId === "string" && KEYCARD_REQUEST_ID_RE.test(data.requestId) ? data.requestId : "";
   if (!requestId) throw new HttpsError("invalid-argument", "A valid requestId is required.");
+  // cardNumber (2026-09-22, one email per keycard): build just that card's
+  // form - its own Deal & Licensee fields, its tenant's signature and the
+  // Issued By sign-off - for that card's own email (buildKeycardFormPdfInputsFromHistory's
+  // onlyCard). Omitted = the original whole-submission form.
+  const cardNumber = typeof data.cardNumber === "string" && KEYCARD_CARD_NUMBER_RE.test(data.cardNumber) ? data.cardNumber : "";
   const snap = await db.collection(KEYCARD_REQUEST_HISTORY_COLLECTION).doc(requestId).get();
   if (!snap.exists) throw new HttpsError("not-found", "No submission found for that requestId.");
-  const inputs = buildKeycardFormPdfInputsFromHistory(snap.data());
+  const hist = snap.data();
+  const inputs = buildKeycardFormPdfInputsFromHistory(hist, { onlyCard: cardNumber ? Number(cardNumber) : null });
+  // A tenant who signed while no staff browser was open has signedCards[n]
+  // but no signIdSignatures[n] yet (only the client's finishRemoteSignature()
+  // writes that) - take their ink from the completed signature request
+  // itself so the form never goes out unsigned. Card-scoped builds only.
+  const targetField = cardNumber ? `card${cardNumber}_signature` : "";
+  const hasInk = inputs.signatures.some((sgn) => sgn.field === targetField);
+  const isActivate = cardNumber && Array.isArray(hist.fullEntries) && hist.fullEntries[Number(cardNumber) - 1] && hist.fullEntries[Number(cardNumber) - 1].activate;
+  if (cardNumber && !hasInk && isActivate) {
+    try {
+      const reqs = await db.collection(SIGNATURE_REQUESTS_COLLECTION).where("historyRequestId", "==", requestId).get();
+      const done = reqs.docs
+        .map((doc) => doc.data())
+        .filter((r) => r.targetField === targetField && r.status === "completed" && r.signaturePngPath)
+        .sort((x, y) => (y.completedAt && y.completedAt.toMillis ? y.completedAt.toMillis() : 0) - (x.completedAt && x.completedAt.toMillis ? x.completedAt.toMillis() : 0));
+      if (done.length) {
+        const [sigBytes] = await bucket.file(done[0].signaturePngPath).download();
+        inputs.signatures.push({ field: targetField, pngBase64: sigBytes.toString("base64") });
+      }
+    } catch (sigErr) {
+      console.error(`buildKeycardHistoryFormPdf: couldn't read card ${cardNumber}'s remote signature:`, sigErr.message);
+    }
+  }
   const bytes = await buildSignedKeycardFormPdf(inputs);
   return { ok: true, base64Data: Buffer.from(bytes).toString("base64") };
 });
