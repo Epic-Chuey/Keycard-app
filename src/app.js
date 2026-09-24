@@ -1765,9 +1765,29 @@ window.getKeycardPhotoIdData = getKeycardPhotoIdDataFn;
 window.deleteKeycardHistory = deleteKeycardHistoryFn;
 window.setKeycardHistoryStatus = setKeycardHistoryStatusFn;
 let keycardHistoryById = {};
-function subscribeToKeycardHistory() {
-  onSnapshot(
-    collection(db, "keycardRequestHistory"),
+let unsubscribeKeycardHistory = null;
+// Dashboard > Submission ownership filtering (permanent, 2026-09-23): a
+// non-full-admin only ever sees their own submissions (createdBy == their
+// signed-in email, set once server-side in recordKeycardSubmission - never
+// client-supplied), enforced here AND in firestore.rules (a listable
+// collection query is denied outright unless every doc it could return
+// already satisfies the rule, so both sides must agree). FULL admins keep
+// the old unfiltered view. Called from onAuthStateChanged once role/email
+// are known (and again, with no email, on sign-out) rather than once at
+// module load, since the filter depends on who's signed in.
+function subscribeToKeycardHistory(email, role) {
+  if (unsubscribeKeycardHistory) {
+    unsubscribeKeycardHistory();
+    unsubscribeKeycardHistory = null;
+  }
+  keycardHistoryById = {};
+  if (!email) return;
+  const historyQuery =
+    role === "full"
+      ? collection(db, "keycardRequestHistory")
+      : query(collection(db, "keycardRequestHistory"), where("createdBy", "==", email));
+  unsubscribeKeycardHistory = onSnapshot(
+    historyQuery,
     (snapshot) => {
       const next = {};
       snapshot.docs.forEach((d) => {
@@ -1778,7 +1798,6 @@ function subscribeToKeycardHistory() {
     (err) => console.error(err)
   );
 }
-subscribeToKeycardHistory();
 window.getKeycardHistoryCache = () => keycardHistoryById;
 
 // 2026-08-10: no longer called anywhere in this file - the plain "Pull
@@ -6953,6 +6972,7 @@ searchInput.addEventListener("input", render);
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     currentUserRole = null;
+    subscribeToKeycardHistory(null, null);
     document.body.classList.remove("no-animations");
     signInScreen.style.display = "flex";
     appScreen.style.display = "none";
@@ -7005,6 +7025,7 @@ onAuthStateChanged(auth, async (user) => {
 
   currentUserRole = role;
   currentUserEmail = user.email || null;
+  subscribeToKeycardHistory(currentUserEmail, currentUserRole);
   currentUserTabs = tabs;
   currentUserEraPermissions = eraPermissions;
   signInScreen.style.display = "none";

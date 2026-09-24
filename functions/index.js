@@ -1680,11 +1680,21 @@ exports.buildKeycardHistoryFormPdf = onCall({ timeoutSeconds: 60 }, async (reque
 // file (deleteRoadmapItem, deleteIssueItem) rather than "view" like the
 // read/upload keycard callables above, since this is a destructive action.
 exports.deleteKeycardHistory = onCall({ timeoutSeconds: 30 }, async (request) => {
-  await requireRole(request, "edit");
+  const role = await requireRole(request, "edit");
   const data = request.data || {};
   const requestId = typeof data.requestId === "string" && KEYCARD_REQUEST_ID_RE.test(data.requestId) ? data.requestId : "";
   if (!requestId) throw new HttpsError("invalid-argument", "A valid requestId is required.");
-  await db.collection(KEYCARD_REQUEST_HISTORY_COLLECTION).doc(requestId).delete();
+  const ref = db.collection(KEYCARD_REQUEST_HISTORY_COLLECTION).doc(requestId);
+  // Dashboard > Submission ownership (permanent, 2026-09-23): a non-full
+  // admin may only delete their OWN submissions, even with valid edit
+  // access - mirrors the read-side ownership filter in firestore.rules.
+  if (role !== "full") {
+    const snap = await ref.get();
+    if (snap.exists && snap.data().createdBy !== request.auth.token.email) {
+      throw new HttpsError("permission-denied", "You can only delete your own submissions.");
+    }
+  }
+  await ref.delete();
   return { ok: true };
 });
 
@@ -1701,7 +1711,7 @@ exports.deleteKeycardHistory = onCall({ timeoutSeconds: 30 }, async (request) =>
 // read-only action.
 const KEYCARD_MANUAL_STATUSES = ["pending", "complete"];
 exports.setKeycardHistoryStatus = onCall({ timeoutSeconds: 30 }, async (request) => {
-  await requireRole(request, "edit");
+  const role = await requireRole(request, "edit");
   const data = request.data || {};
   const requestId = typeof data.requestId === "string" && KEYCARD_REQUEST_ID_RE.test(data.requestId) ? data.requestId : "";
   const status = KEYCARD_MANUAL_STATUSES.includes(data.status) ? data.status : "";
@@ -1711,6 +1721,12 @@ exports.setKeycardHistoryStatus = onCall({ timeoutSeconds: 30 }, async (request)
   const snap = await ref.get();
   if (!snap.exists) throw new HttpsError("not-found", "No such submission.");
   const existing = snap.data();
+  // Dashboard > Submission ownership (permanent, 2026-09-23): a non-full
+  // admin may only change status on their OWN submissions - mirrors the
+  // read-side ownership filter in firestore.rules.
+  if (role !== "full" && existing.createdBy !== request.auth.token.email) {
+    throw new HttpsError("permission-denied", "You can only update your own submissions.");
+  }
 
   await ref.set(
     {

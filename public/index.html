@@ -153,6 +153,12 @@ label.era-check:has(> #era_lt_serves_unis) {
 #emailRequestAttachmentsEmbedView .era-k-esign-status.is-signed { color: var(--success-text); }
 #emailRequestAttachmentsEmbedView .era-k-esign-status.is-error { color: var(--danger-light); }
 #emailRequestAttachmentsEmbedView .era-k-esign-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+/* Manual Upload Keycard Form (2026-09-23, single whole-submission checkbox
+   next to the E-Signature Send button, per Huy's request - not one per
+   card). */
+#emailRequestAttachmentsEmbedView .era-k-manualUpload-check { font-weight: 700; }
+#emailRequestAttachmentsEmbedView .era-k-manualUpload-fileWrap { margin: 8px 0 0 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+#emailRequestAttachmentsEmbedView .era-k-manualUpload-status { font-size: 12.5px; font-weight: 600; }
 #emailRequestAttachmentsEmbedView #era_k_esignSendStatus:empty,
 #emailRequestAttachmentsEmbedView #era_k_issuedBy_checklist:empty { display: none; }
 #emailRequestAttachmentsEmbedView #era_k_esignSendStatus { font-size: 12.5px; font-weight: 600; }
@@ -3492,7 +3498,7 @@ main { padding-right: calc(24px + env(safe-area-inset-right, 0px)); }
                for Location above. -->
           <div id="era_yourEmailGroup">
           <label>Requestor's Email <span class="era-required-mark">*</span></label>
-          <input type="email" id="era_requesterEmailLocal" placeholder="yourname@cubework.com" autocomplete="off">
+          <input type="email" id="era_requesterEmailLocal" placeholder="yourname@cubework.com" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')">
           <div class="era-hint">Cc'd on every email this request sends.</div>
           </div>
         </div>
@@ -3712,8 +3718,14 @@ main { padding-right: calc(24px + env(safe-area-inset-right, 0px)); }
             <div id="era_k_esignList"></div>
             <div class="era-k-esign-actions">
               <button type="button" class="secondary" id="era_k_esignSendBtn" disabled>Send</button>
+              <label class="era-check era-k-manualUpload-check" style="margin:0;display:inline-flex;"><input type="checkbox" id="era_k_manualUpload_proxy"> Manual Upload Keycard Form</label>
               <span id="era_k_esignSendStatus"></span>
               <span id="era_k_esignMultiNotice" class="era-field-hidden" style="font-weight:700;color:var(--danger);margin-left:8px;">Owner must sign for multiple keycards and responsible for all of them.</span>
+            </div>
+            <div class="era-k-manualUpload-fileWrap era-field-hidden" id="era_k_manualUpload_fileWrap">
+              <input type="file" id="era_k_manualUpload_input" class="era-file-input-hidden" accept="application/pdf,image/*">
+              <button type="button" class="era-file-btn" id="era_k_manualUpload_btn">Choose Keycard Form File</button>
+              <div class="era-file-list era-k-manualUpload-status" id="era_k_manualUpload_status"></div>
             </div>
           </div>
         </div>
@@ -6106,6 +6118,14 @@ function eraKeycardRequiredProblems(opts){
   const cards=Array.prototype.slice.call(c.querySelectorAll("#era_k_entries .era-entry-block"));
   if(!cards.length)out.push("Add at least one keycard.");
   eraKeycardSyncSharedFields();
+  // Manual Upload Keycard Form (2026-09-23, per Huy's request) - a SINGLE
+  // whole-submission checkbox+upload (not one per card, see
+  // eraSyncManualUploadControl()/eraWireManualUploadControl() below): once
+  // checked and a file is actually uploaded, it satisfies the "signed form is
+  // in hand" requirement for every Activate card at once, in place of each
+  // card's own E-Signature status - a genuine OR at the whole-request level,
+  // not a per-card one.
+  const manualUploadDone=eraManualUploadDone();
   cards.forEach(function(b,idx){
     const P="Card "+(idx+1)+": ",sel=b.querySelector(".era-k-action-select");
     if(!sel||!sel.value){out.push(P+"choose an entry.");return}
@@ -6128,13 +6148,35 @@ function eraKeycardRequiredProblems(opts){
     }
     const lvl=b.querySelector(".era-k-accessLevel-wrap");
     if(shown(lvl)&&!lvl.querySelector("input[type=checkbox]:checked"))out.push(P+"select an Access Level.");
-    // E-Signature ticked for this card: its tenant must have signed. Never a
+    // Access System - at least one of HikCentral/Unifi (2026-09-23, per Huy's
+    // request): both may be checked, only "neither" is invalid. Checked on
+    // whichever Access System row is actually on screen for this card's
+    // action - Activate's own .era-k-card-hikcentral/-unifi (inside
+    // .era-k-accessSystem-wrap, hidden for Troubleshoot/Replacement/etc via
+    // the existing era-k-standard-fields/stage2 toggles, so shown() already
+    // reports false there) and Replacement's own parallel
+    // .era-k-repl-serves-hikcentral/-unifi (always on screen once Replacement
+    // is chosen - the same fields updateReplExtra() already reads). One rule,
+    // reused per-card, no separate validator.
+    const accessSys=b.querySelector(".era-k-accessSystem-wrap");
+    if(shown(accessSys)){
+      const hik=b.querySelector(".era-k-card-hikcentral"),uf=b.querySelector(".era-k-card-unifi");
+      (hik&&hik.checked)||(uf&&uf.checked)||out.push(P+"select at least one Access System (HikCentral or Unifi).");
+    }
+    if(sel.value==="replacement"){
+      const rhik=b.querySelector(".era-k-repl-serves-hikcentral"),ruf=b.querySelector(".era-k-repl-serves-unifi");
+      (rhik&&rhik.checked)||(ruf&&ruf.checked)||out.push(P+"select at least one Access System (HikCentral or Unifi) for the replacement.");
+    }
+    // E-Signature ticked for this card: its tenant must have signed - UNLESS
+    // the whole-submission Manual Upload Keycard Form is done (see above),
+    // which overrides every card's own E-Signature gate at once. Never a
     // Photo ID requirement.
-    if(!forSave&&sel.value==="activate"){
+    if(!forSave&&sel.value==="activate"&&!manualUploadDone){
       if(eraKCardEsignEnabled(b)){b.dataset.eraEsign!=="signed"&&out.push(P+"waiting for the tenant's E-Signature.")}
-      else if(b.dataset.eraEsignSel==="1")out.push(P+"E-Signature is ticked but not sent yet - press Send in the E-Signature section.");
+      else if(b.dataset.eraEsignSel==="1")out.push(P+"E-Signature is ticked but not sent yet - press Send in the E-Signature section.")
     }
   });
+  if(!forSave&&eraManualUploadEnabled()&&!manualUploadDone)out.push("Manual Upload Keycard Form is checked - upload the signed keycard form.");
   if(eraKeycardIssuedByNeeded()){
     eraIssuedByHasInk||out.push("Issued By: add the Requestor Signature.");
     w("era_k_issuedBy_date")||out.push("Issued By: the date is missing.");
@@ -8147,7 +8189,7 @@ function eraRenderEmailSuggestPanel(){
     eraEmailSuggestPanel.appendChild(row)
   })
 }
-function eraOpenEmailSuggestPanel(input,fieldKey){
+function eraOpenEmailSuggestPanel(input,fieldKey,suppressOnFocus){
   eraEmailSuggestInput!==input&&eraCloseEmailSuggestPanel();
   if(!eraEmailSuggestPanel){
     eraEmailSuggestPanel=document.createElement("div"),
@@ -8157,11 +8199,28 @@ function eraOpenEmailSuggestPanel(input,fieldKey){
     window.addEventListener("resize",eraPositionEmailSuggestPanel,!0)
   }
   eraEmailSuggestInput=input,eraEmailSuggestKey=fieldKey,
-  eraPositionEmailSuggestPanel(),eraRenderEmailSuggestPanel()
+  eraPositionEmailSuggestPanel();
+  // suppressOnFocus (2026-09-23, per Huy's request, Requester's Email/Tenant
+  // Email): merely receiving focus must never pop the suggestion list open by
+  // itself, even when the field already has a value typed in from earlier
+  // (e.g. tabbing back into it) - only an actual keystroke (the "input"
+  // listener below, which always calls eraRenderEmailSuggestPanel() with no
+  // suppression) should reveal matches. The panel element itself still has to
+  // be created/positioned above so search-as-you-type, Arrow Up/Down, Enter-
+  // to-select and mouse-click selection all keep working unchanged the moment
+  // the user types - this only skips the one render call that would otherwise
+  // show stale matches for text that was typed before this focus happened.
+  if(suppressOnFocus){eraEmailSuggestPanel.innerHTML="",eraEmailSuggestPanel.style.display="none"}
+  else eraRenderEmailSuggestPanel()
 }
 c.addEventListener("focusin",function(ev){
   const key=eraEmailFieldKeyFor(ev.target);
-  key&&eraOpenEmailSuggestPanel(ev.target,key)
+  // Scoped to the two INLINE fields only (Requester's Email/Tenant Email,
+  // ERA_EMAIL_FIELDS' own inline:true flag) - every other email field
+  // elsewhere in this tab (Wi-Fi/Phone/App/Laptop's manager/personal email
+  // etc.) wasn't part of this request and keeps its original floating-popup-
+  // on-focus behavior unchanged.
+  key&&eraOpenEmailSuggestPanel(ev.target,key,eraEmailFieldIsInline(ev.target))
 });
 c.addEventListener("input",function(ev){
   const key=eraEmailFieldKeyFor(ev.target);
@@ -8314,7 +8373,7 @@ c.addEventListener("keydown",function(ev){
   (emailKey||phoneKey)&&(ev.preventDefault(),ev.target.blur())
 });
 
-function se(e,t,r){const i=a(e),n=a(t);if(!i||!n)return;function l(){const o=r?i.checked:!i.checked;n.classList.toggle("era-field-hidden",!o)}i.addEventListener("change",l),l()}let Ue=0;function j(){const e=Ue++,t=document.createElement("div");t.className="era-entry-block",t.dataset.seq=e,t.innerHTML='<button type="button" class="era-remove-entry-btn">Remove this keycard</button><div class="era-k-action-wrap"><label>Card <span class="era-k-entry-num">1</span> <span class="era-required-mark">*</span></label><select class="era-k-action-select"><option value="" selected>Choose an entry</option><option value="activate">Activate</option><option value="deactivate">De-activate</option><option value="replacement">Replacement</option><option value="troubleshoot">Troubleshoot</option><option value="transfer">Transfer</option><option value="requestcard">Request Blank Keycard</option></select><button type="button" class="era-k-resume-guide-btn era-file-btn era-field-hidden" style="margin-top:8px;">Resume Step-by-Step Guide</button></div><div class="era-k-deal-wrap era-field-hidden"><div class="era-row2"><div><label>Licensee Company Name <span class="era-required-mark">*</span></label><input type="text" class="era-k-dl-licensee" autocomplete="off"></div><div><label>Yardi Deal# / Account#</label><input type="text" class="era-k-dl-yardi" placeholder="Check with Sale/Yardi/Facility Lead" autocomplete="off"></div></div><label>Location <span class="era-required-mark">*</span></label><input type="text" class="era-k-dl-location" list="era_k_transferLocationList" placeholder="Search city, street or ZIP" autocomplete="off"><div class="era-k-dl-extraLocs"></div><button type="button" class="era-add-entry-btn era-k-dl-addLocBtn">+ Add Location</button><div class="era-row2"><div><label>Unit # <span class="era-required-mark">*</span></label><input type="text" class="era-k-dl-unit" autocomplete="off"></div><div><label>Floor #</label><input type="text" class="era-k-dl-floor" autocomplete="off"></div></div></div><div class="era-field-hidden"><input type="radio" name="era_k_action_'+e+'" class="era-k-activate" value="activate"><input type="radio" name="era_k_action_'+e+'" class="era-k-deactivate" value="deactivate"><input type="radio" name="era_k_action_'+e+'" class="era-k-replacement" value="replacement"><input type="radio" name="era_k_action_'+e+'" class="era-k-troubleshoot" value="troubleshoot"><input type="radio" name="era_k_action_'+e+'" class="era-k-transfer" value="transfer"><input type="radio" name="era_k_action_'+e+'" class="era-k-requestcard" value="requestcard"></div><div class="era-row2 era-k-requestcard-row era-field-hidden"><div class="era-k-requestcard-locWrap"><label>Location <span class="era-required-mark">*</span></label><input type="text" class="era-k-requestcardLocation" list="era_k_transferLocationList" placeholder="Search city, street or ZIP" autocomplete="off"></div><div class="era-k-requestcard-qtyWrap"><label>Keycard Quantity (1-50) <span class="era-required-mark">*</span></label><input type="number" class="era-k-requestcardQty" min="1" max="50" step="1" inputmode="numeric"></div></div><div class="era-k-requestcard-row era-k-requestcard-mgrRow era-field-hidden"><label>Manager Email <span class="era-required-mark">*</span></label><input type="email" class="era-k-requestcardManagerEmail"></div><div class="era-k-replacement-row era-field-hidden"><div><label>New Location</label><input type="text" class="era-k-replacementLocation" list="era_k_transferLocationList" placeholder="Search city, street or ZIP" autocomplete="off"></div><div class="era-checks" style="display:none;"><label class="era-check"><input type="checkbox" class="era-k-repl-serves-cubework" checked> Cubework</label><label class="era-check"><input type="checkbox" class="era-k-repl-serves-unis"> Unis</label></div><label>Access System</label><div class="era-checks era-k-repl-hikunifi-row"><label class="era-check"><input type="checkbox" class="era-k-repl-serves-hikcentral"> HikCentral</label><label class="era-check"><input type="checkbox" class="era-k-repl-serves-unifi"> Unifi</label></div><div class="era-k-repl-extra era-field-hidden"><div class="era-row2"><div><label>Company Name <span class="era-required-mark">*</span></label><input type="text" class="era-k-repl-companyName"></div><div><label>Tenant First and Last Name <span class="era-required-mark">*</span></label><input type="text" class="era-k-repl-tenantName"></div></div><div class="era-row2"><div><label>Tenant Email</label><input type="email" class="era-k-repl-email"></div><div><label>Tenant Phone (10 digits)</label><input type="tel" class="era-k-repl-phone" placeholder="000-000-0000" maxlength="12" inputmode="tel"></div></div><label class="era-field-hidden">Old Keycard &rarr; New Keycard</label><div class="era-k-repl-pairs"></div><button type="button" class="era-add-entry-btn era-k-repl-addPairBtn">+ Add Another Keycard Replacement</button></div></div><div class="era-row3 era-k-standard-fields"><div class="era-k-companyName-wrap era-field-hidden"><label>Company Name <span class="era-required-mark">*</span></label><input type="text" class="era-k-companyName"></div><div><label>Tenant First and Last Name <span class="era-required-mark">*</span></label><input type="text" class="era-k-tenantName"></div><div><label>Keycard Number (10 digits) <span class="era-required-mark">*</span></label><input type="text" class="era-k-keycard" maxlength="10" inputmode="numeric" pattern="[0-9]*"><div class="era-k-kc-hint" aria-live="polite"></div></div></div><div class="era-k-transfer-row era-field-hidden"><div class="era-k-transfer-locPairs"><div class="era-row2 era-k-transfer-loc-pair"><div><label>Transfer From Location <span class="era-required-mark">*</span></label><input type="text" class="era-k-transferFrom" list="era_k_transferLocationList" placeholder="Search city, street or ZIP" autocomplete="off"></div><div><label>Transfer To Location <span class="era-required-mark">*</span></label><input type="text" class="era-k-transferTo" list="era_k_transferLocationList" placeholder="Search city, street or ZIP" autocomplete="off"></div></div></div><div class="era-k-transfer-kcAnchor"></div><div class="era-k-transfer-kcGroups"></div><div class="era-k-transfer-btnRow"><button type="button" class="era-add-entry-btn era-k-transfer-addLocBtn">+Add Another Location</button> <button type="button" class="era-add-entry-btn era-k-transfer-addKcBtn">+Add Another Keycard</button> <button type="button" class="era-add-entry-btn era-k-transfer-addNotesBtn">+Add Notes</button></div></div><div class="era-k-standard-fields"><div class="era-k-accessSystem-wrap"><label>Access System</label><div class="era-checks"><label class="era-check"><input type="checkbox" class="era-k-card-hikcentral"> HikCentral</label><label class="era-check"><input type="checkbox" class="era-k-card-unifi"> Unifi</label></div></div><div class="era-k-accessLevel-wrap"><label>Access Level (select all that apply) <span class="era-required-mark">*</span></label><div class="era-checks"><label class="era-check"><input type="checkbox" class="era-k-access-standard"> Standard</label><label class="era-check"><input type="checkbox" class="era-k-access-wh"> WH Only</label><label class="era-check"><input type="checkbox" class="era-k-access-office"> Office Only</label><label class="era-check"><input type="checkbox" class="era-k-access-other"> Other (specify)\u2026</label></div><input type="text" class="era-k-accessCustom era-field-hidden" placeholder="Custom access value"></div></div><div class="era-k-transfer-notes-wrap era-field-hidden"><label>Notes</label><textarea class="era-k-transfer-notes" placeholder="Enter notes for this transfer request"></textarea></div><button type="button" class="era-add-note-btn era-file-btn era-field-hidden">+ Add Note</button><textarea class="era-k-issue era-field-hidden" placeholder="Describe the issue"></textarea><div class="era-row2 era-k-contact-row"><div><label>Tenant Email <span class="era-required-mark">*</span></label><input type="email" class="era-k-email"></div><div><label>Tenant Phone (10 digits)</label><input type="tel" class="era-k-phone" placeholder="Check with Sale/Yardi/Facility Lead" maxlength="12" inputmode="tel"></div></div><div class="era-k-fee-anchor"></div><div class="era-checks era-k-fee-row"><label class="era-check"><input type="checkbox" class="era-k-fee"> Fee</label><button type="button" class="era-remove-location-btn era-k-transfer-line1-removeBtn era-field-hidden" title="Remove this keycard line" aria-label="Remove this keycard line">\u2715</button></div><div class="era-k-signid-wrap" style="margin-top:14px;padding-top:14px;border-top:1px dashed var(--era-border);"><div class="era-k-signid-activateFields"><div class="era-row2" style="margin-bottom:16px;"><div><label>Date Issued</label><input type="date" class="era-k-dateIssued"></div><div><label>Date Returned</label><input type="date" class="era-k-dateReturned"></div></div><label style="font-weight:700;">Signature / ID</label><div class="era-hint">This card\u2019s signature and photo ID \u2014 both are added to Attachments automatically once filled in.</div><label class="era-check" style="font-weight:600;"><input type="checkbox" class="era-k-signid-esign"> E-Signature</label><div class="era-k-signid-signNow"><label>Signature</label><div style="border:1px solid var(--era-border);border-radius:8px;overflow:hidden;margin-bottom:8px;"><canvas class="era-k-signid-canvas" style="display:block;width:100%;height:140px;touch-action:none;cursor:crosshair;background:#fff;"></canvas></div><button type="button" class="era-file-btn era-k-signid-clearBtn">Clear signature</button><div class="era-k-signid-inkStatus era-hint" style="font-weight:600;margin-top:4px;"></div></div><div class="era-k-signid-esignRow era-field-hidden"><label>Tenant E-Signature Email</label><input type="email" class="era-k-signid-email" placeholder="tenant@example.com"><button type="button" class="era-file-btn era-k-signid-sendBtn">Send for E-Signature</button><div class="era-file-list era-k-signid-sendStatus"></div></div><label style="margin-top:10px;">Photo ID</label><input type="file" class="era-k-signid-photoInput era-file-input-hidden" accept="image/*,.pdf"><button type="button" class="era-file-btn era-k-signid-photoBtn">Choose Photo ID</button><div class="era-file-list era-k-signid-photoStatus">No photo ID selected yet.</div></div><div class="era-k-notes-wrap"><textarea class="era-k-notes" placeholder="Notes / anything else to flag for this request"></textarea><button type="button" class="era-k-notes-removeBtn era-field-hidden" title="Remove this note" aria-label="Remove this note">✕</button></div><div class="era-k-signid-activateFields"><div class="era-k-signid-decision era-field-hidden" style="margin-top:10px;padding:10px;border:1px solid var(--era-border);border-radius:8px;background:#19191b;"><div class="era-k-signid-decisionButtons"><div style="font-weight:600;margin-bottom:6px;">Signature request sent \u2014 what next?</div><button type="button" class="era-file-btn era-k-signid-saveLeaveBtn">Save &amp; Leave</button> <button type="button" class="era-file-btn era-k-signid-waitBtn">Wait for Signature Now</button></div><div class="era-k-signid-waitStatus era-field-hidden"></div></div></div></div>';function r(){this.value=this.value.replace(/\D/g,"").slice(0,10)}t.querySelector(".era-k-keycard").addEventListener("input",r),t.querySelector(".era-k-phone").addEventListener("input",function(){this.value=W(this.value)}),t.querySelector(".era-k-repl-phone").addEventListener("input",function(){this.value=W(this.value)}),t.querySelector(".era-k-access-other").addEventListener("change",function(){t.querySelector(".era-k-accessCustom").classList.toggle("era-field-hidden",!this.checked)});
+function se(e,t,r){const i=a(e),n=a(t);if(!i||!n)return;function l(){const o=r?i.checked:!i.checked;n.classList.toggle("era-field-hidden",!o)}i.addEventListener("change",l),l()}let Ue=0;function j(){const e=Ue++,t=document.createElement("div");t.className="era-entry-block",t.dataset.seq=e,t.innerHTML='<button type="button" class="era-remove-entry-btn">Remove this keycard</button><div class="era-k-action-wrap"><label>Card <span class="era-k-entry-num">1</span> <span class="era-required-mark">*</span></label><select class="era-k-action-select"><option value="" selected>Choose an entry</option><option value="activate">Activate</option><option value="deactivate">De-activate</option><option value="replacement">Replacement</option><option value="troubleshoot">Troubleshoot</option><option value="transfer">Transfer</option><option value="requestcard">Request Blank Keycard</option></select><button type="button" class="era-k-resume-guide-btn era-file-btn era-field-hidden" style="margin-top:8px;">Resume Step-by-Step Guide</button></div><div class="era-k-deal-wrap era-field-hidden"><div class="era-row2"><div><label>Licensee Company Name <span class="era-required-mark">*</span></label><input type="text" class="era-k-dl-licensee" autocomplete="off"></div><div><label>Yardi Deal# / Account#</label><input type="text" class="era-k-dl-yardi" placeholder="Check with Sale/Yardi/Facility Lead" autocomplete="off"></div></div><label>Location <span class="era-required-mark">*</span></label><input type="text" class="era-k-dl-location" list="era_k_transferLocationList" placeholder="Search city, street or ZIP" autocomplete="off"><div class="era-k-dl-extraLocs"></div><button type="button" class="era-add-entry-btn era-k-dl-addLocBtn">+ Add Location</button><div class="era-row2"><div><label>Unit # <span class="era-required-mark">*</span></label><input type="text" class="era-k-dl-unit" autocomplete="off"></div><div><label>Floor #</label><input type="text" class="era-k-dl-floor" autocomplete="off"></div></div></div><div class="era-field-hidden"><input type="radio" name="era_k_action_'+e+'" class="era-k-activate" value="activate"><input type="radio" name="era_k_action_'+e+'" class="era-k-deactivate" value="deactivate"><input type="radio" name="era_k_action_'+e+'" class="era-k-replacement" value="replacement"><input type="radio" name="era_k_action_'+e+'" class="era-k-troubleshoot" value="troubleshoot"><input type="radio" name="era_k_action_'+e+'" class="era-k-transfer" value="transfer"><input type="radio" name="era_k_action_'+e+'" class="era-k-requestcard" value="requestcard"></div><div class="era-row2 era-k-requestcard-row era-field-hidden"><div class="era-k-requestcard-locWrap"><label>Location <span class="era-required-mark">*</span></label><input type="text" class="era-k-requestcardLocation" list="era_k_transferLocationList" placeholder="Search city, street or ZIP" autocomplete="off"></div><div class="era-k-requestcard-qtyWrap"><label>Keycard Quantity (1-50) <span class="era-required-mark">*</span></label><input type="number" class="era-k-requestcardQty" min="1" max="50" step="1" inputmode="numeric"></div></div><div class="era-k-requestcard-row era-k-requestcard-mgrRow era-field-hidden"><label>Manager Email <span class="era-required-mark">*</span></label><input type="email" class="era-k-requestcardManagerEmail"></div><div class="era-k-replacement-row era-field-hidden"><div><label>New Location</label><input type="text" class="era-k-replacementLocation" list="era_k_transferLocationList" placeholder="Search city, street or ZIP" autocomplete="off"></div><div class="era-checks" style="display:none;"><label class="era-check"><input type="checkbox" class="era-k-repl-serves-cubework" checked> Cubework</label><label class="era-check"><input type="checkbox" class="era-k-repl-serves-unis"> Unis</label></div><label>Access System <span class="era-required-mark">*</span></label><div class="era-checks era-k-repl-hikunifi-row"><label class="era-check"><input type="checkbox" class="era-k-repl-serves-hikcentral"> HikCentral</label><label class="era-check"><input type="checkbox" class="era-k-repl-serves-unifi"> Unifi</label></div><div class="era-k-repl-extra era-field-hidden"><div class="era-row2"><div><label>Company Name <span class="era-required-mark">*</span></label><input type="text" class="era-k-repl-companyName"></div><div><label>Tenant First and Last Name <span class="era-required-mark">*</span></label><input type="text" class="era-k-repl-tenantName"></div></div><div class="era-row2"><div><label>Tenant Email</label><input type="email" class="era-k-repl-email"></div><div><label>Tenant Phone (10 digits)</label><input type="tel" class="era-k-repl-phone" placeholder="000-000-0000" maxlength="12" inputmode="tel"></div></div><label class="era-field-hidden">Old Keycard &rarr; New Keycard</label><div class="era-k-repl-pairs"></div><button type="button" class="era-add-entry-btn era-k-repl-addPairBtn">+ Add Another Keycard Replacement</button></div></div><div class="era-row3 era-k-standard-fields"><div class="era-k-companyName-wrap era-field-hidden"><label>Company Name <span class="era-required-mark">*</span></label><input type="text" class="era-k-companyName"></div><div><label>Tenant First and Last Name <span class="era-required-mark">*</span></label><input type="text" class="era-k-tenantName"></div><div><label>Keycard Number (10 digits) <span class="era-required-mark">*</span></label><input type="text" class="era-k-keycard" maxlength="10" inputmode="numeric" pattern="[0-9]*"><div class="era-k-kc-hint" aria-live="polite"></div></div></div><div class="era-k-transfer-row era-field-hidden"><div class="era-k-transfer-locPairs"><div class="era-row2 era-k-transfer-loc-pair"><div><label>Transfer From Location <span class="era-required-mark">*</span></label><input type="text" class="era-k-transferFrom" list="era_k_transferLocationList" placeholder="Search city, street or ZIP" autocomplete="off"></div><div><label>Transfer To Location <span class="era-required-mark">*</span></label><input type="text" class="era-k-transferTo" list="era_k_transferLocationList" placeholder="Search city, street or ZIP" autocomplete="off"></div></div></div><div class="era-k-transfer-kcAnchor"></div><div class="era-k-transfer-kcGroups"></div><div class="era-k-transfer-btnRow"><button type="button" class="era-add-entry-btn era-k-transfer-addLocBtn">+Add Another Location</button> <button type="button" class="era-add-entry-btn era-k-transfer-addKcBtn">+Add Another Keycard</button> <button type="button" class="era-add-entry-btn era-k-transfer-addNotesBtn">+Add Notes</button></div></div><div class="era-k-standard-fields"><div class="era-k-accessSystem-wrap"><label>Access System <span class="era-required-mark">*</span></label><div class="era-checks"><label class="era-check"><input type="checkbox" class="era-k-card-hikcentral"> HikCentral</label><label class="era-check"><input type="checkbox" class="era-k-card-unifi"> Unifi</label></div></div><div class="era-k-accessLevel-wrap"><label>Access Level (select all that apply) <span class="era-required-mark">*</span></label><div class="era-checks"><label class="era-check"><input type="checkbox" class="era-k-access-standard"> Standard</label><label class="era-check"><input type="checkbox" class="era-k-access-wh"> WH Only</label><label class="era-check"><input type="checkbox" class="era-k-access-office"> Office Only</label><label class="era-check"><input type="checkbox" class="era-k-access-other"> Other (specify)\u2026</label></div><input type="text" class="era-k-accessCustom era-field-hidden" placeholder="Custom access value"></div></div><div class="era-k-transfer-notes-wrap era-field-hidden"><label>Notes</label><textarea class="era-k-transfer-notes" placeholder="Enter notes for this transfer request"></textarea></div><button type="button" class="era-add-note-btn era-file-btn era-field-hidden">+ Add Note</button><textarea class="era-k-issue era-field-hidden" placeholder="Describe the issue"></textarea><div class="era-row2 era-k-contact-row"><div><label>Tenant Email <span class="era-required-mark">*</span></label><input type="email" class="era-k-email" autocomplete="new-password" readonly onfocus="this.removeAttribute(&#39;readonly&#39;)"></div><div><label>Tenant Phone (10 digits)</label><input type="tel" class="era-k-phone" placeholder="Check with Sale/Yardi/Facility Lead" maxlength="12" inputmode="tel"></div></div><div class="era-k-fee-anchor"></div><div class="era-checks era-k-fee-row"><label class="era-check"><input type="checkbox" class="era-k-fee"> Fee</label><button type="button" class="era-remove-location-btn era-k-transfer-line1-removeBtn era-field-hidden" title="Remove this keycard line" aria-label="Remove this keycard line">\u2715</button></div><div class="era-k-signid-wrap" style="margin-top:14px;padding-top:14px;border-top:1px dashed var(--era-border);"><div class="era-k-signid-activateFields"><div class="era-row2" style="margin-bottom:16px;"><div><label>Date Issued</label><input type="date" class="era-k-dateIssued"></div><div><label>Date Returned</label><input type="date" class="era-k-dateReturned"></div></div><label style="font-weight:700;">Signature / ID</label><div class="era-hint">This card\u2019s signature and photo ID \u2014 both are added to Attachments automatically once filled in.</div><label class="era-check" style="font-weight:600;"><input type="checkbox" class="era-k-signid-esign"> E-Signature</label><div class="era-k-signid-signNow"><label>Signature</label><div style="border:1px solid var(--era-border);border-radius:8px;overflow:hidden;margin-bottom:8px;"><canvas class="era-k-signid-canvas" style="display:block;width:100%;height:140px;touch-action:none;cursor:crosshair;background:#fff;"></canvas></div><button type="button" class="era-file-btn era-k-signid-clearBtn">Clear signature</button><div class="era-k-signid-inkStatus era-hint" style="font-weight:600;margin-top:4px;"></div></div><div class="era-k-signid-esignRow era-field-hidden"><label>Tenant E-Signature Email</label><input type="email" class="era-k-signid-email" placeholder="tenant@example.com"><button type="button" class="era-file-btn era-k-signid-sendBtn">Send for E-Signature</button><div class="era-file-list era-k-signid-sendStatus"></div></div><label style="margin-top:10px;">Photo ID</label><input type="file" class="era-k-signid-photoInput era-file-input-hidden" accept="image/*,.pdf"><button type="button" class="era-file-btn era-k-signid-photoBtn">Choose Photo ID</button><div class="era-file-list era-k-signid-photoStatus">No photo ID selected yet.</div></div><div class="era-k-notes-wrap"><textarea class="era-k-notes" placeholder="Notes / anything else to flag for this request"></textarea><button type="button" class="era-k-notes-removeBtn era-field-hidden" title="Remove this note" aria-label="Remove this note">✕</button></div><div class="era-k-signid-activateFields"><div class="era-k-signid-decision era-field-hidden" style="margin-top:10px;padding:10px;border:1px solid var(--era-border);border-radius:8px;background:#19191b;"><div class="era-k-signid-decisionButtons"><div style="font-weight:600;margin-bottom:6px;">Signature request sent \u2014 what next?</div><button type="button" class="era-file-btn era-k-signid-saveLeaveBtn">Save &amp; Leave</button> <button type="button" class="era-file-btn era-k-signid-waitBtn">Wait for Signature Now</button></div><div class="era-k-signid-waitStatus era-field-hidden"></div></div></div></div>';function r(){this.value=this.value.replace(/\D/g,"").slice(0,10)}t.querySelector(".era-k-keycard").addEventListener("input",r),t.querySelector(".era-k-phone").addEventListener("input",function(){this.value=W(this.value)}),t.querySelector(".era-k-repl-phone").addEventListener("input",function(){this.value=W(this.value)}),t.querySelector(".era-k-access-other").addEventListener("change",function(){t.querySelector(".era-k-accessCustom").classList.toggle("era-field-hidden",!this.checked)});
   // Tenant Company Name is hidden (2026-08-21, per Huy's request) - mirror
   // Tenant Name into it live so the required-field check and email
   // subject/company-display logic (both keyed off companyName server-side)
@@ -11498,7 +11557,13 @@ let eraKeycardCardForms = {};
 function eraKeycardCardFormName(n) { return "Cubework_Keycard_Form_Card" + n + "_" + new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()) + ".pdf"; }
 function eraMaybeBuildKeycardFormPdf() {
   eraKeycardCardForms = {};
-  if (_ !== "keycard" || !window.buildKeycardHistoryFormPdf) return Promise.resolve();
+  // Manual Upload Keycard Form (2026-09-23, per Huy's request): when checked,
+  // the manually uploaded form is the ONLY Keycard Form this request may
+  // carry - skip generating the standard per-card form (with its always-empty
+  // signature fields, since no E-Signature round trip ever ran) entirely, so
+  // there's nothing left for eraKeycardFormAttachments() to accidentally
+  // attach alongside the manual upload.
+  if (_ !== "keycard" || !window.buildKeycardHistoryFormPdf || eraManualUploadEnabled()) return Promise.resolve();
   const cards = [];
   c.querySelectorAll("#era_k_entries .era-entry-block").forEach(function (b, idx) {
     if (eraKCardAction(b) === "activate" && idx < 7) cards.push(idx + 1);
@@ -11529,6 +11594,15 @@ function eraMaybeBuildKeycardFormPdf() {
 // (single email). Rejects when an Activate card's form is missing, so a
 // Keycard email never silently goes out without it.
 function eraKeycardFormAttachments(cardNumbers) {
+  // Manual Upload Keycard Form takes precedence over the auto-generated form
+  // (see eraMaybeBuildKeycardFormPdf(), which skips building eraKeycardCardForms
+  // entirely once this is on) - the same manually uploaded file stands in for
+  // every card's own Keycard Form, whole-submission, not one per card.
+  if (eraManualUploadEnabled()) {
+    const file = eraManualUploadFileObj();
+    if (!file) return Promise.reject(new Error("the manually uploaded Keycard Form is missing. Nothing was sent - try Preview again."));
+    return Promise.all(cardNumbers.map(function () { return at(file); }));
+  }
   const missing = cardNumbers.filter(function (n) { return !eraKeycardCardForms[n]; });
   if (missing.length) return Promise.reject(new Error("the signed Keycard Form for Card " + missing.join(", ") + " couldn't be generated. Nothing was sent - try Preview again."));
   return Promise.all(cardNumbers.map(function (n) { return at(eraKeycardCardForms[n]); }));
@@ -11575,9 +11649,13 @@ function eraRenderPreviewKformSection() {
   section.style.display = "block";
   list.innerHTML = "";
   const multi = c.querySelectorAll("#era_k_entries .era-entry-block").length > 1;
+  const manualMode = eraManualUploadEnabled();
+  const manualFile = manualMode ? eraManualUploadFileObj() : null;
   cardNums.forEach(function (n) {
-    const file = eraKeycardCardForms[n];
-    const label = multi ? "Signed Keycard Form (Card " + n + " — Email " + n + ")" : "Signed Keycard Form";
+    const file = manualMode ? manualFile : eraKeycardCardForms[n];
+    const label = manualMode
+      ? (multi ? "Manually Uploaded Keycard Form (Email " + n + ")" : "Manually Uploaded Keycard Form")
+      : (multi ? "Signed Keycard Form (Card " + n + " — Email " + n + ")" : "Signed Keycard Form");
     const row = document.createElement("div");
     row.className = "era-preview-kform-row";
     row.style.cssText = "display:flex; align-items:center; gap:8px;";
@@ -11595,6 +11673,10 @@ function eraRenderPreviewKformSection() {
       viewBtn.type = "button"; viewBtn.className = "secondary"; viewBtn.textContent = "View";
       viewBtn.addEventListener("click", function () { eraOpenPreviewKformLightbox(file, label); });
       row.appendChild(viewBtn);
+    } else if (manualMode) {
+      nameEl.textContent = "⚠️ No manually uploaded Keycard Form yet — upload it before Send.";
+      nameEl.style.color = "#f87171";
+      nameEl.style.whiteSpace = "normal";
     } else {
       nameEl.textContent = "⚠️ Couldn't be generated — Send is blocked until it is. Close and click Preview again.";
       nameEl.style.color = "#f87171";
@@ -12422,6 +12504,162 @@ function eraKCardDeal(b) {
   };
 }
 function eraKCardEsignEnabled(b) { const cb = b && b.querySelector(".era-k-signid-esign"); return !!(cb && cb.checked); }
+// ---- "Manual Upload Keycard Form" (2026-09-23, per Huy's request) ----
+// A single, whole-submission alternative to the per-card E-Signature
+// send/poll flow: ONE checkbox + file control, next to the E-Signature
+// panel's Send button (#era_k_esignSendBtn) - not one per card. Checking it
+// and uploading the signed physical form(s) satisfies the "form is in hand"
+// requirement for the ENTIRE request, overriding every Activate card's own
+// E-Signature gate at once (see eraKeycardRequiredProblems() above) rather
+// than being tracked per card. State is module-scoped (not on any card's
+// dataset, since it isn't attached to a specific card).
+let eraManualUploadOn = false;
+let eraManualUploadFile = "";
+let eraManualUploadBusy = false;
+function eraManualUploadEnabled() { return eraManualUploadOn; }
+function eraManualUploadFilename() { return eraManualUploadFile; }
+function eraManualUploadDone() { return eraManualUploadOn && !!eraManualUploadFile; }
+// The actual uploaded File object (pushed into g.keycard by
+// eraWireManualUploadControl() below) - eraManualUploadFile only tracks its
+// name. Used at Preview/Send time to attach the real file instead of the
+// auto-generated form (see eraMaybeBuildKeycardFormPdf()/eraKeycardFormAttachments()).
+function eraManualUploadFileObj() {
+  if (!eraManualUploadFile) return null;
+  return g.keycard.find(function (f) { return f.name === eraManualUploadFile; }) || null;
+}
+// Same one-line filter every other g.keycard removal in this file already
+// uses (eraWireKeycardSignId's own removeFromKeycard(), scoped per-card) -
+// factored out at top level here since this control isn't wired from inside
+// that per-card closure.
+function eraRemoveKeycardAttachment(filename) {
+  if (!filename) return;
+  g.keycard = g.keycard.filter(function (f) { return f.name !== filename; });
+}
+// Same FileReader-to-raw-base64 promise eraWireKeycardSignId's own Photo ID
+// upload uses inline (eraFileToRawBase64) - hoisted out to top level so this
+// control can reuse it instead of redefining it.
+function eraFileToBase64(file) {
+  return new Promise(function (resolve, reject) {
+    const reader = new FileReader();
+    reader.onload = function () {
+      const s = reader.result;
+      const idx = typeof s === "string" ? s.indexOf(",") : -1;
+      resolve(idx !== -1 ? s.slice(idx + 1) : s);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+// Clears the uploaded Manual Upload file (the status row's own ✕ button, and
+// the checkbox's own "change" listener when it's unticked) - drops it from
+// g.keycard/#era_fileList_keycard (H("keycard")) same as every other keycard
+// attachment removal, clears the flag that satisfied Save/Preview, and
+// refreshes the flow immediately so the gate reacts right away.
+function eraManualUploadRemoveFile() {
+  const filename = eraManualUploadFile;
+  if (filename) { eraRemoveKeycardAttachment(filename); H("keycard"); }
+  eraManualUploadFile = "";
+  eraManualUploadBusy = false;
+  eraKeycardRenderEsignPanel();
+  eraKeycardRefreshFlow();
+}
+// Renders/syncs the single static control (#era_k_manualUpload_proxy/_btn/
+// _input/_fileWrap/_status, next to the Send button) from module state.
+// Called from eraKeycardRenderEsignPanel() on every refresh (only touches
+// .checked when the underlying state actually changed, so a click mid-flight
+// isn't undone by this same refresh pass reasserting a stale value).
+function eraSyncManualUploadControl() {
+  const cb = a("era_k_manualUpload_proxy"), wrap = a("era_k_manualUpload_fileWrap"), status = a("era_k_manualUpload_status");
+  if (!cb || !wrap || !status) return;
+  const on = String(eraManualUploadOn);
+  if (cb.dataset.synced !== on) { cb.dataset.synced = on; cb.checked = on === "true"; }
+  wrap.classList.toggle("era-field-hidden", !eraManualUploadOn);
+  const msg = eraManualUploadBusy ? "Uploading…" : eraManualUploadFile ? "" : "No file selected yet.";
+  if (eraManualUploadFile) {
+    if (status.dataset.sig !== "done:" + eraManualUploadFile) {
+      status.dataset.sig = "done:" + eraManualUploadFile;
+      status.innerHTML = "";
+      const okSpan = document.createElement("span");
+      okSpan.textContent = "✅ " + eraManualUploadFile + " ";
+      const rm = document.createElement("button");
+      rm.type = "button"; rm.className = "era-remove-location-btn"; rm.title = "Remove this file"; rm.setAttribute("aria-label", "Remove this file"); rm.textContent = "✕";
+      rm.addEventListener("click", eraManualUploadRemoveFile);
+      status.appendChild(okSpan); status.appendChild(rm);
+    }
+  } else if (status.dataset.sig !== "msg:" + msg) { status.dataset.sig = "msg:" + msg; status.textContent = msg; }
+}
+// Wires the single static "Manual Upload Keycard Form" checkbox + file
+// control (once, not per render/per card). REUSES the exact same upload
+// plumbing the per-card Signature/ID section's own Photo ID picker already
+// relies on (eraGetOrCreateKeycardRequestId() + the generic
+// uploadKeycardPhotoId callable) rather than standing up a second upload
+// widget/backend - keyed to card slot "1" (unused since Photo ID was dropped
+// from this flow, 2026-09-22) since this file isn't tied to any one card.
+// The uploaded file is ALSO pushed into g.keycard (H("keycard")) so it rides
+// along with every other keycard attachment already collected for
+// Preview/Submit, same as the Photo ID picker does.
+function eraWireManualUploadControl() {
+  const cb = a("era_k_manualUpload_proxy"), btn = a("era_k_manualUpload_btn"), input = a("era_k_manualUpload_input");
+  if (!cb || !btn || !input) return;
+  cb.addEventListener("change", function () {
+    eraManualUploadOn = cb.checked;
+    // Unchecking hides the control (per Huy's request) - also drop whatever
+    // was uploaded so the state is unambiguous on a later re-check, and so
+    // Save/Preview correctly stops counting a file for a control the user
+    // just hid.
+    if (!cb.checked && eraManualUploadFile) eraManualUploadRemoveFile();
+    else { eraKeycardRenderEsignPanel(); eraKeycardRefreshFlow(); }
+  });
+  btn.addEventListener("click", function () { input.click(); });
+  input.addEventListener("change", function () {
+    const file = input.files && input.files[0];
+    input.value = "";
+    if (!file) return;
+    const prior = eraManualUploadFile;
+    if (prior) eraRemoveKeycardAttachment(prior);
+    eraManualUploadFile = "";
+    eraManualUploadBusy = true;
+    g.keycard.push(file);
+    H("keycard");
+    eraKeycardRenderEsignPanel();
+    if (!window.uploadKeycardPhotoId) {
+      // No backend bridge (app.js not loaded yet) - keep the file attached
+      // locally so it still rides along with the email, but don't claim the
+      // requirement is satisfied until a real upload confirms it.
+      eraManualUploadBusy = false;
+      eraKeycardRenderEsignPanel();
+      eraKeycardRefreshFlow();
+      return;
+    }
+    const requestId = eraGetOrCreateKeycardRequestId();
+    eraFileToBase64(file).then(function (base64Data) {
+      return window.uploadKeycardPhotoId({
+        requestId: requestId,
+        cardNumber: "1",
+        fileName: file.name,
+        contentType: file.type || "application/octet-stream",
+        base64Data: base64Data,
+      });
+    }).then(function () {
+      // Ignore a stale response for a file the user already replaced/removed
+      // while this upload was in flight.
+      if (!g.keycard.some(function (f) { return f === file; })) return;
+      eraManualUploadBusy = false;
+      eraManualUploadFile = file.name;
+      eraKeycardRenderEsignPanel();
+      eraKeycardRefreshFlow();
+    }).catch(function (e) {
+      console.error("Manual Upload Keycard Form failed:", e);
+      if (!g.keycard.some(function (f) { return f === file; })) return;
+      eraManualUploadBusy = false;
+      eraRemoveKeycardAttachment(file.name);
+      H("keycard");
+      eraKeycardRenderEsignPanel();
+      eraKeycardRefreshFlow();
+    });
+  });
+}
+eraWireManualUploadControl();
 // Extra per-entry fields merged into Se()'s entries (eraKeycardDecorateEntries)
 // and the History entry shape (eraBuildKeycardEntryDataForHistory).
 function eraKCardExtraData(b) {
@@ -12479,7 +12717,13 @@ function eraKCardKeycardOk(b) { return /^\d{10}$/.test(eraKCardVal(b, ".era-k-ke
 // Phone/Access System/Access Level/Fee are shown.
 function eraKCardActivateBasicsDone(b) {
   const d = eraKCardDeal(b);
-  return !!(d.licensee && d.yardi && d.location && d.unit && eraKCardVal(b, ".era-k-tenantName") && eraKCardKeycardOk(b));
+  // Yardi Deal#/Account# is optional (2026-09-23, per Huy's request) - see the
+  // matching note in eraKeycardRequiredProblems() above. It used to also gate
+  // Stage 2 (Tenant Email/Phone/Access System/Access Level/Fee) and "+ Add
+  // another keycard" right here, which is exactly the "gates continuing the
+  // form" behavior that request asked to remove - d.yardi dropped from this
+  // check too so a missing Yardi # can no longer block either.
+  return !!(d.licensee && d.location && d.unit && eraKCardVal(b, ".era-k-tenantName") && eraKCardKeycardOk(b));
 }
 function eraKCardActivateComplete(b) {
   return eraKCardActivateBasicsDone(b) && !!b.querySelector(".era-k-accessLevel-wrap input[type=checkbox]:checked");
@@ -12745,6 +12989,7 @@ function eraKeycardRenderEsignPanel() {
     const msg = bits.join(" · ");
     if (sendStatus.textContent !== msg) sendStatus.textContent = msg;
   }
+  eraSyncManualUploadControl();
 }
 
 // ---- Issued By (Requestor Signature + auto Date) ----
