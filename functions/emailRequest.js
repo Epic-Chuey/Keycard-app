@@ -3,10 +3,12 @@ const fs=require("fs"),path=require("path"),TO_EMAIL="helpdesk@unisco.com",TO_NA
 // Preview Email > To/Cc) - Phone got its own recipient lists instead of
 // reusing the shared CC_EMAILS_GENERAL/CC_EMAILS_PHONE_UNISCO pairs, since
 // those two are shared with every other mode's build*() function
-// (Keycard/Wi-Fi/Printer/App/Laptop/Electrical all still Cc Huy+Jose via
-// CC_EMAILS_GENERAL unchanged) - changing the shared arrays to satisfy this
-// Phone-only request would have silently dropped Jose Ortiz from every one
-// of those other modes' emails too. CC_EMAILS_PHONE_UNISCO itself is left
+// (Keycard/Printer/App/Electrical all still Cc Huy+Jose via
+// CC_EMAILS_GENERAL unchanged - Laptop got its own carve-out right below
+// this same day, and Wi-Fi got its own on 2026-09-23, see CC_EMAILS_WIFI
+// further down) - changing the shared array to satisfy this Phone-only
+// request would have silently dropped Jose Ortiz from every one of those
+// other modes' emails too. CC_EMAILS_PHONE_UNISCO itself is left
 // in place (still exported/read the same way) in case anything else ever
 // needs the old Cc-shaped pair; buildPhone() below reads
 // TO_EMAILS_PHONE_UNISCO instead, now that Miguel/David moved from Cc to To.
@@ -16,8 +18,9 @@ TO_EMAILS_PHONE_UNISCO=["miguel.ochoabello@unisco.com","david.rodriguez@unisco.c
 // Laptop recipients (2026-09-10, per Huy's request) - same reasoning as
 // Phone's own dedicated pair above: Laptop needs its Cc to exclude Jose
 // Ortiz, and changing the shared CC_EMAILS_GENERAL itself would have
-// silently dropped him from Wi-Fi/Printer/App/Electrical too. Miguel/David
-// were never wired into any Laptop build path in the first place
+// silently dropped him from Printer/App/Electrical too (Wi-Fi got its own
+// carve-out later, on 2026-09-23 - see CC_EMAILS_WIFI further down).
+// Miguel/David were never wired into any Laptop build path in the first place
 // (CC_EMAILS_PHONE_UNISCO above is dead code - Phone reads
 // TO_EMAILS_PHONE_UNISCO instead - and neither buildLaptopCubework() nor
 // buildGeneric()'s "laptop" entry ever referenced it), so this only needs
