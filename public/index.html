@@ -41,7 +41,7 @@
 // init either). Do NOT resurrect the old "read localStorage on load" here.
 document.documentElement.setAttribute('data-theme', 'cubework');
 </script>
-<style>:root{color-scheme:dark;--green:#2fb457;--green-600:#26974a;--green-700:#1d7a3b;--green-50:#10241a;--green-100:#16351f;--ink:#0d1b12;--ink-2:#16261c;--surface:#232326;--surface-2:#19191b;--surface-3:#1a1a1c;--border:#38383c;--border-strong:#4a4a50;--text:#f4f4f5;--muted:#a6a6ad;--input-bg:#141416;--hover-bg:#2c2c30;--body-bg:#1b1b1d;--overlay-bg:rgba(15,23,42,.85);--tooltip-bg:#0f172a;--danger:#dc2626;--danger-light:#f87171;--danger-bg:#2a1414;--danger-border:#7f1d1d;--warning:#fbbf24;--warning-border:#b45309;--warning-bg:#241d0d;--success-text:#4ade80;--info-text:#93c5fd;--info-bg:#12233d;--info-border:#1d3a5f;--info-hover-bg:#1a2332;--accent-blue:#2563eb;--accent-blue-hover:#1d4ed8;--accent-amber:#f59e0b;--accent-amber-dim:#b45309;--bg-mountains-opacity:1;--radius-lg:16px;--shadow:0 1px 2px rgba(13,27,18,.04),0 8px 24px -12px rgba(13,27,18,.14);--sidebar-w:248px;--header-bg:rgba(27,27,29,.88);--cw-primary:#38d430;--cw-primary-600:#2fb327;--cw-primary-700:#268f20;--cw-navy:#002b49;--cw-sapphire:#194f90;--cw-steel:#046e95;--cw-teal:#008c95;--cw-aqua:#54cbcf;--cw-cyprus:#0b343c;--cw-canary:#f3e85c;--cw-geko:#c2e76b;--cw-wolf-grey:#8c8c8c;--cw-white:#ffffff;--cw-black:#000000;--cw-gray-100:#f2f2f2;--cw-gray-200:#e6e6e6;--cw-gray-300:#cccccc;--cw-gray-400:#999999;--cw-gray-500:#808080;--cw-gray-600:#666666;--cw-gray-700:#4d4d4d;--cw-gray-800:#333333;--cw-gray-900:#1a1a1a;--cw-secondary:var(--cw-navy);--cw-accent:var(--cw-sapphire);--cw-background:var(--cw-gray-100);--cw-surface:#ffffff;--cw-text:var(--cw-gray-900);--cw-muted:var(--cw-gray-600);--cw-border:var(--cw-gray-200);--cw-success:var(--cw-primary-700);--cw-warning:#b45309;--cw-danger:#dc2626;--shadow-lg:0 4px 12px rgba(13,27,18,.08),0 16px 40px -16px rgba(13,27,18,.22)}:root[data-theme="light"]{color-scheme:light;--green:#2fb457;--green-600:#26974a;--green-700:#1d7a3b;--green-50:#e8f8ee;--green-100:#d1f0dc;--surface:#ffffff;--surface-2:#f4f4f5;--surface-3:#f0f0f2;--border:#e2e2e5;--border-strong:#c8c8cd;--text:#18181b;--muted:#6b6b73;--input-bg:#fafafa;--hover-bg:#ececef;--body-bg:#f7f7f8;--overlay-bg:rgba(15,23,42,.45);--tooltip-bg:#0f172a;--danger:#dc2626;--danger-light:#dc2626;--danger-bg:#fee2e2;--danger-border:#fca5a5;--warning:#b45309;--warning-border:#f59e0b;--warning-bg:#fffbeb;--success-text:#16a34a;--info-text:#1d4ed8;--info-bg:#dbeafe;--info-border:#93c5fd;--info-hover-bg:#bfdbfe;--accent-blue:#2563eb;--accent-blue-hover:#1d4ed8;--accent-amber:#f59e0b;--accent-amber-dim:#b45309;--bg-mountains-opacity:.1;--header-bg:rgba(247,247,248,.88)}:root[data-theme="cubework"]{color-scheme:light;--green:var(--cw-primary);--green-600:var(--cw-primary-600);--green-700:var(--cw-primary-700);--green-50:#eafbea;--green-100:#d0f5d2;--surface:#ffffff;--surface-2:var(--cw-gray-100);--surface-3:#fafafa;--border:var(--cw-gray-200);--border-strong:var(--cw-gray-300);--text:var(--cw-gray-900);--muted:var(--cw-gray-600);--input-bg:#fafafa;--hover-bg:var(--cw-gray-100);--body-bg:var(--cw-gray-100);--overlay-bg:rgba(0,43,73,.45);--tooltip-bg:var(--cw-navy);--danger:#dc2626;--danger-light:#dc2626;--danger-bg:#fee2e2;--danger-border:#fca5a5;--warning:#b45309;--warning-border:#f59e0b;--warning-bg:#fffbeb;--success-text:var(--cw-primary-700);--info-text:var(--cw-sapphire);--info-bg:#e5edf7;--info-border:#a9c2de;--info-hover-bg:#d3e0ef;--accent-blue:var(--cw-sapphire);--accent-blue-hover:var(--cw-navy);--accent-amber:#f59e0b;--accent-amber-dim:#b45309;--bg-mountains-opacity:.06;--header-bg:rgba(255,255,255,.92)}*{box-sizing:border-box}keyboard-driven scrolls - anchor jumps,scrollIntoView(),scrollTo(),and arrow-key scrolling once a nested box has focus - animate instead of snapping. Applied via the universal selector (not just `html`) so it covers every nested scrollable panel too:Roadmap card bodies,the Compare modal's columns,the Export column picker,the Markup image editor's canvas wrap,the grand-total breakdown panel,and the gate overlay - not just the outer page. Respects prefers-reduced-motion so it doesn't fight anyone who's asked their OS/browser to cut down on motion. */ @media (prefers-reduced-motion:no-preference){*{scroll-behavior:smooth}}body{margin:0;font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",sans-serif;color:var(--text);font-size:16px;min-height:100vh;background-color:var(--body-bg);-webkit-font-smoothing:antialiased}body::before{content:"";position:fixed;inset:0;z-index:-1;background-image:url(bg-mountains.png);background-size:cover;background-position:center;background-repeat:no-repeat;opacity:var(--bg-mountains-opacity)}header{padding:20px 14px;display:flex;flex-direction:column;align-items:stretch;gap:14px;border-bottom:none;border-right:1px solid var(--border);position:fixed;top:0;left:0;z-index:100;width:var(--sidebar-w);height:100vh;height:100dvh;overflow-y:auto;overflow-x:hidden;background-color:var(--header-bg);backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px)}.header-brand{flex:none;display:flex;align-items:center;gap:9px;font-size:18px;font-weight:800;letter-spacing:.4px;color:var(--text);padding:0 8px 14px;border-bottom:1px solid var(--border)}.header-brand .mark{width:24px;height:24px;flex:none;display:block}.header-brand-text{white-space:nowrap;color:var(--cw-primary);font-size:20px}.header-brand-abbr{display:none;color:var(--cw-primary);font-size:16px}.sidebar-toggle-fab{position:fixed;top:14px;left:calc(var(--sidebar-w) - 17px);z-index:101;width:34px;height:34px;padding:0;border:1px solid var(--border);border-radius:50%;background:var(--surface);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;cursor:pointer}.sidebar-toggle-fab svg{width:19px;height:19px}.sidebar-toggle-fab:hover{background:var(--hover-bg)}.sidebar-toggle-fab[aria-pressed="true"] #sidebarToggleArrow{transform:scaleX(-1);transform-origin:12px 12px}@media (prefers-reduced-motion:no-preference){header,main,#roadmapGrandTotalBar,.sidebar-toggle-fab{transition:width .18s ease,margin-left .18s ease,left .18s ease}}body.sidebar-manual-collapsed{--sidebar-w:64px}body.sidebar-manual-collapsed .header-brand{justify-content:center;padding:0 0 14px}body.sidebar-manual-collapsed .header-brand-text{display:none}body.sidebar-manual-collapsed .header-brand-abbr{display:block}body.sidebar-manual-collapsed #appSwitcher.header-tabs .tab{justify-content:center;padding:10px 6px}body.sidebar-manual-collapsed #appSwitcher.header-tabs .tab .tab-label{display:none}body.sidebar-manual-collapsed .header-actions{flex-direction:column}.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}#appSwitcher.header-tabs{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;flex-wrap:nowrap;align-items:stretch;justify-content:flex-start;gap:2px;overflow-x:hidden;overflow-y:auto;background:transparent;border:none;box-shadow:none;padding:4px 0;border-radius:0;width:100%;margin:0;scrollbar-width:thin}#appSwitcher.header-tabs .tab{flex:none;display:flex;align-items:center;gap:10px;justify-content:flex-start;text-align:left;white-space:nowrap;width:100%;padding:10px 12px;border-radius:10px;line-height:1.25}#appSwitcher.header-tabs .tab .tab-label{white-space:normal}#appSwitcher .tab[data-app="emailRequestAttachmentsEmbed"]{background:var(--cw-primary);color:#ffffff;border-color:var(--cw-primary)}#appSwitcher .tab[data-app="emailRequestAttachmentsEmbed"]:hover{background:color-mix(in srgb,var(--cw-primary) 75%,white);border-color:color-mix(in srgb,var(--cw-primary) 75%,white)}.header-actions{flex:none;margin-top:auto;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}@media (max-width:640px){:root{--sidebar-w:64px}.header-brand{justify-content:center;padding:0 0 14px}.header-brand-text{display:none}.header-brand-abbr{display:block}#appSwitcher.header-tabs .tab{justify-content:center;padding:10px 6px}#appSwitcher.header-tabs .tab .tab-label{display:none}.header-actions{flex-direction:column}}#signedInAs{font-size:13px;color:var(--muted);font-weight:500}button{background:var(--green);color:white;border:none;padding:10px 20px;border-radius:9999px;font-size:14.5px;font-weight:700;letter-spacing:-.1px;cursor:pointer;transition:background-color 0.15s ease,transform .12s ease}button:active:not(:disabled){transform:translateY(1px)}button:hover:not(:disabled):not(.secondary){background:var(--green-600)}button.secondary{background:var(--surface);color:var(--text);border:1px solid var(--border-strong)}button.secondary:hover:not(:disabled){background:var(--green-50);border-color:var(--green);color:var(--text)}button:disabled{opacity:0.5;cursor:default}button.danger{background:var(--danger);color:#fff}button.danger:hover:not(:disabled){background:var(--danger-border)}main{box-sizing:border-box;padding:20px 24px;width:calc(100% - var(--sidebar-w));margin-left:var(--sidebar-w);margin-right:0}#toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}input[type="search"]{flex:1;min-width:200px;padding:11px 14px;border-radius:11px;border:1px solid var(--border-strong);background:var(--input-bg);color:var(--text);font-size:16px}input[type="search"]:focus,#sortOrder:focus,select:focus,input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3.5px rgba(47,180,87,.16)}#sortOrder{padding:11px 14px;border-radius:11px;border:1px solid var(--border-strong);background:var(--input-bg);color:var(--text);font-size:15px}.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:12px;box-shadow:var(--shadow)}:root[data-theme="cubework"] .card,:root[data-theme="cubework"] .era-card,:root[data-theme="cubework"] .standup-card{transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}:root[data-theme="cubework"] .card:hover,:root[data-theme="cubework"] .era-card:hover,:root[data-theme="cubework"] .standup-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--border-strong)}.card .top-row{display:flex;justify-content:space-between;gap:10px;align-items:baseline}.subject{font-weight:600;font-size:17px}.meta{font-size:13px;color:var(--text);white-space:nowrap}.fields{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.tag{font-size:13px;padding:3px 9px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border)}.issue-row-tag-select{font-size:13px;font-family:inherit;padding:3px 22px 3px 9px;border-radius:999px;background:var(--input-bg);border:1px solid var(--border);cursor:pointer;flex-shrink:0;max-width:160px}.issue-row-tag-select-empty{color:var(--muted);border-style:dashed}.preview{margin-top:6px;font-size:15px;line-height:1.45;color:var(--text);white-space:pre-line;overflow-wrap:break-word;word-break:break-word}.toggles-row{display:flex;align-items:center;gap:18px;margin-top:10px;flex-wrap:wrap}#roadmapGrandTotalBar{display:none;position:fixed;left:var(--sidebar-w);right:0;bottom:0;z-index:500;background-color:var(--ink);color:#ffffff;padding:10px 20px;align-items:center;justify-content:center;gap:18px;border-top:1px solid var(--ink);box-shadow:0 -2px 10px rgba(15,23,42,0.15);font-size:14px;font-weight:600}#roadmapGrandTotalBar.visible{display:flex}#roadmapGrandTotalSelectAll{cursor:pointer}#roadmapGrandTotalBreakdown{display:none;position:fixed;right:20px;bottom:52px;z-index:500;background:var(--surface);color:var(--text);border:1px solid var(--border);border-bottom:none;border-radius:10px 10px 0 0;box-shadow:0 -4px 14px rgba(15,23,42,0.18);max-height:320px;overflow-y:auto;width:min(360px,92vw);font-size:12px;font-weight:400}#roadmapGrandTotalBreakdown.visible{display:block}#roadmapGrandTotalBreakdown table{width:100%;border-collapse:collapse}#roadmapGrandTotalBreakdown th,#roadmapGrandTotalBreakdown td{padding:6px 10px;text-align:left;border-bottom:1px solid var(--hover-bg)}#roadmapGrandTotalBreakdown th:nth-child(2),#roadmapGrandTotalBreakdown td:nth-child(2){text-align:center}#roadmapGrandTotalBreakdown th:last-child,#roadmapGrandTotalBreakdown td:last-child{text-align:right}#roadmapGrandTotalBreakdown th{background:var(--surface-2);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.02em}#roadmapGrandTotalBreakdown .roadmap-breakdown-vendor-label{display:flex;justify-content:space-between;align-items:baseline;padding:8px 10px;font-size:11px;font-weight:700;color:var(--text);background:var(--surface-2)}#roadmapGrandTotalBreakdown .roadmap-breakdown-vendor-label span:last-child{color:var(--success-text)}body.has-roadmap-total-bar{padding-bottom:52px}.roadmap-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.roadmap-grid .card{margin-bottom:0;height:240px;display:flex;flex-direction:column;min-width:0}.roadmap-grid .card.roadmap-card-editing{height:auto}.roadmap-lineitem-row{min-width:0;position:relative}.roadmap-lineitem-row input{box-sizing:border-box;min-width:0;max-width:100%}.roadmap-lineitem-amount::-webkit-outer-spin-button,.roadmap-lineitem-amount::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}.roadmap-lineitem-amount{-moz-appearance:textfield}.roadmap-lineitem-link-btn:hover{background:var(--hover-bg);border-radius:4px}.roadmap-lineitem-suggest-item:hover{background:var(--hover-bg)}.roadmap-lineitem-reorder{display:flex;flex-direction:column;flex-shrink:0;gap:1px;width:16px}.roadmap-lineitem-reorder button{border:none;background:var(--surface-3);color:var(--muted);cursor:pointer;font-size:8px;line-height:1;padding:1px 0;border-radius:3px}.roadmap-lineitem-reorder button:hover:not(:disabled){background:var(--hover-bg);color:var(--text)}.roadmap-lineitem-reorder button:disabled{opacity:0.3;cursor:default}.roadmap-card-editing input{box-sizing:border-box;min-width:0}.roadmap-card-body{flex:1;overflow-y:auto;min-height:0;margin-right:-16px;padding-right:10px;display:flex;flex-direction:column}.roadmap-attachments{margin-top:auto}@media (max-width:900px){.roadmap-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:600px){.roadmap-grid{grid-template-columns:1fr}}.roadmap-grid .tag{font-size:8px;padding:2px 7px}.roadmap-grid .preview{font-size:10px}.roadmap-resolution-box{margin-top:8px;padding:8px;border-radius:8px;background:var(--green-50);border:1px solid var(--green-100)}.roadmap-resolution-label{font-size:7px;font-weight:700;color:var(--success-text);margin-bottom:4px}.roadmap-resolution-input{width:100%;min-height:60px;padding:6px 8px;border-radius:6px;border:1px solid var(--green-100);background:var(--input-bg);color:var(--text);font-size:7px;font-family:inherit;resize:vertical}.roadmap-resolution-input:disabled{background:transparent;border-color:transparent;padding:0;color:var(--success-text);resize:none}.roadmap-resolution-save-btn{margin-top:6px;font-size:6px;padding:3px 8px}.roadmap-pending-box{margin-top:8px;padding:8px;border-radius:8px;background:var(--warning-bg);border:1px solid var(--warning-border)}.roadmap-pending-label{font-size:7px;font-weight:700;color:var(--warning);margin-bottom:4px}.roadmap-pending-input{width:100%;min-height:60px;padding:6px 8px;border-radius:6px;border:1px solid var(--warning-border);background:var(--input-bg);color:var(--text);font-size:7px;font-family:inherit;resize:vertical}.roadmap-pending-input:disabled{background:transparent;border-color:transparent;padding:0;color:var(--warning);resize:none}.roadmap-pending-save-btn{margin-top:6px;font-size:6px;padding:3px 8px}.issue-grid{display:flex;flex-direction:column;gap:4px}.issue-location-group{display:flex;flex-direction:column;gap:8px;margin-top:14px}.issue-location-group:first-child{margin-top:0}.issue-location-header{font-size:12px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.03em;padding:0 4px}.issue-location-count{font-weight:500;color:var(--muted);text-transform:none;letter-spacing:normal}.issue-row-card{margin-bottom:0;padding:10px 14px}.issue-row-card.issue-card-editing{padding:16px 18px}.issue-row-summary{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.issue-row-toggle-btn{flex-shrink:0;width:22px;height:22px;padding:0;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;border-radius:6px}.issue-row-toggle-btn:hover{background:var(--hover-bg);color:var(--text)}.issue-row-toggle-spacer{flex-shrink:0;width:22px;height:22px}.issue-row-title{flex:1;min-width:120px;font-size:15px}.issue-row-title-toggle{cursor:pointer}.issue-row-title-toggle:hover{text-decoration:underline}.issue-row-summary .issue-status-select{flex-shrink:0;border-radius:6px;border:1px solid var(--border);padding:4px 6px;font-size:12px;background:var(--input-bg);color:var(--text)}.issue-row-actions{display:flex;gap:5px;flex-shrink:0}.issue-row-actions button{font-size:11px;padding:3px 8px}.issue-row-details{margin-top:8px;padding-left:32px}.issue-resolution-box{margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--green-50);border:1px solid var(--green-100)}.issue-resolution-label{font-size:11px;font-weight:700;color:var(--success-text);margin-bottom:4px}.issue-resolution-input{width:100%;min-height:60px;padding:6px 8px;border-radius:6px;border:1px solid var(--green-100);background:var(--input-bg);color:var(--text);font-size:13px;font-family:inherit;resize:vertical}.issue-resolution-input:disabled{background:transparent;border-color:transparent;padding:0;color:var(--success-text);resize:none}.issue-resolution-save-btn{margin-top:6px;font-size:12px;padding:4px 10px}.issue-pending-box{margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--warning-bg);border:1px solid var(--warning-border)}.issue-pending-label{font-size:11px;font-weight:700;color:var(--warning);margin-bottom:4px}.issue-pending-input{width:100%;min-height:60px;padding:6px 8px;border-radius:6px;border:1px solid var(--warning-border);background:var(--input-bg);color:var(--text);font-size:13px;font-family:inherit;resize:vertical}.issue-pending-input:disabled{background:transparent;border-color:transparent;padding:0;color:var(--warning);resize:none}.issue-pending-save-btn{margin-top:6px;font-size:12px;padding:4px 10px}.issue-pending-* comment above for why). */ .issue-attachments{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}.issue-attachment-tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);max-width:100%}.issue-attachment-tag a{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.roadmap-attachment-tag{display:inline-flex;align-items:center;gap:2px;font-size:8px;padding:1px 5px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);max-width:100%}.roadmap-attachment-tag a{max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.roadmap-timeline-address{position:relative}.roadmap-timeline-attach-popup{display:none;position:absolute;top:100%;left:0;z-index:30;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 6px 16px rgba(15,23,42,0.18);padding:8px;gap:6px;flex-wrap:wrap;width:190px}.roadmap-timeline-address:hover .roadmap-timeline-attach-popup{display:flex}.roadmap-attach-tile{position:relative;width:54px;height:54px;flex-shrink:0}.roadmap-timeline-thumb{width:54px;height:54px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:zoom-in;display:block}.roadmap-timeline-thumb-pdf{display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--surface-2);text-decoration:none;cursor:pointer}.roadmap-attach-edit-btn{position:absolute;bottom:-4px;right:-4px;width:20px;height:20px;padding:0;line-height:20px;font-size:11px;border-radius:50%;background:var(--accent-blue);color:#ffffff;border:1px solid #ffffff;cursor:pointer}#imageLightbox{display:none;position:fixed;inset:0;background:var(--overlay-bg);z-index:1000;align-items:center;justify-content:center;cursor:zoom-out}#imageLightbox img{max-width:90vw;max-height:90vh;border-radius:8px}#markupEditor{display:none;position:fixed;inset:0;background:var(--overlay-bg);z-index:1100;align-items:center;justify-content:center}#markupEditor .markup-panel{background:var(--surface);border-radius:10px;padding:12px;max-width:95vw;max-height:95vh;display:flex;flex-direction:column;gap:8px}#markupEditor .markup-panel.markup-maximized{width:100vw;height:100vh;max-width:100vw;max-height:100vh;border-radius:0}#markupToolbar,#markupIconPalette,#markupActionsRow,#markupStyleRow{display:flex;gap:4px;align-items:center;flex-wrap:wrap}.markup-tool-btn{font-size:10px;padding:3px 6px}.markup-tool-btn.active{background:var(--tooltip-bg);color:#ffffff}.markup-tool-select{font-size:10px;padding:3px 5px;border-radius:6px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);cursor:pointer}#markupIconPalette{padding:3px 0;border-top:1px dashed var(--hover-bg);border-bottom:1px dashed var(--hover-bg)}.markup-icon-label{font-size:9px;color:var(--muted);margin-right:2px}.markup-icon-btn{font-size:10px;padding:2px 6px;cursor:grab;background:#1e1b3a;color:#a5b4fc;border:1px solid #4c3f91;border-radius:8px}#markupActionsRow button,#markupEditor .toggles-row button{font-size:10px;padding:3px 6px}.markup-zoom-btn{font-size:13px !important;padding:4px 10px !important}#markupZoomValue{font-size:11px;color:var(--muted);min-width:34px;display:inline-block;text-align:center}.markup-icon-btn:active{cursor:grabbing}#markupStyleRow{font-size:11px;color:var(--muted);gap:10px}#markupStyleRow label{display:flex;align-items:center;gap:5px}#markupSizeValue{min-width:16px;display:inline-block;text-align:center;color:var(--text);font-weight:600}.markup-color-swatch{width:18px;height:18px;border-radius:50%;border:2px solid transparent;padding:0;cursor:pointer}.markup-color-swatch.active{border-color:var(--text)}#markupColorCustom{width:22px;height:22px;padding:0;border:1px solid var(--border);border-radius:6px;cursor:pointer}#markupCanvasWrap{overflow:auto;width:100%;height:56vh;border:1px solid var(--border);border-radius:6px;background:var(--surface-2);display:flex}#markupEditor .markup-panel.markup-maximized #markupCanvasWrap{height:calc(100vh - 250px)}#markupCanvas{display:block;margin:auto;cursor:grab;touch-action:none}#markupCanvasWrap.markup-drag-over{outline:2px dashed var(--accent-blue);outline-offset:-2px}#markupStatus{font-size:12px;color:var(--muted);min-height:16px}@media (max-width:640px),(max-height:500px){#markupEditor .markup-panel{max-width:100vw;max-height:100vh;width:100vw;height:100vh;border-radius:0;overflow-y:auto}#markupCanvasWrap{height:46vh}.markup-zoom-btn{font-size:20px !important;padding:8px 16px !important}#markupZoomValue{font-size:13px;min-width:42px}}@media (max-height:500px) and (orientation:landscape){#markupCanvasWrap{height:calc(100vh - 190px);min-height:160px}}#markupHoverTooltip{display:none;position:fixed;z-index:1300;max-width:220px;background:var(--tooltip-bg);color:#ffffff;font-size:12px;line-height:1.4;padding:6px 10px;border-radius:6px;pointer-events:none;white-space:pre-wrap;word-break:break-word;box-shadow:0 4px 12px rgba(0,0,0,0.25)}#exportColumnModal,#exportFormatModal,#issueExportFormatModal,#markupNoteModal,#duplicateRoadmapModal{display:none;position:fixed;inset:0;background:var(--overlay-bg);z-index:1400;align-items:center;justify-content:center}#exportColumnModal .export-column-panel,#exportFormatModal .export-column-panel,#issueExportFormatModal .export-column-panel,#markupNoteModal .export-column-panel,#duplicateRoadmapModal .export-column-panel{background:var(--surface);border-radius:10px;padding:20px;max-width:90vw;width:320px;display:flex;flex-direction:column;gap:12px}#exportColumnModal h3,#exportFormatModal h3,#issueExportFormatModal h3,#markupNoteModal h3,#duplicateRoadmapModal h3{margin:0;font-size:16px;color:var(--text)}#roadmapCompareModal{display:none;position:fixed;inset:0;background:var(--overlay-bg);z-index:1400;align-items:center;justify-content:center;padding:20px}#roadmapCompareModal.visible{display:flex}.roadmap-compare-panel{background:var(--surface-3);border-radius:12px;padding:16px;width:100%;max-width:1200px;height:100%;max-height:90vh;display:flex;flex-direction:column;gap:12px}.roadmap-compare-header{display:flex;align-items:center;justify-content:space-between}.roadmap-compare-header h3{margin:0;font-size:18px;color:var(--text)}.roadmap-compare-columns{display:flex;gap:14px;overflow-x:auto;overflow-y:hidden;flex:1;padding-bottom:4px}.roadmap-compare-column{flex:0 0 300px;background:var(--surface);border-radius:10px;border:1px solid var(--border);padding:12px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}.roadmap-compare-vendor-label{font-size:11px;font-weight:700;color:var(--text);background:var(--surface-2);padding:5px 8px;border-radius:6px;margin-top:4px}.roadmap-compare-item-row{display:flex;align-items:center;gap:6px;font-size:12px;padding:3px 2px;border-bottom:1px solid var(--hover-bg)}.roadmap-compare-item-row .rci-desc{flex:1;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.roadmap-compare-item-row .rci-amt{color:var(--success-text);font-weight:600;white-space:nowrap}.roadmap-compare-item-row .rci-qty{color:var(--muted);white-space:nowrap;flex-shrink:0}.roadmap-compare-qty-input{width:34px;flex-shrink:0;padding:2px 3px;border-radius:5px;border:1px solid var(--border);font-size:11px;font-family:inherit;text-align:center}.roadmap-compare-qty-input::-webkit-outer-spin-button,.roadmap-compare-qty-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}.roadmap-compare-qty-input{-moz-appearance:textfield}.roadmap-compare-copy-btn{border:none;background:var(--hover-bg);color:var(--text);cursor:pointer;font-size:11px;padding:2px 6px;border-radius:5px;flex-shrink:0;position:relative}.roadmap-compare-copy-btn:hover{background:var(--border)}.roadmap-compare-remove-btn{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:11px;padding:2px 5px;border-radius:5px;flex-shrink:0}.roadmap-compare-remove-btn:hover{background:var(--danger-bg);color:var(--danger-light)}.roadmap-compare-copy-menu{position:absolute;right:0;top:100%;margin-top:4px;z-index:30;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 10px rgba(15,23,42,0.18);min-width:160px;overflow:hidden}.roadmap-compare-copy-menu button{display:block;width:100%;text-align:left;background:none;border:none;padding:7px 10px;font-size:12px;color:var(--text);cursor:pointer;border-radius:0}.roadmap-compare-copy-menu button:hover{background:var(--hover-bg)}.export-column-list{display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow-y:auto}.export-column-list label{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text);cursor:pointer}.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;background:var(--surface);padding:6px;border-radius:999px;border:1px solid var(--border);box-shadow:var(--shadow);width:fit-content}.tab{background:transparent;color:var(--text);border:1px solid transparent;padding:9px 18px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer;transition:all .16s ease}.tab:hover:not(.active){color:var(--text);background:var(--surface)}.tab.active{background:var(--ink);color:#ffffff;border-color:var(--ink);font-weight:700}.tab.active[data-action="__completed__"]{background:var(--green-700);border-color:var(--green-700)}.roadmap-controls-divider{width:1px;align-self:stretch;margin:1px 2px;background:linear-gradient(to bottom,transparent,var(--border) 20%,var(--border) 80%,transparent)}#empty,#loading{text-align:center;color:var(--muted);padding:40px 0}#signInScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:18px;text-align:center;padding:0 20px;background:radial-gradient(900px 420px at 82% -10%,rgba(47,180,87,.30),transparent 62%),linear-gradient(165deg,var(--ink) 0%,#10241a 55%,#0b1a12 100%);color:#fff}#signInScreen .signin-mark{width:56px;height:56px}#signInScreen h1{font-size:32px;font-weight:900;letter-spacing:-1px;color:#fff}#signInScreen p{color:rgba(255,255,255,.72);max-width:360px;line-height:1.55}#signInScreen button{box-shadow:0 10px 24px -12px rgba(47,180,87,.95)}.user-menu{position:relative}.avatar-btn{width:34px;height:34px;padding:0;border-radius:50%;background:var(--ink);display:flex;align-items:center;justify-content:center;flex:none}.avatar-btn:hover{background:var(--ink-2) !important}.avatar-btn svg{width:18px;height:18px}.user-popover{display:none;position:fixed;z-index:150;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:12px 14px;min-width:220px}.user-popover.open{display:block}#signedInAs{display:block;font-size:13px;color:var(--text);font-weight:600;word-break:break-word;margin-bottom:10px;line-height:1.4}.user-popover button{width:100%;font-size:13.5px;padding:8px 14px}#roadmapControlsRow{position:sticky;top:0;z-index:5;justify-content:center}#standupWorkflowNav{position:sticky;top:0;z-index:5;margin:0 auto 14px}#standupPullBtn{background:var(--accent-blue)}#standupPullBtn:hover:not(:disabled){background:var(--accent-blue-hover)}.standup-date-chip{display:inline-flex;align-items:center;gap:4px;background:var(--info-bg);border:1px solid var(--info-border);color:var(--info-text);border-radius:9999px;padding:4px 4px 4px 12px;font-size:13px;font-weight:600}.standup-date-chip button{background:none;border:none;color:var(--info-text);padding:0 8px;font-size:14px;font-weight:700;line-height:1;cursor:pointer;border-radius:9999px}.standup-date-chip button:hover:not(:disabled){background:var(--info-border)}#dailyTodoWorkflowNav{position:sticky;top:0;z-index:5;margin:0 auto 14px}#emailRequestWorkflowNav{position:sticky;top:0;z-index:5;margin:0 auto 14px}#emailRequestView{position:relative;z-index:2}#issueControlsRow{position:sticky;top:0;z-index:5;display:flex;flex-direction:column;align-items:center;gap:10px;margin:0 auto 14px;background:var(--surface);border-radius:16px;padding:10px}#issueControlsRow .tabs{margin-bottom:0}</style>
+<style>:root{color-scheme:dark;--green:#2fb457;--green-600:#26974a;--green-700:#1d7a3b;--green-50:#10241a;--green-100:#16351f;--ink:#0d1b12;--ink-2:#16261c;--surface:#232326;--surface-2:#19191b;--surface-3:#1a1a1c;--border:#38383c;--border-strong:#4a4a50;--text:#f4f4f5;--muted:#a6a6ad;--input-bg:#141416;--hover-bg:#2c2c30;--body-bg:#1b1b1d;--overlay-bg:rgba(15,23,42,.85);--tooltip-bg:#0f172a;--danger:#dc2626;--danger-light:#f87171;--danger-bg:#2a1414;--danger-border:#7f1d1d;--warning:#fbbf24;--warning-border:#b45309;--warning-bg:#241d0d;--success-text:#4ade80;--info-text:#93c5fd;--info-bg:#12233d;--info-border:#1d3a5f;--info-hover-bg:#1a2332;--accent-blue:#2563eb;--accent-blue-hover:#1d4ed8;--accent-amber:#f59e0b;--accent-amber-dim:#b45309;--bg-mountains-opacity:1;--radius-lg:16px;--shadow:0 1px 2px rgba(13,27,18,.04),0 8px 24px -12px rgba(13,27,18,.14);--sidebar-w:248px;--header-bg:rgba(27,27,29,.88);--cw-primary:#38d430;--cw-primary-600:#2fb327;--cw-primary-700:#268f20;--cw-navy:#002b49;--cw-sapphire:#194f90;--cw-steel:#046e95;--cw-teal:#008c95;--cw-aqua:#54cbcf;--cw-cyprus:#0b343c;--cw-canary:#f3e85c;--cw-geko:#c2e76b;--cw-wolf-grey:#8c8c8c;--cw-white:#ffffff;--cw-black:#000000;--cw-gray-100:#f2f2f2;--cw-gray-200:#e6e6e6;--cw-gray-300:#cccccc;--cw-gray-400:#999999;--cw-gray-500:#808080;--cw-gray-600:#666666;--cw-gray-700:#4d4d4d;--cw-gray-800:#333333;--cw-gray-900:#1a1a1a;--cw-secondary:var(--cw-navy);--cw-accent:var(--cw-sapphire);--cw-background:var(--cw-gray-100);--cw-surface:#ffffff;--cw-text:var(--cw-gray-900);--cw-muted:var(--cw-gray-600);--cw-border:var(--cw-gray-200);--cw-success:var(--cw-primary-700);--cw-warning:#b45309;--cw-danger:#dc2626;--shadow-lg:0 4px 12px rgba(13,27,18,.08),0 16px 40px -16px rgba(13,27,18,.22)}:root[data-theme="light"]{color-scheme:light;--green:#2fb457;--green-600:#26974a;--green-700:#1d7a3b;--green-50:#e8f8ee;--green-100:#d1f0dc;--surface:#ffffff;--surface-2:#f4f4f5;--surface-3:#f0f0f2;--border:#e2e2e5;--border-strong:#c8c8cd;--text:#18181b;--muted:#6b6b73;--input-bg:#fafafa;--hover-bg:#ececef;--body-bg:#f7f7f8;--overlay-bg:rgba(15,23,42,.45);--tooltip-bg:#0f172a;--danger:#dc2626;--danger-light:#dc2626;--danger-bg:#fee2e2;--danger-border:#fca5a5;--warning:#b45309;--warning-border:#f59e0b;--warning-bg:#fffbeb;--success-text:#16a34a;--info-text:#1d4ed8;--info-bg:#dbeafe;--info-border:#93c5fd;--info-hover-bg:#bfdbfe;--accent-blue:#2563eb;--accent-blue-hover:#1d4ed8;--accent-amber:#f59e0b;--accent-amber-dim:#b45309;--bg-mountains-opacity:.1;--header-bg:rgba(247,247,248,.88)}:root[data-theme="cubework"]{color-scheme:light;--green:var(--cw-primary);--green-600:var(--cw-primary-600);--green-700:var(--cw-primary-700);--green-50:#eafbea;--green-100:#d0f5d2;--surface:#ffffff;--surface-2:var(--cw-gray-100);--surface-3:#fafafa;--border:var(--cw-gray-200);--border-strong:var(--cw-gray-300);--text:var(--cw-gray-900);--muted:var(--cw-gray-600);--input-bg:#fafafa;--hover-bg:var(--cw-gray-100);--body-bg:var(--cw-gray-100);--overlay-bg:rgba(0,43,73,.45);--tooltip-bg:var(--cw-navy);--danger:#dc2626;--danger-light:#dc2626;--danger-bg:#fee2e2;--danger-border:#fca5a5;--warning:#b45309;--warning-border:#f59e0b;--warning-bg:#fffbeb;--success-text:var(--cw-primary-700);--info-text:var(--cw-sapphire);--info-bg:#e5edf7;--info-border:#a9c2de;--info-hover-bg:#d3e0ef;--accent-blue:var(--cw-sapphire);--accent-blue-hover:var(--cw-navy);--accent-amber:#f59e0b;--accent-amber-dim:#b45309;--bg-mountains-opacity:.06;--header-bg:rgba(255,255,255,.92)}*{box-sizing:border-box}keyboard-driven scrolls - anchor jumps,scrollIntoView(),scrollTo(),and arrow-key scrolling once a nested box has focus - animate instead of snapping. Applied via the universal selector (not just `html`) so it covers every nested scrollable panel too:Roadmap card bodies,the Compare modal's columns,the Export column picker,the Markup image editor's canvas wrap,the grand-total breakdown panel,and the gate overlay - not just the outer page. Respects prefers-reduced-motion so it doesn't fight anyone who's asked their OS/browser to cut down on motion. */ @media (prefers-reduced-motion:no-preference){*{scroll-behavior:smooth}}body{margin:0;font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",sans-serif;color:var(--text);font-size:16px;min-height:100vh;background-color:var(--body-bg);-webkit-font-smoothing:antialiased}body::before{content:"";position:fixed;inset:0;z-index:-1;background-image:url(bg-mountains.png);background-size:cover;background-position:center;background-repeat:no-repeat;opacity:var(--bg-mountains-opacity)}header{padding:20px 14px;display:flex;flex-direction:column;align-items:stretch;gap:14px;border-bottom:none;border-right:1px solid var(--border);position:fixed;top:0;left:0;z-index:100;width:var(--sidebar-w);height:100vh;height:100dvh;overflow-y:auto;overflow-x:hidden;background-color:var(--header-bg);backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px)}.header-brand{flex:none;display:flex;align-items:center;gap:9px;font-size:18px;font-weight:800;letter-spacing:.4px;color:var(--text);padding:0 8px 14px;border-bottom:1px solid var(--border)}.header-brand .mark{width:24px;height:24px;flex:none;display:block}.header-brand-text{white-space:nowrap;color:var(--cw-primary);font-size:20px}.header-brand-abbr{display:none;color:var(--cw-primary);font-size:16px}.sidebar-toggle-fab{position:fixed;top:14px;left:calc(var(--sidebar-w) - 17px);z-index:101;width:34px;height:34px;padding:0;border:1px solid var(--border);border-radius:50%;background:var(--surface);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;cursor:pointer}.sidebar-toggle-fab svg{width:19px;height:19px}.sidebar-toggle-fab:hover{background:var(--hover-bg)}.sidebar-toggle-fab[aria-pressed="true"] #sidebarToggleArrow{transform:scaleX(-1);transform-origin:12px 12px}@media (prefers-reduced-motion:no-preference){header,main,#roadmapGrandTotalBar,.sidebar-toggle-fab{transition:width .18s ease,margin-left .18s ease,left .18s ease}}body.sidebar-manual-collapsed{--sidebar-w:64px}body.sidebar-manual-collapsed .header-brand{justify-content:center;padding:0 0 14px}body.sidebar-manual-collapsed .header-brand-text{display:none}body.sidebar-manual-collapsed .header-brand-abbr{display:block}body.sidebar-manual-collapsed #appSwitcher.header-tabs .tab{justify-content:center;padding:10px 6px}body.sidebar-manual-collapsed #appSwitcher.header-tabs .tab .tab-label{display:none}body.sidebar-manual-collapsed .header-actions{flex-direction:column}.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}#appSwitcher.header-tabs{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;flex-wrap:nowrap;align-items:stretch;justify-content:flex-start;gap:2px;overflow-x:hidden;overflow-y:auto;background:transparent;border:none;box-shadow:none;padding:4px 0;border-radius:0;width:100%;margin:0;scrollbar-width:thin}#appSwitcher.header-tabs .tab{flex:none;display:flex;align-items:center;gap:10px;justify-content:flex-start;text-align:left;white-space:nowrap;width:100%;padding:10px 12px;border-radius:10px;line-height:1.25}#appSwitcher.header-tabs .tab .tab-label{white-space:normal}#appSwitcher .tab[data-app="emailRequestAttachmentsEmbed"]{background:var(--cw-primary);color:#ffffff;border-color:var(--cw-primary)}#appSwitcher .tab[data-app="emailRequestAttachmentsEmbed"]:hover{background:color-mix(in srgb,var(--cw-primary) 75%,white);border-color:color-mix(in srgb,var(--cw-primary) 75%,white)}.header-actions{flex:none;margin-top:auto;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}@media (max-width:640px){:root{--sidebar-w:64px}.header-brand{justify-content:center;padding:0 0 14px}.header-brand-text{display:none}.header-brand-abbr{display:block}#appSwitcher.header-tabs .tab{justify-content:center;padding:10px 6px}#appSwitcher.header-tabs .tab .tab-label{display:none}.header-actions{flex-direction:column}}#signedInAs{font-size:13px;color:var(--muted);font-weight:500}button{background:var(--green);color:white;border:none;padding:10px 20px;border-radius:9999px;font-size:14.5px;font-weight:700;letter-spacing:-.1px;cursor:pointer;transition:background-color 0.15s ease,transform .12s ease}button:active:not(:disabled){transform:translateY(1px)}button:hover:not(:disabled):not(.secondary){background:var(--green-600)}button.secondary{background:var(--surface);color:var(--text);border:1px solid var(--border-strong)}button.secondary:hover:not(:disabled){background:var(--green-50);border-color:var(--green);color:var(--text)}button:disabled{opacity:0.5;cursor:default}button.danger{background:var(--danger);color:#fff}button.danger:hover:not(:disabled){background:var(--danger-border)}main{box-sizing:border-box;padding:20px 24px;width:calc(100% - var(--sidebar-w));margin-left:var(--sidebar-w);margin-right:0}#toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}input[type="search"]{flex:1;min-width:200px;padding:11px 14px;border-radius:11px;border:1px solid var(--border-strong);background:var(--input-bg);color:var(--text);font-size:16px}input[type="search"]:focus,#sortOrder:focus,select:focus,input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3.5px rgba(47,180,87,.16)}#sortOrder{padding:11px 14px;border-radius:11px;border:1px solid var(--border-strong);background:var(--input-bg);color:var(--text);font-size:15px}.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:12px;box-shadow:var(--shadow)}:root[data-theme="cubework"] .card,:root[data-theme="cubework"] .era-card,:root[data-theme="cubework"] .standup-card{transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}:root[data-theme="cubework"] .card:hover,:root[data-theme="cubework"] .era-card:hover,:root[data-theme="cubework"] .standup-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--border-strong)}.card .top-row{display:flex;justify-content:space-between;gap:10px;align-items:baseline}.subject{font-weight:600;font-size:17px}.meta{font-size:13px;color:var(--text);white-space:nowrap}.fields{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.tag{font-size:13px;padding:3px 9px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border)}.issue-row-tag-select{font-size:13px;font-family:inherit;padding:3px 22px 3px 9px;border-radius:999px;background:var(--input-bg);border:1px solid var(--border);cursor:pointer;flex-shrink:0;max-width:160px}.issue-row-tag-select-empty{color:var(--muted);border-style:dashed}.preview{margin-top:6px;font-size:15px;line-height:1.45;color:var(--text);white-space:pre-line;overflow-wrap:break-word;word-break:break-word}.toggles-row{display:flex;align-items:center;gap:18px;margin-top:10px;flex-wrap:wrap}#roadmapGrandTotalBar{display:none;position:fixed;left:var(--sidebar-w);right:0;bottom:0;z-index:500;background-color:var(--ink);color:#ffffff;padding:10px 20px;align-items:center;justify-content:center;gap:18px;border-top:1px solid var(--ink);box-shadow:0 -2px 10px rgba(15,23,42,0.15);font-size:14px;font-weight:600}#roadmapGrandTotalBar.visible{display:flex}#roadmapGrandTotalSelectAll{cursor:pointer}#roadmapGrandTotalBreakdown{display:none;position:fixed;right:20px;bottom:52px;z-index:500;background:var(--surface);color:var(--text);border:1px solid var(--border);border-bottom:none;border-radius:10px 10px 0 0;box-shadow:0 -4px 14px rgba(15,23,42,0.18);max-height:320px;overflow-y:auto;width:min(360px,92vw);font-size:12px;font-weight:400}#roadmapGrandTotalBreakdown.visible{display:block}#roadmapGrandTotalBreakdown table{width:100%;border-collapse:collapse}#roadmapGrandTotalBreakdown th,#roadmapGrandTotalBreakdown td{padding:6px 10px;text-align:left;border-bottom:1px solid var(--hover-bg)}#roadmapGrandTotalBreakdown th:nth-child(2),#roadmapGrandTotalBreakdown td:nth-child(2){text-align:center}#roadmapGrandTotalBreakdown th:last-child,#roadmapGrandTotalBreakdown td:last-child{text-align:right}#roadmapGrandTotalBreakdown th{background:var(--surface-2);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.02em}#roadmapGrandTotalBreakdown .roadmap-breakdown-vendor-label{display:flex;justify-content:space-between;align-items:baseline;padding:8px 10px;font-size:11px;font-weight:700;color:var(--text);background:var(--surface-2)}#roadmapGrandTotalBreakdown .roadmap-breakdown-vendor-label span:last-child{color:var(--success-text)}body.has-roadmap-total-bar{padding-bottom:52px}.roadmap-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.roadmap-grid .card{margin-bottom:0;height:240px;display:flex;flex-direction:column;min-width:0}.roadmap-grid .card.roadmap-card-editing{height:auto}.roadmap-lineitem-row{min-width:0;position:relative}.roadmap-lineitem-row input{box-sizing:border-box;min-width:0;max-width:100%}.roadmap-lineitem-amount::-webkit-outer-spin-button,.roadmap-lineitem-amount::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}.roadmap-lineitem-amount{-moz-appearance:textfield}.roadmap-lineitem-link-btn:hover{background:var(--hover-bg);border-radius:4px}.roadmap-lineitem-suggest-item:hover{background:var(--hover-bg)}.roadmap-lineitem-reorder{display:flex;flex-direction:column;flex-shrink:0;gap:1px;width:16px}.roadmap-lineitem-reorder button{border:none;background:var(--surface-3);color:var(--muted);cursor:pointer;font-size:8px;line-height:1;padding:1px 0;border-radius:3px}.roadmap-lineitem-reorder button:hover:not(:disabled){background:var(--hover-bg);color:var(--text)}.roadmap-lineitem-reorder button:disabled{opacity:0.3;cursor:default}.roadmap-card-editing input{box-sizing:border-box;min-width:0}.roadmap-card-body{flex:1;overflow-y:auto;min-height:0;margin-right:-16px;padding-right:10px;display:flex;flex-direction:column}.roadmap-attachments{margin-top:auto}@media (max-width:900px){.roadmap-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:600px){.roadmap-grid{grid-template-columns:1fr}}.roadmap-grid .tag{font-size:8px;padding:2px 7px}.roadmap-grid .preview{font-size:10px}.roadmap-resolution-box{margin-top:8px;padding:8px;border-radius:8px;background:var(--green-50);border:1px solid var(--green-100)}.roadmap-resolution-label{font-size:7px;font-weight:700;color:var(--success-text);margin-bottom:4px}.roadmap-resolution-input{width:100%;min-height:60px;padding:6px 8px;border-radius:6px;border:1px solid var(--green-100);background:var(--input-bg);color:var(--text);font-size:7px;font-family:inherit;resize:vertical}.roadmap-resolution-input:disabled{background:transparent;border-color:transparent;padding:0;color:var(--success-text);resize:none}.roadmap-resolution-save-btn{margin-top:6px;font-size:6px;padding:3px 8px}.roadmap-pending-box{margin-top:8px;padding:8px;border-radius:8px;background:var(--warning-bg);border:1px solid var(--warning-border)}.roadmap-pending-label{font-size:7px;font-weight:700;color:var(--warning);margin-bottom:4px}.roadmap-pending-input{width:100%;min-height:60px;padding:6px 8px;border-radius:6px;border:1px solid var(--warning-border);background:var(--input-bg);color:var(--text);font-size:7px;font-family:inherit;resize:vertical}.roadmap-pending-input:disabled{background:transparent;border-color:transparent;padding:0;color:var(--warning);resize:none}.roadmap-pending-save-btn{margin-top:6px;font-size:6px;padding:3px 8px}.issue-grid{display:flex;flex-direction:column;gap:4px}.issue-location-group{display:flex;flex-direction:column;gap:8px;margin-top:14px}.issue-location-group:first-child{margin-top:0}.issue-location-header{font-size:12px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.03em;padding:0 4px}.issue-location-count{font-weight:500;color:var(--muted);text-transform:none;letter-spacing:normal}.issue-row-card{margin-bottom:0;padding:10px 14px}.issue-row-card.issue-card-editing{padding:16px 18px}.issue-row-summary{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.issue-row-toggle-btn{flex-shrink:0;width:22px;height:22px;padding:0;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;border-radius:6px}.issue-row-toggle-btn:hover{background:var(--hover-bg);color:var(--text)}.issue-row-toggle-spacer{flex-shrink:0;width:22px;height:22px}.issue-row-title{flex:1;min-width:120px;font-size:15px}.issue-row-title-toggle{cursor:pointer}.issue-row-title-toggle:hover{text-decoration:underline}.issue-row-summary .issue-status-select{flex-shrink:0;border-radius:6px;border:1px solid var(--border);padding:4px 6px;font-size:12px;background:var(--input-bg);color:var(--text)}.issue-row-actions{display:flex;gap:5px;flex-shrink:0}.issue-row-actions button{font-size:11px;padding:3px 8px}.issue-row-details{margin-top:8px;padding-left:32px}.issue-resolution-box{margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--green-50);border:1px solid var(--green-100)}.issue-resolution-label{font-size:11px;font-weight:700;color:var(--success-text);margin-bottom:4px}.issue-resolution-input{width:100%;min-height:60px;padding:6px 8px;border-radius:6px;border:1px solid var(--green-100);background:var(--input-bg);color:var(--text);font-size:13px;font-family:inherit;resize:vertical}.issue-resolution-input:disabled{background:transparent;border-color:transparent;padding:0;color:var(--success-text);resize:none}.issue-resolution-save-btn{margin-top:6px;font-size:12px;padding:4px 10px}.issue-pending-box{margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--warning-bg);border:1px solid var(--warning-border)}.issue-pending-label{font-size:11px;font-weight:700;color:var(--warning);margin-bottom:4px}.issue-pending-input{width:100%;min-height:60px;padding:6px 8px;border-radius:6px;border:1px solid var(--warning-border);background:var(--input-bg);color:var(--text);font-size:13px;font-family:inherit;resize:vertical}.issue-pending-input:disabled{background:transparent;border-color:transparent;padding:0;color:var(--warning);resize:none}.issue-pending-save-btn{margin-top:6px;font-size:12px;padding:4px 10px}.issue-pending-* comment above for why). */ .issue-attachments{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}.issue-attachment-tag{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);max-width:100%}.issue-attachment-tag a{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.roadmap-attachment-tag{display:inline-flex;align-items:center;gap:2px;font-size:8px;padding:1px 5px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);max-width:100%}.roadmap-attachment-tag a{max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.roadmap-timeline-address{position:relative}.roadmap-timeline-attach-popup{display:none;position:absolute;top:100%;left:0;z-index:30;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 6px 16px rgba(15,23,42,0.18);padding:8px;gap:6px;flex-wrap:wrap;width:190px}.roadmap-timeline-address:hover .roadmap-timeline-attach-popup{display:flex}.roadmap-attach-tile{position:relative;width:54px;height:54px;flex-shrink:0}.roadmap-timeline-thumb{width:54px;height:54px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:zoom-in;display:block}.roadmap-timeline-thumb-pdf{display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--surface-2);text-decoration:none;cursor:pointer}.roadmap-attach-edit-btn{position:absolute;bottom:-4px;right:-4px;width:20px;height:20px;padding:0;line-height:20px;font-size:11px;border-radius:50%;background:var(--accent-blue);color:#ffffff;border:1px solid #ffffff;cursor:pointer}#imageLightbox{display:none;position:fixed;inset:0;background:var(--overlay-bg);z-index:1000;align-items:center;justify-content:center;cursor:zoom-out}#imageLightbox img{max-width:90vw;max-height:90vh;border-radius:8px}#markupEditor{display:none;position:fixed;inset:0;background:var(--overlay-bg);z-index:1100;align-items:center;justify-content:center}#markupEditor .markup-panel{background:var(--surface);border-radius:10px;padding:12px;max-width:95vw;max-height:95vh;display:flex;flex-direction:column;gap:8px}#markupEditor .markup-panel.markup-maximized{width:100vw;height:100vh;max-width:100vw;max-height:100vh;border-radius:0}#markupToolbar,#markupIconPalette,#markupActionsRow,#markupStyleRow{display:flex;gap:4px;align-items:center;flex-wrap:wrap}.markup-tool-btn{font-size:10px;padding:3px 6px}.markup-tool-btn.active{background:var(--tooltip-bg);color:#ffffff}.markup-tool-select{font-size:10px;padding:3px 5px;border-radius:6px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);cursor:pointer}#markupIconPalette{padding:3px 0;border-top:1px dashed var(--hover-bg);border-bottom:1px dashed var(--hover-bg)}.markup-icon-label{font-size:9px;color:var(--muted);margin-right:2px}.markup-icon-btn{font-size:10px;padding:2px 6px;cursor:grab;background:#1e1b3a;color:#a5b4fc;border:1px solid #4c3f91;border-radius:8px}#markupActionsRow button,#markupEditor .toggles-row button{font-size:10px;padding:3px 6px}.markup-zoom-btn{font-size:13px !important;padding:4px 10px !important}#markupZoomValue{font-size:11px;color:var(--muted);min-width:34px;display:inline-block;text-align:center}.markup-icon-btn:active{cursor:grabbing}#markupStyleRow{font-size:11px;color:var(--muted);gap:10px}#markupStyleRow label{display:flex;align-items:center;gap:5px}#markupSizeValue{min-width:16px;display:inline-block;text-align:center;color:var(--text);font-weight:600}.markup-color-swatch{width:18px;height:18px;border-radius:50%;border:2px solid transparent;padding:0;cursor:pointer}.markup-color-swatch.active{border-color:var(--text)}#markupColorCustom{width:22px;height:22px;padding:0;border:1px solid var(--border);border-radius:6px;cursor:pointer}#markupCanvasWrap{overflow:auto;width:100%;height:56vh;border:1px solid var(--border);border-radius:6px;background:var(--surface-2);display:flex}#markupEditor .markup-panel.markup-maximized #markupCanvasWrap{height:calc(100vh - 250px)}#markupCanvas{display:block;margin:auto;cursor:grab;touch-action:none}#markupCanvasWrap.markup-drag-over{outline:2px dashed var(--accent-blue);outline-offset:-2px}#markupStatus{font-size:12px;color:var(--muted);min-height:16px}@media (max-width:640px),(max-height:500px){#markupEditor .markup-panel{max-width:100vw;max-height:100vh;width:100vw;height:100vh;border-radius:0;overflow-y:auto}#markupCanvasWrap{height:46vh}.markup-zoom-btn{font-size:20px !important;padding:8px 16px !important}#markupZoomValue{font-size:13px;min-width:42px}}@media (max-height:500px) and (orientation:landscape){#markupCanvasWrap{height:calc(100vh - 190px);min-height:160px}}#markupHoverTooltip{display:none;position:fixed;z-index:1300;max-width:220px;background:var(--tooltip-bg);color:#ffffff;font-size:12px;line-height:1.4;padding:6px 10px;border-radius:6px;pointer-events:none;white-space:pre-wrap;word-break:break-word;box-shadow:0 4px 12px rgba(0,0,0,0.25)}#exportColumnModal,#exportFormatModal,#issueExportFormatModal,#markupNoteModal,#duplicateRoadmapModal{display:none;position:fixed;inset:0;background:var(--overlay-bg);z-index:1400;align-items:center;justify-content:center}#exportColumnModal .export-column-panel,#exportFormatModal .export-column-panel,#issueExportFormatModal .export-column-panel,#markupNoteModal .export-column-panel,#duplicateRoadmapModal .export-column-panel{background:var(--surface);border-radius:10px;padding:20px;max-width:90vw;width:320px;display:flex;flex-direction:column;gap:12px}#exportColumnModal h3,#exportFormatModal h3,#issueExportFormatModal h3,#markupNoteModal h3,#duplicateRoadmapModal h3{margin:0;font-size:16px;color:var(--text)}#roadmapCompareModal{display:none;position:fixed;inset:0;background:var(--overlay-bg);z-index:1400;align-items:center;justify-content:center;padding:20px}#roadmapCompareModal.visible{display:flex}.roadmap-compare-panel{background:var(--surface-3);border-radius:12px;padding:16px;width:100%;max-width:1200px;height:100%;max-height:90vh;display:flex;flex-direction:column;gap:12px}.roadmap-compare-header{display:flex;align-items:center;justify-content:space-between}.roadmap-compare-header h3{margin:0;font-size:18px;color:var(--text)}.roadmap-compare-columns{display:flex;gap:14px;overflow-x:auto;overflow-y:hidden;flex:1;padding-bottom:4px}.roadmap-compare-column{flex:0 0 300px;background:var(--surface);border-radius:10px;border:1px solid var(--border);padding:12px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}.roadmap-compare-vendor-label{font-size:11px;font-weight:700;color:var(--text);background:var(--surface-2);padding:5px 8px;border-radius:6px;margin-top:4px}.roadmap-compare-item-row{display:flex;align-items:center;gap:6px;font-size:12px;padding:3px 2px;border-bottom:1px solid var(--hover-bg)}.roadmap-compare-item-row .rci-desc{flex:1;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.roadmap-compare-item-row .rci-amt{color:var(--success-text);font-weight:600;white-space:nowrap}.roadmap-compare-item-row .rci-qty{color:var(--muted);white-space:nowrap;flex-shrink:0}.roadmap-compare-qty-input{width:34px;flex-shrink:0;padding:2px 3px;border-radius:5px;border:1px solid var(--border);font-size:11px;font-family:inherit;text-align:center}.roadmap-compare-qty-input::-webkit-outer-spin-button,.roadmap-compare-qty-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}.roadmap-compare-qty-input{-moz-appearance:textfield}.roadmap-compare-copy-btn{border:none;background:var(--hover-bg);color:var(--text);cursor:pointer;font-size:11px;padding:2px 6px;border-radius:5px;flex-shrink:0;position:relative}.roadmap-compare-copy-btn:hover{background:var(--border)}.roadmap-compare-remove-btn{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:11px;padding:2px 5px;border-radius:5px;flex-shrink:0}.roadmap-compare-remove-btn:hover{background:var(--danger-bg);color:var(--danger-light)}.roadmap-compare-copy-menu{position:absolute;right:0;top:100%;margin-top:4px;z-index:30;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 10px rgba(15,23,42,0.18);min-width:160px;overflow:hidden}.roadmap-compare-copy-menu button{display:block;width:100%;text-align:left;background:none;border:none;padding:7px 10px;font-size:12px;color:var(--text);cursor:pointer;border-radius:0}.roadmap-compare-copy-menu button:hover{background:var(--hover-bg)}.export-column-list{display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow-y:auto}.export-column-list label{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text);cursor:pointer}.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;background:var(--surface);padding:6px;border-radius:999px;border:1px solid var(--border);box-shadow:var(--shadow);width:fit-content}.tab{background:transparent;color:var(--text);border:1px solid transparent;padding:9px 18px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer;transition:all .16s ease}.tab:hover:not(.active){color:var(--text);background:var(--surface)}.tab.active{background:var(--ink);color:#ffffff;border-color:var(--ink);font-weight:700}.tab.active[data-action="__completed__"]{background:var(--green-700);border-color:var(--green-700)}.roadmap-controls-divider{width:1px;align-self:stretch;margin:1px 2px;background:linear-gradient(to bottom,transparent,var(--border) 20%,var(--border) 80%,transparent)}#empty,#loading{text-align:center;color:var(--muted);padding:40px 0}#signInScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:18px;text-align:center;padding:0 20px;background:radial-gradient(900px 420px at 82% -10%,rgba(47,180,87,.30),transparent 62%),linear-gradient(165deg,var(--ink) 0%,#10241a 55%,#0b1a12 100%);color:#fff}#signInScreen .signin-mark{width:56px;height:56px}#signInScreen h1{font-size:40px;font-weight:900;letter-spacing:-1px;color:#fff}#signInScreen p{color:rgba(255,255,255,.72);max-width:360px;line-height:1.55}#signInScreen button{box-shadow:0 10px 24px -12px rgba(47,180,87,.95)}.signin-welcome{font-size:28px;font-weight:800;color:#fff;margin:0;letter-spacing:-.3px}.signin-subtitle{font-size:18px;font-weight:500;color:rgba(255,255,255,.72);margin:0 0 4px;max-width:360px;line-height:1.5}.signin-field-label{font-size:13px;font-weight:600;color:rgba(255,255,255,.85);text-align:left}.signin-divider{display:flex;align-items:center;gap:12px;width:100%;max-width:320px;color:rgba(255,255,255,.55)}.signin-divider-line{flex:1;height:1px;background:rgba(255,255,255,.25)}.signin-divider-text{font-size:12px;font-weight:700;letter-spacing:.06em}.signin-ms-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;max-width:320px}.user-menu{position:relative}.avatar-btn{width:34px;height:34px;padding:0;border-radius:50%;background:var(--ink);display:flex;align-items:center;justify-content:center;flex:none}.avatar-btn:hover{background:var(--ink-2) !important}.avatar-btn svg{width:18px;height:18px}.user-popover{display:none;position:fixed;z-index:150;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:12px 14px;min-width:220px}.user-popover.open{display:block}#signedInAs{display:block;font-size:13px;color:var(--text);font-weight:600;word-break:break-word;margin-bottom:10px;line-height:1.4}.user-popover button{width:100%;font-size:13.5px;padding:8px 14px}#roadmapControlsRow{position:sticky;top:0;z-index:5;justify-content:center}#standupWorkflowNav{position:sticky;top:0;z-index:5;margin:0 auto 14px}#standupPullBtn{background:var(--accent-blue)}#standupPullBtn:hover:not(:disabled){background:var(--accent-blue-hover)}.standup-date-chip{display:inline-flex;align-items:center;gap:4px;background:var(--info-bg);border:1px solid var(--info-border);color:var(--info-text);border-radius:9999px;padding:4px 4px 4px 12px;font-size:13px;font-weight:600}.standup-date-chip button{background:none;border:none;color:var(--info-text);padding:0 8px;font-size:14px;font-weight:700;line-height:1;cursor:pointer;border-radius:9999px}.standup-date-chip button:hover:not(:disabled){background:var(--info-border)}#dailyTodoWorkflowNav{position:sticky;top:0;z-index:5;margin:0 auto 14px}#emailRequestWorkflowNav{position:sticky;top:0;z-index:5;margin:0 auto 14px}#emailRequestView{position:relative;z-index:2}#issueControlsRow{position:sticky;top:0;z-index:5;display:flex;flex-direction:column;align-items:center;gap:10px;margin:0 auto 14px;background:var(--surface);border-radius:16px;padding:10px}#issueControlsRow .tabs{margin-bottom:0}</style>
 <!-- Per-user "no animation" preference, set on the Manage Access tab and
      applied as a body class in app.js (onAuthStateChanged, after
      getMyRoleFn resolves disableAnimations) - see accessListEl's
@@ -369,18 +369,20 @@ main { padding-right: calc(24px + env(safe-area-inset-right, 0px)); }
     <path d="M16 15.4V29.4L3.6 23V9l12.4 6.4Z" fill="var(--green-700)"/>
   </svg>
   <h1>CUBEWORK</h1>
-  <p>Sign in with your cubework.com Microsoft 365 account.</p>
-  <button id="signInBtn">Return Users Login</button>
-  <button type="button" id="otpToggleBtn" class="secondary" style="background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff;">Create/Login with Email Code</button>
-  <!-- Email OTP sign-in (2026-08-27) - see the requestEmailOtp/verifyEmailOtp
-       wiring in src/app.js right after the Microsoft signInBtn handler.
-       Hidden until otpToggleBtn is clicked; otpCodeRow (the code input +
-       Verify/Resend) stays hidden within this until a code has been sent. -->
-  <div id="otpPanel" style="display:none; flex-direction:column; gap:10px; width:100%; max-width:320px;">
-    <input type="email" id="otpEmailInput" placeholder="name@cubework.com" autocomplete="email" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,.35); background:rgba(255,255,255,.08); color:#fff; font-size:16px;" />
-    <button type="button" id="otpSendBtn">Send code</button>
-    <div id="otpCodeRow" style="display:none; flex-direction:column; gap:10px;">
-      <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="otpCodeInput" placeholder="6-digit code" autocomplete="one-time-code" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,.35); background:rgba(255,255,255,.08); color:#fff; font-size:16px; letter-spacing:3px; text-align:center;" />
+  <h2 class="signin-welcome">Welcome Back</h2>
+  <p class="signin-subtitle">Sign in to your account</p>
+  <!-- Email OTP sign-in (2026-08-27, redesigned into the primary login form
+       2026-09-23) - see the requestEmailOtp/verifyEmailOtp wiring in
+       src/app.js right after the Microsoft signInBtn handler. otpPanel is
+       now always visible (there is no more toggle button); otpCodeRow (the
+       code input + Verify/Resend) stays hidden within this until a code has
+       been sent. -->
+  <div id="otpPanel" style="display:flex; flex-direction:column; gap:6px; width:100%; max-width:320px; text-align:left;">
+    <label for="otpEmailInput" class="signin-field-label">Email Address</label>
+    <input type="email" id="otpEmailInput" placeholder="name@cubework.com" autocomplete="email" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,.35); background:rgba(255,255,255,.08); color:#fff; font-size:16px; box-sizing:border-box;" />
+    <button type="button" id="otpSendBtn" style="margin-top:4px;">Send Verification Code</button>
+    <div id="otpCodeRow" style="display:none; flex-direction:column; gap:10px; margin-top:4px;">
+      <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" id="otpCodeInput" placeholder="6-digit code" autocomplete="one-time-code" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,.35); background:rgba(255,255,255,.08); color:#fff; font-size:16px; letter-spacing:3px; text-align:center; box-sizing:border-box;" />
       <div style="display:flex; gap:8px;">
         <button type="button" id="otpVerifyBtn" style="flex:1;">Verify</button>
         <button type="button" id="otpResendBtn" class="secondary" style="background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff;">Resend code</button>
@@ -388,6 +390,20 @@ main { padding-right: calc(24px + env(safe-area-inset-right, 0px)); }
     </div>
     <div id="otpStatus" style="font-size:13px; min-height:16px; color:rgba(255,255,255,.72);"></div>
   </div>
+  <div class="signin-divider" role="separator" aria-label="or">
+    <span class="signin-divider-line"></span>
+    <span class="signin-divider-text">OR</span>
+    <span class="signin-divider-line"></span>
+  </div>
+  <button id="signInBtn" class="signin-ms-btn">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+      <rect x="1" y="2" width="22" height="20" rx="4" fill="#0A63C2"/>
+      <path d="M1 6.5 12 13l11-6.5" fill="none" stroke="#fff" stroke-width="1.4"/>
+      <circle cx="8.5" cy="16" r="4.2" fill="#28A8EA"/>
+      <path d="M8.5 12.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8Zm0 5.4a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z" fill="#fff"/>
+    </svg>
+    <span>Continue with Microsoft</span>
+  </button>
 </div>
 
 <div id="app" style="display:none;">
@@ -467,7 +483,7 @@ main { padding-right: calc(24px + env(safe-area-inset-right, 0px)); }
       <div class="tab-subgroup" id="appSwitcherEraSubgroup">
         <button class="tab tab-sub" data-app="emailRequestAttachmentsEmbed" data-era-mode="dashboard"><span class="tab-label">Dashboard</span></button>
         <button class="tab tab-sub" data-app="emailRequestAttachmentsEmbed" data-era-mode="keycard"><span class="tab-label">Keycard</span></button>
-        <button class="tab tab-sub" data-app="emailRequestAttachmentsEmbed" data-era-mode="wifi" disabled aria-disabled="true" title="Coming soon"><span class="tab-label">Wi-Fi</span></button>
+        <button class="tab tab-sub" data-app="emailRequestAttachmentsEmbed" data-era-mode="wifi"><span class="tab-label">Wi-Fi</span></button>
         <button class="tab tab-sub" data-app="emailRequestAttachmentsEmbed" data-era-mode="electrical" disabled aria-disabled="true" title="Coming soon"><span class="tab-label">Electrical</span></button>
         <button class="tab tab-sub" data-app="emailRequestAttachmentsEmbed" data-era-mode="app" disabled aria-disabled="true" title="Coming soon"><span class="tab-label">Software</span></button>
         <button class="tab tab-sub" data-app="emailRequestAttachmentsEmbed" data-era-mode="hardware" disabled aria-disabled="true" title="Coming soon"><span class="tab-label">Hardware</span></button>
@@ -3024,6 +3040,18 @@ main { padding-right: calc(24px + env(safe-area-inset-right, 0px)); }
           color: var(--erak-amber, #f59e0b);
         }
         #emailRequestAttachmentsEmbedView .era-k-split-left .era-add-entry-btn:hover { background: var(--hover-bg); }
+        /* +Add Location/+Add Another Keycard buttons keep the app's primary
+           green (see the #era_addLocationBtn/.era-k-dl-addLocBtn/
+           #era_k_addEntryBtn override further down) even inside
+           .era-k-split-left - this re-states it scoped to .era-k-split-left
+           so it wins the specificity tie against the amber rule just above,
+           which would otherwise win via source order. */
+        #emailRequestAttachmentsEmbedView .era-k-split-left .era-k-dl-addLocBtn,
+        #emailRequestAttachmentsEmbedView .era-k-split-left #era_addLocationBtn,
+        #emailRequestAttachmentsEmbedView .era-k-split-left #era_k_addEntryBtn {
+          border-color: var(--cw-primary);
+          color: var(--cw-primary);
+        }
         #emailRequestAttachmentsEmbedView .era-k-split-left .era-remove-entry-btn { color: var(--danger-light); }
         #emailRequestAttachmentsEmbedView .era-k-split-left .era-check { color: var(--erak-text); }
         #emailRequestAttachmentsEmbedView .era-k-split-left .era-file-btn {
@@ -3166,13 +3194,18 @@ main { padding-right: calc(24px + env(safe-area-inset-right, 0px)); }
                rename this to "Rain" and move it to the Printer tab were
                both reverted per Huy's follow-up requests - it's back to
                "ice spikes" here on the Wi-Fi tab. -->
-          <div class="era-tab era-tab-dropdown era-tab-disabled" data-mode="wifi" id="era_w_tabDropdown" aria-disabled="true" title="Coming soon">
-            <div class="era-icespikes-layer"></div>
-            <span class="era-tab-dropdown-label">Wi-Fi <span class="era-tab-dropdown-caret">&#9662;</span></span>
-            <div class="era-tab-dropdown-menu" id="era_w_tabDropdownMenu">
-              <div class="era-tab-dropdown-item" data-w-serves="Cubework" id="era_w_tabCubeworkItem">Cubework</div>
-              <div class="era-tab-dropdown-item" data-w-serves="Unis">Unis</div>
-            </div>
+          <!-- 2026-09-23 rework, per Huy's spec: no more Cubework/Unis
+               dropdown picker - clicking "Wi-Fi" opens the form directly,
+               same as the 2026-09-22 Keycard rework (era_k_tabDropdown just
+               above). Wi-Fi is Cubework-only now; era_w_requestType is
+               forced to "Cubework" unconditionally (see its own comment in
+               the markup below and eraWifiRefreshFlow()). Menu kept empty +
+               force-hidden (not removed outright) so era-tab-dropdown's
+               shared CSS/click-bubbling keeps working unchanged, same
+               convention Keycard's own empty menu already uses. -->
+          <div class="era-tab era-tab-dropdown" data-mode="wifi" id="era_w_tabDropdown">
+            <span class="era-tab-dropdown-label">Wi-Fi</span>
+            <div class="era-tab-dropdown-menu" id="era_w_tabDropdownMenu" style="display:none !important;"></div>
           </div>
           <!-- Printer/Phone/Laptop tabs (2026-09-04, per Huy's request):
                moved OFF this top-level bar entirely, into the Hardware ▾
@@ -3439,6 +3472,16 @@ main { padding-right: calc(24px + env(safe-area-inset-right, 0px)); }
              account menu > Help (window.eraOpenVideoTutorials). -->
         <style>
           #emailRequestAttachmentsEmbedView .era-mode-fields[data-mode="keycard"]{max-width:none;margin-left:0;margin-right:0}
+          /* Wi-Fi rework (2026-09-23, per Huy's spec, section 12) - same
+             full-width escape hatch as Keycard just above; Wi-Fi's own
+             sessions can get wide (Company/Tenant/Unit/Email/Phone rows),
+             so it no longer needs the shared 820px cap either. */
+          #emailRequestAttachmentsEmbedView .era-mode-fields[data-mode="wifi"]{max-width:none;margin-left:0;margin-right:0}
+          /* Wi-Fi session action buttons (Create Wi-Fi/Troubleshoot/
+             De-Activate, spec section 4) - plain .secondary buttons, with
+             a highlighted "picked" state. */
+          #emailRequestAttachmentsEmbedView .era-w-action-btn.era-w-action-active{background:var(--cw-primary);border-color:var(--cw-primary);color:#fff;font-weight:600}
+          #emailRequestAttachmentsEmbedView .era-w-session{border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;background:var(--surface-2)}
           /* 2026-09-23, per Huy's request: bold+green "+Add" buttons scoped
              to Keycard > Activate's own instances only - do NOT broaden to
              the shared .era-add-entry-btn class, which every other mode's
@@ -3861,156 +3904,83 @@ main { padding-right: calc(24px + env(safe-area-inset-right, 0px)); }
              #era_k_summaryList, which no longer exists. -->
 
         <!-- ================= WIFI ================= -->
-        <!-- Company/Tenant Name split into two fields, and multi-entry
-             support added (2026-08-10) - mirrors Keycard's own
-             era_k_entries/era_k_addEntryBtn mechanic, generalized as
-             eraCreateSimpleEntry()/ERA_SIMPLE_MODES below for Wi-Fi/
-             Printer/Application-Software/Laptop, which all share the same
-             per-entry shape (Company Name, Tenant Name, Unit Number, one
-             type-specific field, Office/Warehouse, Email, Phone) and differ
-             only in that one field + a couple of checkboxes/labels/layout
-             tweaks - unlike Keycard, which keeps its own bespoke
-             eraCreateKeycardEntry() since its per-entry shape (Activate/
-             De-activate radios, Fee checkbox) doesn't fit this mold, and
-             unlike Phone, which moved to its own bespoke
-             eraCreatePhoneEntry() on 2026-08-16 for the same reason (its
-             New Phone Line/Troubleshoot fields no longer resemble this
-             shape at all - see that function's own comment).
-             Create/Troubleshoot/De-activate stay shared once per submission
-             (same as before this change) rather than moving per-entry -
-             see docs/email-request-attachments-embed-tab.md.
+        <!-- 2026-09-23 rework, per Huy's spec: progressive-disclosure flow
+             mirroring Keycard's own guided UX, replacing the old
+             submission-wide Create/Troubleshoot/De-activate checkbox trio
+             and Cubework/Unis tab-dropdown picker.
 
-             2026-08-16: Office or Warehouse moved above Company Name/Tenant
-             Name (see moveTypeAboveCompany in ERA_SIMPLE_MODES), the
-             "Near AP / Node" field was removed outright (hasExtraField:
-             false), a free-text "anything else to flag" notes box was
-             added right under Company Name/Tenant Name (stays visible even
-             when De-activate hides everything below it), and Email/Phone
-             are no longer required (contactRequired: false) - the fields
-             themselves are unchanged, just optional now. See
-             docs/email-request-attachments-embed-tab.md for the full
-             writeup. -->
-        <!-- era_w_card (2026-09-09, per Huy's request, Wi-Fi tab spec item
-             2): before a Cubework/Unis pick is made in the Wi-Fi ▾ tab
-             dropdown, era_w_unisWarning and era_w_body are BOTH hidden
-             (era_w_requestType starts ""), leaving this outer .era-card box
-             visibly rendered with nothing inside it - an empty "blank
-             bubble." ke() below now also toggles era-field-hidden on this
-             wrapper itself based on the same era_w_requestType state, so
-             the whole card disappears until a pick is made instead of just
-             its contents. -->
+             - Wi-Fi is Cubework-only now (era_w_requestType is forced
+               "Cubework" once by eraWifiRefreshFlow(); no visible
+               Cubework/Unis picker anywhere in this card - the old
+               era_w_serves_cubework/era_w_serves_unis reflected-readout
+               pair is gone outright, not just hidden, since it never drove
+               anything server-side to begin with).
+             - "Sessions" replace the old flat entries: each
+               .era-w-session (built by eraCreateWifiSession(), a bespoke
+               function - Wi-Fi is intentionally NOT in the shared R/
+               eraCreateSimpleEntry() factory anymore, same divergence
+               Phone already took for the same reason) carries its OWN
+               Create Wi-Fi/Troubleshoot/De-Activate pick, own
+               Office/Warehouse, own Free/Paid Wi-Fi, own fields/Notes.
+             - Requestor Email (own field, not the shared Keycard-tied
+               era_requesterEmailLocal - same "own field" pattern Phone/
+               Laptop use), Location (shared era_k_locationGroup, already
+               visible for Wi-Fi with no changes needed), Attachments/
+               Addendum, and Preview stay request-level - one each for the
+               whole page, not per-session.
+
+             See eraWifiRefreshFlow()/eraCreateWifiSession()/
+             eraWifiRequiredProblems() further down in this script, and
+             docs/email-request-attachments-embed-tab.md for the writeup. -->
         <div class="era-card era-mode-fields" data-mode="wifi" id="era_w_card" style="display:none">
-          <!-- era_w_requestType (2026-08-22, later pass, per Huy's request):
-               NOT a visible field anymore - the "Dropdown Cubework and
-               Unis" from the original ask is the Wi-Fi tab dropdown itself
-               (era_tabs above, .era-tab-dropdown[data-mode="wifi"]), not a
-               field inside this form (two earlier attempts got this wrong
-               - first collapsing it into Serves, then adding a redundant
-               visible "Request Type" <select> in here; see the doc's
-               Wi-Fi changelog for the full story). This hidden input is
-               just the backing state everything else in this tab already
-               reads/writes via w()/it() (be(), ke(), Le()'s submit-gate
-               validation, Se()'s wifi-case payload, st()'s reset) - kept
-               as a real form element purely so those helpers didn't need
-               rewriting, same reasoning Keycard's hidden radios exist
-               behind its own visible custom UI. Picking Cubework in the
-               tab dropdown sets this to "Cubework" and gates the normal
-               Create/Troubleshoot/De-activate flow below (era_w_body);
-               Unis sets it to "Unis" and reveals a plain warning
-               (era_w_unisWarning) telling the requester to email helpdesk
-               directly - eraRunPreflightChecks() also blocks the shared
-               Submit button outright while Unis is picked, and buildWifi()
-               in functions/emailRequest.js repeats that block
-               server-side. Checking any of Create Wi-Fi/Troubleshoot/
-               De-activate below reflects back onto this hidden field
-               (forces it to "Cubework") AND onto the plain Serves checkbox
-               further down (auto-ticks era_w_serves_cubework) - see the $
-               group's change listener further down. See
-               eraApplyWifiRequestTypeVisibility(). -->
-          <input type="hidden" id="era_w_requestType" value="">
+          <!-- era_w_requestType: hidden backing field, always "Cubework" -
+               kept as a real form element purely so Se()'s wifi-case
+               payload/requireEraAccess()'s WIFI.CUBEWORK server check don't
+               need rewriting, same reasoning Keycard's hidden radios exist
+               behind its own visible custom UI. Nothing ever sets this to
+               "Unis" anymore (no UI reaches that value), but buildWifi()
+               keeps its Unis rejection as a server-side safety net. -->
+          <input type="hidden" id="era_w_requestType" value="Cubework">
 
-          <div class="era-note era-field-hidden" id="era_w_unisWarning">Send an email to helpdesk and request Network Team to Create/Troubleshoot/De-activate for the request.</div>
-
-          <div id="era_w_body" class="era-field-hidden">
-            <!-- Serves (2026-08-22, later pass, per Huy's request): reverted
-                 back to a plain Cubework/Unis checkbox pair (a first attempt
-                 at this whole request wrongly turned this into the new
-                 dropdown itself - see era_w_requestType above and the doc's
-                 Wi-Fi changelog). This pair no longer gates anything on its
-                 own - era_w_requestType above does that job now - it's a
-                 reflected readout: ticking Create Wi-Fi/Troubleshoot/
-                 De-activate below auto-ticks era_w_serves_cubework (the
-                 $ group's change listener further down), same "per
-                 selection on the tab, reflect the tick box under Serves"
-                 Huy asked for. Left independently clickable (still
-                 mutually-exclusive, same convention as every other
-                 Cubework/Unis tick-box pair in this form) rather than
-                 disabled, since nothing in the spec said to lock it.
-                 Moved ABOVE Create Wi-Fi/Troubleshoot/De-activate
-                 (2026-08-22, later pass still, per Huy's request) - order
-                 only, no behavior change; both groups' ids/logic are
-                 untouched. -->
-            <label>Serves <span class="era-required-mark">*</span></label>
-            <div class="era-checks">
-              <label class="era-check"><input type="checkbox" id="era_w_serves_cubework"> Cubework</label>
-              <label class="era-check"><input type="checkbox" id="era_w_serves_unis"> Unis</label>
-            </div>
-
-            <!-- Create Wi-Fi/Troubleshoot/De-activate gate (added 2026-08-16,
-                 second pass): now mutually exclusive tick boxes (ticking one
-                 force-unchecks the other two, same pattern as every other
-                 tick-box group in this form) instead of independent
-                 checkboxes, and #era_w_typeBody below stays hidden until one
-                 is ticked - Create Wi-Fi no longer starts pre-checked, so the
-                 form really does show nothing past this row until a choice
-                 is made. See eraApplyWifiModeExclusivity()/
-                 eraApplyWifiTypeBodyVisibility(). -->
-            <div class="era-checks">
-              <label class="era-check"><input type="checkbox" id="era_w_create"> Create Wi-Fi</label>
-              <label class="era-check"><input type="checkbox" id="era_w_troubleshoot"> Troubleshoot</label>
-              <label class="era-check"><input type="checkbox" id="era_w_deactivate"> De-activate</label>
-            </div>
-
-            <div id="era_w_typeBody" class="era-field-hidden">
-              <!-- Wi-Fi's shared "Describe the issue" box (era_w_issue) removed
-                   outright (2026-08-16) - Troubleshoot no longer shows or
-                   collects a separate issue description at all; the per-entry
-                   Notes box already covers "anything else to flag." Printer's
-                   own era_pr_issue is untouched. -->
-
-              <div id="era_w_entries"></div>
-              <button type="button" class="era-add-entry-btn" id="era_w_addEntryBtn">+ Add another Wi-Fi request</button>
-
-              <div class="era-note" id="era_w_note">Everywhere except an on-site Cubework office needs the signed Contract or Addendum showing Wi-Fi + $ on it. Attach it below.</div>
-
-              <!-- De-activate has no attachment need (2026-08-16) - hidden via
-                   eraApplySimpleDeactivateVisibility(), which already runs on
-                   every De-activate toggle/new-entry for Wi-Fi (the only
-                   ERA_SIMPLE_MODES entry with hasDeactivateToggle). Needs its
-                   own id since, unlike Printer/App/Laptop, Wi-Fi's note+section
-                   aren't tagged era-attach-reminder/generic - this is the only
-                   mode where attach visibility depends on a shared tab-level
-                   checkbox rather than always showing. Create Wi-Fi's own
-                   "pure SSID note" shortcut (added 2026-08-16, third pass -
-                   see eraApplyWifiCreateVisibility()) hides this same pair
-                   too, whenever every current entry is in that shortcut - no
-                   signed contract or attachment is needed just to hand a
-                   tenant the free Wi-Fi SSID. -->
-              <div class="era-attach-section" id="era_w_attachSection">
-                <label>Attachments</label>
-                <label for="era_files_wifi" class="era-file-btn">Choose Files</label>
-                <input type="file" id="era_files_wifi" multiple class="era-file-input-hidden">
-                <div id="era_fileList_wifi" class="era-file-list"></div>
-                <div class="era-hint">Signed Contract/Addendum, screenshots — whatever this Wi-Fi request needs. Keep the total under ~20MB. Click "Choose Files" again to add more — each one appears below with its own remove (✕) button.</div>
-              </div>
-            </div>
+          <!-- Step 1 (always visible once Wi-Fi is the active mode):
+               Requestor Email. Nothing else in this card shows until this
+               passes eraWifiRequesterReady() - see eraWifiRefreshFlow(). -->
+          <div id="era_w_requesterEmailGroup" style="position:relative;">
+            <label>Requestor Email <span class="era-required-mark">*</span></label>
+            <input type="email" id="era_w_requesterEmail" autocomplete="off" placeholder="name@cubework.com">
           </div>
-          <!-- Section-scoped Submission button (task 4, 2026-09-08, per
-               Huy's request) - see the Electrical card's own comment above
-               for the full rationale; same eraHandleSubmitClick reference,
-               starts hidden via era-progressive-hidden until Wi-Fi's own
-               progressive reveal fires. -->
-          <button type="button" class="era-submit era-progressive-hidden" id="era_w_submitBtn" style="width:100%; margin-top:10px;">Wi-Fi Submission</button>
+
+          <!-- Step 2: "Wi-Fi Request" header (renamed from the old "Serves"
+               label - Cubework is forced/hidden, nothing to pick). -->
+          <div id="era_w_requestHeader" class="era-field-hidden">
+            <label>Wi-Fi Request</label>
+          </div>
+
+          <!-- Step 3+: one or more independent sessions. -->
+          <div id="era_w_sessions" class="era-field-hidden"></div>
+          <button type="button" class="era-add-entry-btn era-field-hidden" id="era_w_addEntryBtn">Add Another Wi-Fi Request</button>
+
+          <!-- Shared Attachments/Addendum - gated on every Create+Paid
+               session having its required Notes filled in
+               (eraWifiRefreshFlow()); a Troubleshoot/De-activate-only or
+               pure-Free-Wi-Fi submission never needs this section. -->
+          <div class="era-note era-field-hidden" id="era_w_note">Everywhere except an on-site Cubework office needs the signed Contract or Addendum showing Wi-Fi + $ on it. Attach it below.</div>
+          <div class="era-attach-section era-field-hidden" id="era_w_attachSection">
+            <label>Attachments / Addendum-Contract</label>
+            <label for="era_files_wifi" class="era-file-btn">Choose Files</label>
+            <input type="file" id="era_files_wifi" multiple class="era-file-input-hidden">
+            <div id="era_fileList_wifi" class="era-file-list"></div>
+            <div class="era-hint">Signed Contract/Addendum, screenshots — whatever this Wi-Fi request needs. Keep the total under ~20MB. Click "Choose Files" again to add more — each one appears below with its own remove (✕) button.</div>
+          </div>
+
+          <!-- Section-scoped Submission button - renamed "Preview" per
+               spec (was "Wi-Fi Submission"). Visibility is fully owned by
+               eraWifiRefreshFlow()/eraWifiRequiredProblems() now, not the
+               old progressive-reveal mechanism (Wi-Fi was removed from
+               eraProgressiveModes - Location shows immediately for Wi-Fi
+               per spec section 2, it no longer waits for "first
+               interaction"). -->
+          <button type="button" class="era-submit era-field-hidden" id="era_w_submitBtn" style="width:100%; margin-top:10px;">Preview</button>
         </div>
 
         <!-- ================= ELECTRICAL (2026-09-08, per Huy's request)
@@ -4532,6 +4502,18 @@ main { padding-right: calc(24px + env(safe-area-inset-right, 0px)); }
               <div style="font-weight:600; color:var(--text); margin-bottom:6px;">Keycard Form attachments</div>
               <div id="era_previewKformList" style="display:flex; flex-direction:column; gap:6px;"></div>
             </div>
+            <!-- Wi-Fi attachments in Preview (2026-09-23, per Huy's spec
+                 section 16 - the main-form attachment was already carried
+                 along to Send, just never shown in the Preview modal for
+                 any non-Keycard mode). Plain read-only filename list, no
+                 view/remove controls (those stay on the main form's own
+                 file list) - simpler sibling of era_previewKformSection
+                 above. Rendered by eraRenderPreviewWifiAttachments(),
+                 hidden whenever there's nothing to show. -->
+            <div id="era_previewWifiAttachSection" style="display:none; border:1px solid var(--border); border-radius:8px; padding:10px 12px; background:var(--input-bg); font-size:12.5px;">
+              <div style="font-weight:600; color:var(--text); margin-bottom:6px;">Attachments</div>
+              <div id="era_previewWifiAttachList" style="display:flex; flex-direction:column; gap:4px;"></div>
+            </div>
             <!-- Format toolbar (2026-08-18) - hidden until "Format" is
                  toggled on; a separate control from Edit (which still just
                  closes the modal, untouched) so hand-editing font/size/
@@ -4909,12 +4891,12 @@ main { padding-right: calc(24px + env(safe-area-inset-right, 0px)); }
              card's own <h3> text already names the category. -->
         <div class="era-mode-fields" data-mode="dashboard" id="era_dashboardView">
           <div class="era-dash-grid" id="era_dashboardGrid">
-            <div class="era-dash-card" data-dash-card="keycard">
+            <div class="era-dash-card" data-dash-card="keycard" data-dash-open="keycard">
               <div class="era-dash-card-media" aria-hidden="true" style="color:var(--era-blue)"><svg viewBox="0 0 32 22" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="30" height="20" rx="4" fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-width="1.6"/><rect x="5" y="5.5" width="8" height="6" rx="1.4" fill="currentColor"/><rect x="5" y="14.5" width="14" height="2" rx="1" fill="currentColor" fill-opacity=".55"/><rect x="5" y="18" width="9" height="2" rx="1" fill="currentColor" fill-opacity=".35"/></svg></div>
               <h3>Keycard</h3>
               <div class="era-dash-sub"></div>
             </div>
-            <div class="era-dash-card" data-dash-card="wifi">
+            <div class="era-dash-card" data-dash-card="wifi" data-dash-open="wifi">
               <div class="era-dash-card-media" aria-hidden="true" style="color:var(--info-text)"><svg viewBox="0 0 28 24" xmlns="http://www.w3.org/2000/svg"><circle cx="14" cy="20" r="2" fill="currentColor"/><path d="M8 15a8.5 8.5 0 0 1 12 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M4 10.5a14 14 0 0 1 20 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity=".7"/><path d="M0.5 6a19.5 19.5 0 0 1 27 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity=".45"/></svg></div>
               <h3>Wi-Fi</h3>
               <div class="era-dash-sub"></div>
@@ -5567,19 +5549,13 @@ window.eraForceHideGlobalLoading = function () {
 // that was clicked, but for Printer/Phone/Laptop (now reachable only via the
 // Hardware ▾ menu) it's the Hardware tab itself, since that's the only
 // top-level tab left standing in for any of them.
-// Only Dashboard + Keycard are open for now (2026-09-22, per Huy's request) -
-// every other mode stays visible-but-disabled in both navs until development
-// begins (see the "Navigation adjust + repair" <style> block in <head>). This
-// guard is the one choke point every mode switch goes through.
-const ERA_NAV_ENABLED_MODES={dashboard:1,keycard:1};
+// Dashboard + Keycard + Wi-Fi are open (Wi-Fi enabled 2026-09-23, per Huy's
+// request) - every other mode stays visible-but-disabled in both navs until
+// development begins (see the "Navigation adjust + repair" <style> block in
+// <head>). This guard is the one choke point every mode switch goes through.
+const ERA_NAV_ENABLED_MODES={dashboard:1,keycard:1,wifi:1};
 function eraActivateMode(mode,activeTabEl){
   if(!ERA_NAV_ENABLED_MODES[mode])return;
-  // Leaving Wi-Fi re-arms eraWifiRevealed so coming back needs a fresh pick
-  // from the Wi-Fi ▾ dropdown - see that flag's own comment above. Checked
-  // BEFORE `_` is overwritten below, and only on an actual mode change (not
-  // a re-click of the already-active Wi-Fi tab) so a mid-fill Wi-Fi visit
-  // isn't yanked away by its own tab's label click.
-  if(_==="wifi"&&mode!=="wifi")eraWifiRevealed=false;
   if(_==="electrical"&&mode!=="electrical")eraElRevealed=false;
   _=mode;
   c.querySelectorAll("#era_tabs .era-tab").forEach(function(t){t.classList.toggle("era-active",t===activeTabEl)});
@@ -5605,17 +5581,14 @@ function eraActivateMode(mode,activeTabEl){
   // Dashboard - it only auto-hides for the hardware-family modes above).
   const sharedTopCard=a("era_sharedTopCard");
   sharedTopCard&&sharedTopCard.classList.toggle("era-field-hidden",_==="dashboard");
-  // era_w_card (2026-09-09, per Huy's request, Wi-Fi tab spec item 2): ke()
-  // is normally only re-run on era_w_requestType's own "change" event (the
-  // Wi-Fi ▾ tab dropdown items dispatch it), which never fires on a plain
-  // mode switch - re-running it here too keeps era_w_card's hidden/shown
-  // state correct the very first time Wi-Fi is switched into, before any
-  // pick has been made. Harmless when Wi-Fi isn't the mode being switched
-  // to: era_w_card is already hidden by the inline style this same function
-  // sets above, on top of whatever ke() also does to it. ke is a hoisted
-  // function declaration further down this same script, so it's callable
-  // here despite being defined later in the file.
-  if(typeof ke==="function")ke();
+  // eraWifiRefreshFlow() (2026-09-23 rework) - re-runs Wi-Fi's own
+  // step-gating on every mode switch, same reasoning the old ke() call here
+  // had (keeps era_w_*'s hidden/shown state correct the very first time
+  // Wi-Fi is switched into, before eraWifiRefreshFlow()'s own input/change
+  // listeners have fired even once). Hoisted function declaration further
+  // down this same script, so it's callable here despite being defined
+  // later in the file.
+  if(typeof eraWifiRefreshFlow==="function")eraWifiRefreshFlow();
   // era_el_card (2026-09-09, per Huy's request) - same reasoning as ke()
   // just above: ELbody() is normally only re-run from the Create/
   // Troubleshoot/De-activate checkboxes' own "change" listeners (which the
@@ -5987,24 +5960,7 @@ function eraUpdateLtSubmitLabel(isSoftwareRoute){
   const ltBtn=a("era_lt_submitBtn");
   ltBtn&&(ltBtn.textContent=(eraLtLastRouteWasSoftware||w("era_lt_requestType")==="accessappcw")?"Software Submission":"Hardware Submission")
 }
-// eraWifiRevealed (2026-09-09, per Huy's request - Wi-Fi tab spec item 2
-// follow-up): era_w_requestType is a real, persisted form value ("no field
-// is cleared, no value reset" is the whole point of the draft - same as
-// every other field in this form), so it stays set to "Cubework"/"Unis"
-// forever once picked, including across a plain mode switch away and back.
-// That's correct for the VALUE, but wrong for the REVEAL: per spec, Wi-Fi's
-// card should behave like Keycard's own gate - switching away and back
-// needs a fresh pick before anything shows again, same "coming back needs a
-// fresh pick" rule era-k-gated already enforces for Keycard (see that gate's
-// own comment near the end of this file). This flag is that separate,
-// non-persisted "has a pick happened THIS visit" bit: it starts false, is
-// set true only by an explicit click on a Wi-Fi ▾ dropdown item (see that
-// listener below), and is reset back to false the moment the mode switches
-// away from "wifi" (see eraActivateMode above/below). ke() gates
-// era_w_card's own hidden class on this flag instead of on the value
-// itself, so the underlying pick/value is never touched - only the reveal.
-let eraWifiRevealed=false;
-// eraElRevealed - same reasoning/lifecycle as eraWifiRevealed just above,
+// eraElRevealed - same reasoning/lifecycle the old eraWifiRevealed flag had
 // for Electrical's own era_el_card (2026-09-09 follow-up fix; the original
 // ELbody() gated on `!e` - whether any of era_el_create/troubleshoot/
 // deactivate was currently checked - which is exactly the same persisted-
@@ -6549,55 +6505,14 @@ function eraWireCursorIcon(target,mode){
   eraWireCursorIcon(ddTab,"keycard");
 })();
 
-// ---- Wi-Fi tab dropdown (2026-08-22, later pass, per Huy's request) ----
-// Same shape as the Keycard tab dropdown above (own open/close chrome,
-// item click bubbles up to the outer ".era-tab-dropdown[data-mode=wifi]"
-// for the mode switch - not stopped here, same reasoning as Keycard's).
-// This is the actual "Dropdown Cubework and Unis" from the original ask -
-// two earlier attempts put a dropdown INSIDE the Wi-Fi form instead
-// (first collapsing Serves into one, then a redundant standalone "Request
-// Type" <select>), both wrong; era_w_requestType is now a hidden backing
-// field only (see its own comment in the markup above).
+// ---- Wi-Fi tab (2026-09-23 rework, per Huy's spec) ----
+// No more dropdown menu/items (removed - see the markup comment above);
+// this just wires the same custom hover-cursor icon every top-level tab
+// uses. era_w_requestType is forced to "Cubework" once, unconditionally,
+// by eraWifiRefreshFlow() - not by a dropdown item click anymore.
 (function(){
   const ddTab=c.querySelector('.era-tab-dropdown[data-mode="wifi"]');
-  const ddMenu=a("era_w_tabDropdownMenu");
-  if(!ddTab||!ddMenu)return;
-  let ddCloseTimer=null;
-  function closeDdMenu(){ddMenu.classList.remove("era-tab-dropdown-open")}
-  function scheduleDdClose(){clearTimeout(ddCloseTimer);ddCloseTimer=setTimeout(closeDdMenu,180)}
-  function openDdMenu(){clearTimeout(ddCloseTimer);ddMenu.classList.add("era-tab-dropdown-open")}
-  ddTab.addEventListener("mouseenter",openDdMenu);
-  ddTab.addEventListener("mouseleave",scheduleDdClose);
-  ddMenu.addEventListener("mouseenter",function(){clearTimeout(ddCloseTimer)});
-  ddMenu.addEventListener("mouseleave",scheduleDdClose);
-  document.addEventListener("click",function(ev){if(!ddTab.contains(ev.target))closeDdMenu()});
-  ddMenu.querySelectorAll(".era-tab-dropdown-item").forEach(function(item){
-    item.addEventListener("click",function(){
-      // eraWifiRevealed set true here - the actual "a pick was made" moment
-      // - BEFORE it() below, so ke() (re-run by it()'s own unconditional
-      // change dispatch, even when re-picking the same value that was
-      // already set - see it()'s own definition) sees it already true and
-      // reveals immediately.
-      eraWifiRevealed=true;
-      it("era_w_requestType",this.getAttribute("data-w-serves"));
-      closeDdMenu()
-    })
-  });
-  // "Ice spikes explosion" hover effect - only possible here because this
-  // is a real <div>-based dropdown, unlike the native <select> both
-  // earlier attempts were stuck with (a browser draws a <select>'s open
-  // popup itself, not the page, so it can never carry a custom hover
-  // effect - see the doc's Wi-Fi changelog). eraWireIceSpikesHover() is
-  // defined further down in this script (a plain function declaration,
-  // hoisted, so it's callable here already) and works on any element id.
-  // Covers the whole Wi-Fi tab dropdown (era_w_tabDropdown - label + open
-  // menu, both items), so spikes track the cursor across the entire
-  // dropdown, not just one menu item. Same-day attempts to rename this to
-  // "Rain" and move it to the Printer tab were both reverted per Huy's
-  // follow-up requests.
-  eraWireIceSpikesHover("era_w_tabDropdown");
-  // Custom hover-cursor icon (2026-09-14, per Huy's request) - see
-  // eraWireCursorIcon()/ERA_CURSOR_ICONS further down.
+  if(!ddTab)return;
   eraWireCursorIcon(ddTab,"wifi");
 })();
 
@@ -7955,7 +7870,8 @@ function eraSyncLocationUiForMode(){
   // mode's own array on every call, so no cross-tab bleed.
   eraRenderExtraLocationRows();
   eraSyncKLocationPlacement();
-  eraKeycardRefreshFlow()
+  eraKeycardRefreshFlow();
+  if(typeof eraWifiRefreshFlow==="function")eraWifiRefreshFlow()
 }
 // Per-mode state (bugfix, 2026-08-19): #era_addLocationBtn/#era_extraLocations
 // are one shared pair of DOM elements reused across all six mode tabs (the
@@ -8021,10 +7937,10 @@ function eraCollectExtraLocationBodyLines(){
 a("era_addLocationBtn").addEventListener("click",eraAddLocationRow);
 eraSyncLocationUiForMode();
 
-// ---- Progressive reveal for Wi-Fi/Software/Electrical (task 3, 2026-09-08,
-// per Huy's request) ----
-// On first switching into Wi-Fi/Software/Electrical (or on page load if one
-// is already active), the shared Location group (era_k_locationGroup - the
+// ---- Progressive reveal for Software/Electrical (task 3, 2026-09-08, per
+// Huy's request; Wi-Fi removed 2026-09-23 - see below) ----
+// On first switching into Software/Electrical (or on page load if one is
+// already active), the shared Location group (era_k_locationGroup - the
 // field itself is shared by every mode, "Your email" stays outside it and
 // always visible, same convention Keycard's own Transfer-only hide already
 // uses, see that comment above) and that mode's own section-scoped
@@ -8036,8 +7952,13 @@ eraSyncLocationUiForMode();
 // era_k_locationGroup alone (its own eraSyncKLocationGroupVisibility()
 // logic, called separately, is untouched) and their Submission buttons are
 // never hidden by this mechanism.
-const eraProgressiveModes={wifi:!1,app:!1,electrical:!1};
-const eraProgressiveSubmitBtns={wifi:a("era_w_submitBtn"),app:a("era_ap_submitBtn"),electrical:a("era_el_submitBtn")};
+// Wi-Fi removed from this table (2026-09-23 rework, per Huy's spec section
+// 2) - Location/+Add location must show immediately once Wi-Fi is active,
+// not wait for "first interaction" the way Software/Electrical still do;
+// era_w_submitBtn's own visibility is now fully owned by
+// eraWifiRefreshFlow()/eraWifiRequiredProblems() instead.
+const eraProgressiveModes={app:!1,electrical:!1};
+const eraProgressiveSubmitBtns={app:a("era_ap_submitBtn"),electrical:a("era_el_submitBtn")};
 function eraApplyProgressiveVisibility(){
   const grp=a("era_k_locationGroup");
   if(grp){
@@ -8061,7 +7982,7 @@ function eraWireProgressiveReveal(mode){
   section.addEventListener("change",reveal,!0);
   section.addEventListener("focusin",reveal,!0);
 }
-["wifi","app","electrical"].forEach(eraWireProgressiveReveal);
+["app","electrical"].forEach(eraWireProgressiveReveal);
 eraApplyProgressiveVisibility();
 
 // ---- Shared "recently used emails" suggestions (2026-08-18) ----
@@ -8081,6 +8002,12 @@ const ERA_EMAIL_FIELDS=[
   {selector:"#era_requesterEmailLocal",key:"requesterEmail",inline:!0},
   {selector:"#era_ph_yourEmail",key:"requesterEmail"},
   {selector:"#era_lt_yourEmail",key:"requesterEmail"},
+  // Wi-Fi's own Requestor Email (2026-09-23 rework, per Huy's spec) - own
+  // dedicated field, same "own field" pattern Phone/Laptop use above, but
+  // sharing the "requesterEmail" history key with Keycard's field (same
+  // person's email in practice) and inline:true (max-3 inline suggestions
+  // under the field, per spec section 2).
+  {selector:"#era_w_requesterEmail",key:"requesterEmail",inline:!0},
   {selector:".era-k-email",key:"keycardTenantEmail",inline:!0},
   {selector:".era-k-repl-email",key:"keycardTenantEmail"},
   {selector:".era-k-requestcardManagerEmail",key:"keycardManagerEmail"},
@@ -10565,7 +10492,7 @@ c.querySelectorAll("#era_lt_entries .era-entry-block").forEach(function(entry){c
 // elements (era-attach-reminder etc.), scoped via the <style> rule above, so
 // no other mode/section is touched.
 const note=a("era_lt_appcwNote");note&&note.classList.toggle("era-field-hidden",!aa);a("era_lt_body")&&a("era_lt_body").classList.toggle("era-lt-appcw-active",aa);
-const r=t?" or CW":"";c.querySelectorAll("#era_lt_entries .era-lt-email-label").forEach(function(i){i.textContent="Employee Email"+r}),c.querySelectorAll("#era_lt_entries .era-lt-phone-label").forEach(function(i){i.textContent="Employee Phone"+r}),fe(),eraUpdateLtSubmitLabel()}function F(){return s("era_lt_serves_cubework")?"Cubework":s("era_lt_serves_unis")?"Unis":""}function he(){const e=F();a("era_lt_body").classList.toggle("era-field-hidden",!e),a("era_lt_cubework_wrap").classList.toggle("era-field-hidden",e!=="Cubework"),a("era_lt_unis_wrap").classList.toggle("era-field-hidden",e!=="Unis"),fe()}function fe(){const e=F()==="Cubework"&&w("era_lt_requestType")==="create",t=a("era_lt_attachRequiredMark");t&&t.classList.toggle("era-field-hidden",!e);const r=a("era_lt_attachLabelText");r&&(r.textContent=F()==="Cubework"?"IT Form Attachment":"Attachments")}a("era_lt_addEntryBtn").addEventListener("click",Z),Z(),a("era_lt_serves_cubework").addEventListener("change",function(){this.checked&&(a("era_lt_serves_unis").checked=!1),he()}),a("era_lt_serves_unis").addEventListener("change",function(){this.checked&&(a("era_lt_serves_cubework").checked=!1),he()});const R=[{mode:"wifi",prefix:"era_w",fieldLabel:null,hasExtraField:!1,hasDeactivateToggle:!0,moveTypeAboveCompany:!0,hasNotesField:!0,notesPosition:"end",contactRequired:!1,separateEmailFromType:!0,typeAsCheckboxes:!0,hasWifiPlanField:!0},{mode:"printer",prefix:"era_pr",fieldLabel:"Printer Model",hasExtraField:!0,hasDeactivateToggle:!1,moveTypeAboveCompany:!0,hasNotesField:!0,notesPosition:"end",contactRequired:!0,hasCubeworkNewToggle:!0,hasManagerEmailField:!0,hasPaidWifiField:!0},{mode:"app",prefix:"era_ap",fieldLabel:"Application Name",hasExtraField:!0,hasDeactivateToggle:!1,moveTypeAboveCompany:!0,hasNotesField:!1,contactRequired:!0,separateEmailFromType:!0,hasDescriptionNote:!0,descriptionNoteText:"Please describe what needs to be set up.",hasSbnField:!0,emailLabelOverride:"Manager's Email",emailOptionalOverride:!0},{mode:"laptopUnis",prefix:"era_lt_unis",fieldLabel:"Laptop Model / Asset Tag",hasExtraField:!0,hasDeactivateToggle:!1,moveTypeAboveCompany:!1,hasNotesField:!1,contactRequired:!0},
+const r=t?" or CW":"";c.querySelectorAll("#era_lt_entries .era-lt-email-label").forEach(function(i){i.textContent="Employee Email"+r}),c.querySelectorAll("#era_lt_entries .era-lt-phone-label").forEach(function(i){i.textContent="Employee Phone"+r}),fe(),eraUpdateLtSubmitLabel()}function F(){return s("era_lt_serves_cubework")?"Cubework":s("era_lt_serves_unis")?"Unis":""}function he(){const e=F();a("era_lt_body").classList.toggle("era-field-hidden",!e),a("era_lt_cubework_wrap").classList.toggle("era-field-hidden",e!=="Cubework"),a("era_lt_unis_wrap").classList.toggle("era-field-hidden",e!=="Unis"),fe()}function fe(){const e=F()==="Cubework"&&w("era_lt_requestType")==="create",t=a("era_lt_attachRequiredMark");t&&t.classList.toggle("era-field-hidden",!e);const r=a("era_lt_attachLabelText");r&&(r.textContent=F()==="Cubework"?"IT Form Attachment":"Attachments")}a("era_lt_addEntryBtn").addEventListener("click",Z),Z(),a("era_lt_serves_cubework").addEventListener("change",function(){this.checked&&(a("era_lt_serves_unis").checked=!1),he()}),a("era_lt_serves_unis").addEventListener("change",function(){this.checked&&(a("era_lt_serves_cubework").checked=!1),he()});const R=[{mode:"printer",prefix:"era_pr",fieldLabel:"Printer Model",hasExtraField:!0,hasDeactivateToggle:!1,moveTypeAboveCompany:!0,hasNotesField:!0,notesPosition:"end",contactRequired:!0,hasCubeworkNewToggle:!0,hasManagerEmailField:!0,hasPaidWifiField:!0},{mode:"app",prefix:"era_ap",fieldLabel:"Application Name",hasExtraField:!0,hasDeactivateToggle:!1,moveTypeAboveCompany:!0,hasNotesField:!1,contactRequired:!0,separateEmailFromType:!0,hasDescriptionNote:!0,descriptionNoteText:"Please describe what needs to be set up.",hasSbnField:!0,emailLabelOverride:"Manager's Email",emailOptionalOverride:!0},{mode:"laptopUnis",prefix:"era_lt_unis",fieldLabel:"Laptop Model / Asset Tag",hasExtraField:!0,hasDeactivateToggle:!1,moveTypeAboveCompany:!1,hasNotesField:!1,contactRequired:!0},
 // Electrical (2026-09-08, per Huy's request, task 2) - same
 // once-per-submission Create/Troubleshoot/De-activate + Serves shape as
 // Wi-Fi's own config entry above (hasDeactivateToggle:!0 hooks into the
@@ -10575,39 +10502,13 @@ const r=t?" or CW":"";c.querySelectorAll("#era_lt_entries .era-lt-email-label").
 // type-specific field ("Equipment/Location", Printer's own analog) since
 // - unlike Wi-Fi - that field wasn't asked to be removed here.
 {mode:"electrical",prefix:"era_el",fieldLabel:"Equipment/Location",hasExtraField:!0,hasDeactivateToggle:!0,moveTypeAboveCompany:!0,hasNotesField:!0,notesPosition:"end",contactRequired:!1}
-],ye=R.find(function(e){return e.mode==="wifi"}),_e={};function L(e){const t=_e[e.mode]=(_e[e.mode]||0)+1,r=document.createElement("div");r.className="era-entry-block",r.dataset.seq=t;const i=e.typeAsCheckboxes?'<div class="era-s-type-wrap"><label>Office or Warehouse <span class="era-required-mark">*</span></label><div class="era-checks"><label class="era-check"><input type="checkbox" class="era-s-type-office"> Office</label><label class="era-check"><input type="checkbox" class="era-s-type-warehouse"> Warehouse</label></div><input type="hidden" class="era-s-type">'+(e.hasWifiPlanField?'<div class="era-s-wifiPlan-wrap era-field-hidden"><div class="era-checks"><label class="era-check era-s-freeWifi-row"><input type="checkbox" class="era-s-freeWifi"> Free Wi-Fi</label><label class="era-check"><input type="checkbox" class="era-s-paidWifi"> Paid Wi-Fi</label></div><div class="era-s-ssidNote era-field-hidden">Please provide the Cubework SSID to Tenant.</div></div>':"")+"</div>":'<div class="era-s-type-wrap"><label>Office or Warehouse <span class="era-required-mark">*</span></label><select class="era-s-type"><option value="" disabled selected>Select\u2026</option><option value="Office">Office</option><option value="Warehouse">Warehouse</option></select></div>',n=e.contactRequired&&!e.emailOptionalOverride?' <span class="era-required-mark">*</span>':"",l=e.contactRequired?' <span class="era-required-mark">*</span>':"",o=e.emailLabelOverride||"Email",u='<div class="era-row2 era-s-company-row"><div><label class="era-s-companyName-label">Company Name <span class="era-required-mark">*</span></label><input type="text" class="era-s-companyName"></div><div class="era-s-tenantName-wrap"><label class="era-s-tenantName-label">Tenant Name</label><input type="text" class="era-s-tenantName"></div></div>',d=e.hasManagerEmailField?'<div class="era-s-managerEmail-wrap era-field-hidden"><label>Report to Manager (email) <span class="era-required-mark">*</span></label><input type="email" class="era-s-managerEmail"></div>':"",h=e.hasNotesField?'<textarea class="era-s-notes" placeholder="Anything else to flag for this request"></textarea>':"",k=e.hasExtraField?'<div class="era-row2 era-s-extra-row"><div class="era-s-unit-wrap"><label>Unit Number <span class="era-required-mark">*</span></label><input type="text" class="era-s-unit"></div><div><label>'+e.fieldLabel+' <span class="era-required-mark">*</span></label><input type="text" class="era-s-extra"></div></div>':'<div class="era-s-extra-row era-s-unit-wrap"><label>Unit Number <span class="era-required-mark">*</span></label><input type="text" class="era-s-unit"></div>',v='<div class="era-row2 era-s-contact-row">'+i+'<div class="era-s-email-wrap"><label>'+o+n+'</label><input type="email" class="era-s-email"></div></div>',N='<div class="era-s-contact-row">'+i+"</div>",E='<div class="era-s-contact-row era-s-email-wrap"><label>'+o+n+'</label><input type="email" class="era-s-email"></div>',P='<div class="era-s-contact-row era-s-phone-row"><label>Phone'+l+'</label><input type="tel" class="era-s-phone" placeholder="000-000-0000" maxlength="12" inputmode="tel"></div>',S=e.separateEmailFromType?N:v,M=e.hasDescriptionNote?'<div class="era-note era-s-description-note">'+e.descriptionNoteText+"</div>":"",B=e.hasSbnField?'<div class="era-s-sbn-wrap"><label>Laptop SBN#</label><input type="text" class="era-s-sbn" placeholder="e.g. SBN1990"></div>':"",m=e.hasPaidWifiField?'<div class="era-s-paidWifi-wrap era-field-hidden"><label class="era-check"><input type="checkbox" class="era-s-paidWifi"> Paid Wi-Fi</label></div>':"";let f='<button type="button" class="era-remove-entry-btn">Remove this entry</button>';if(e.moveTypeAboveCompany&&(f+=M,f+=S,f+=B),f+=u,e.hasNotesField&&e.notesPosition==="afterCompany"&&(f+=h),f+=k,f+=d,e.moveTypeAboveCompany||(f+=M,f+=S,f+=B),e.separateEmailFromType&&(f+=E),f+=P,f+=m,e.hasNotesField&&e.notesPosition==="end"&&(f+=h),r.innerHTML=f,r.querySelector(".era-s-phone").addEventListener("input",function(){this.value=W(this.value)}),r.querySelector(".era-remove-entry-btn").addEventListener("click",function(){r.remove(),me(e)}),e.hasCubeworkNewToggle){const b=r.querySelector(".era-s-type");b&&b.addEventListener("change",C)}if(e.typeAsCheckboxes){const b=r.querySelector(".era-s-type-office"),q=r.querySelector(".era-s-type-warehouse");b.addEventListener("change",function(){this.checked&&(q.checked=!1),J(r),x()}),q.addEventListener("change",function(){this.checked&&(b.checked=!1),J(r),x()}),J(r)}if(e.hasWifiPlanField){const b=r.querySelector(".era-s-freeWifi"),q=r.querySelector(".era-s-paidWifi");b&&b.addEventListener("change",x),q&&q.addEventListener("change",x)}a(e.prefix+"_entries").appendChild(r),e.hasDeactivateToggle&&Q(e),e.hasCubeworkNewToggle&&C(),e.mode==="wifi"&&x(),me(e)}function J(e){const t=e.querySelector(".era-s-type-office"),r=e.querySelector(".era-s-type-warehouse"),i=!!(t&&t.checked),n=!!(r&&r.checked),l=e.querySelector(".era-s-type");l&&(l.value=i?"Office":n?"Warehouse":"");const o=e.querySelector(".era-s-wifiPlan-wrap");o&&o.classList.toggle("era-field-hidden",!i&&!n);const u=e.querySelector(".era-s-freeWifi-row"),d=e.querySelector(".era-s-freeWifi");u&&u.classList.toggle("era-field-hidden",n),n&&d&&d.checked&&(d.checked=!1)}function x(){const e=s("era_w_create"),t=c.querySelectorAll("#era_w_entries .era-entry-block");let r=!1;if(t.forEach(function(i){const n=i.querySelector(".era-s-type-office"),l=i.querySelector(".era-s-freeWifi"),o=i.querySelector(".era-s-paidWifi"),u=!!(n&&n.checked),d=!!(l&&l.checked),h=!!(o&&o.checked),v=!e||!(e&&u&&d&&!h)&&(d||h),N=e&&u&&d;["era-s-company-row","era-s-extra-row","era-s-email-wrap","era-s-phone-row","era-s-notes"].forEach(function(P){i.querySelectorAll("."+P).forEach(function(S){S.classList.toggle("era-field-hidden",!v)})});const E=i.querySelector(".era-s-ssidNote");E&&E.classList.toggle("era-field-hidden",!N),v&&(r=!0)}),e){const i=t.length>0&&!r,n=a("era_w_note"),l=a("era_w_attachSection");n&&n.classList.toggle("era-field-hidden",i),l&&l.classList.toggle("era-field-hidden",i)}}function me(e){const t=c.querySelectorAll("#"+e.prefix+"_entries .era-entry-block");t.forEach(function(r){r.querySelector(".era-remove-entry-btn").style.display=t.length>1?"":"none"})}function Q(e){const t=s(e.prefix+"_deactivate");c.querySelectorAll("#"+e.prefix+"_entries .era-s-extra-row").forEach(function(n){n.classList.toggle("era-field-hidden",t)}),c.querySelectorAll("#"+e.prefix+"_entries .era-s-contact-row").forEach(function(n){n.classList.toggle("era-field-hidden",t)});const r=a(e.prefix+"_note"),i=a(e.prefix+"_attachSection");r&&r.classList.toggle("era-field-hidden",t),i&&i.classList.toggle("era-field-hidden",t)}function C(){const e=s("era_pr_cubework"),t=s("era_pr_tenant"),r=s("era_pr_troubleshoot"),i=a("era_pr_body");i&&i.classList.toggle("era-field-hidden",!(e||t));const n=a("era_pr_create"),l=a("era_pr_newreplace"),o=n?n.closest(".era-check"):null,u=l?l.closest(".era-check"):null;o&&o.classList.toggle("era-field-hidden",t),u&&u.classList.toggle("era-field-hidden",t),t&&(n&&n.checked&&(n.checked=!1),l&&l.checked&&(l.checked=!1));const d=e&&s("era_pr_newreplace"),h=e&&r&&!d,k=e&&s("era_pr_create")&&!d&&!h,v=t&&!e&&r,N=k||h,E=k||h||d,P=r&&!v||d,S=a("era_pr_issue");S&&S.classList.toggle("era-field-hidden",!P);const M=a("era_pr_attachRequiredMark"),B=a("era_pr_attachRequiredHint");M&&M.classList.toggle("era-field-hidden",!v),B&&B.classList.toggle("era-field-hidden",!v),c.querySelectorAll("#era_pr_entries .era-entry-block").forEach(function(m){const f=m.querySelector(".era-s-type"),b=m.querySelector(".era-s-email-wrap"),q=m.querySelector(".era-s-unit-wrap"),Ce=m.querySelector(".era-s-phone-row"),Ae=m.querySelector(".era-s-type-wrap"),Te=m.querySelector(".era-s-tenantName-wrap"),Ne=m.querySelector(".era-s-company-row"),Fe=m.querySelector(".era-s-notes"),Re=m.querySelector(".era-s-managerEmail-wrap"),Pe=m.querySelector(".era-s-paidWifi-wrap");if(b&&b.classList.toggle("era-field-hidden",E||v),q&&q.classList.toggle("era-field-hidden",E),Ce&&Ce.classList.toggle("era-field-hidden",E),Ae&&Ae.classList.toggle("era-field-hidden",h),Te&&Te.classList.toggle("era-field-hidden",h||d),Ne&&Ne.classList.toggle("era-field-hidden",d),Fe&&Fe.classList.toggle("era-field-hidden",h||d||v),Re&&Re.classList.toggle("era-field-hidden",!d),Pe){const yt=!!f&&f.value==="Warehouse";Pe.classList.toggle("era-field-hidden",!(v&&yt))}const Me=m.querySelector(".era-s-companyName-label"),Be=m.querySelector(".era-s-tenantName-label"),Oe=m.querySelector(".era-s-companyName");Me&&(Me.innerHTML=N?'Laptop SBN# <span class="era-required-mark">*</span>':'Company Name <span class="era-required-mark">*</span>'),Oe&&(Oe.placeholder=N?"e.g. SBN1895":""),Be&&(Be.textContent=k?"Printer IP":"Tenant Name")})}R.forEach(function(e){a(e.prefix+"_addEntryBtn").addEventListener("click",function(){L(e)}),L(e),e.hasDeactivateToggle&&a(e.prefix+"_deactivate").addEventListener("change",function(){Q(e)}),e.hasCubeworkNewToggle&&["_cubework","_tenant","_create","_troubleshoot","_newreplace"].forEach(function(t){const r=a(e.prefix+t);r&&r.addEventListener("change",C)})}),a("era_pr_cubework").addEventListener("change",function(){this.checked&&(a("era_pr_tenant").checked=!1),C()}),a("era_pr_tenant").addEventListener("change",function(){this.checked&&(a("era_pr_cubework").checked=!1),C()});const ve=["era_pr_create","era_pr_troubleshoot","era_pr_newreplace"];function Qe(e){ve.forEach(function(t){if(t!==e){const r=a(t);r&&(r.checked=!1)}})}ve.forEach(function(e){const t=a(e);t&&t.addEventListener("change",function(){this.checked&&Qe(e),C()})});function be(){return w("era_w_requestType")}function ke(){const v=be();a("era_w_body").classList.toggle("era-field-hidden",v!=="Cubework"),a("era_w_unisWarning").classList.toggle("era-field-hidden",v!=="Unis");
-// era_w_card (2026-09-09, per Huy's request, Wi-Fi tab spec item 2): hide
-// the whole outer card - not just its contents - until Cubework/Unis is
-// picked in the Wi-Fi ▾ tab dropdown, so nothing renders as an empty
-// "blank bubble" before a pick is made. Gated on eraWifiRevealed (a
-// separate, non-persisted flag - see its own comment near `let _="keycard"`
-// above), not on the requestType value itself: the value is a real,
-// draft-persisted field that's meant to survive a mode switch same as every
-// other field here, but the reveal needs to re-hide every time Wi-Fi is
-// switched away from, requiring a fresh pick on return, same rule
-// era-k-gated already enforces for Keycard (2026-09-09 follow-up fix - the
-// original version of this line gated on `!v`, which meant a pick made
-// earlier in the visit stayed revealed forever after, including switching
-// away and back, since nothing here ever clears requestType itself).
-const card=a("era_w_card");card&&card.classList.toggle("era-field-hidden",!eraWifiRevealed)}a("era_w_requestType").addEventListener("change",ke);
-// Serves checkbox pair (2026-08-22, later pass, per Huy's request) - plain
-// mutual exclusivity, same convention as every other Cubework/Unis
-// tick-box pair in this form, but no visibility side effects of its own
-// anymore (era_w_requestType/ke() above does that job now). This pair is
-// purely a reflected readout - see the $ group's change listener below.
-a("era_w_serves_cubework").addEventListener("change",function(){this.checked&&(a("era_w_serves_unis").checked=!1)}),a("era_w_serves_unis").addEventListener("change",function(){this.checked&&(a("era_w_serves_cubework").checked=!1)});
-const $=["era_w_create","era_w_troubleshoot","era_w_deactivate"];function $e(e){$.forEach(function(t){if(t!==e){const r=a(t);r&&(r.checked=!1)}})}function Xe(){const e=$.some(function(t){return s(t)});a("era_w_typeBody").classList.toggle("era-field-hidden",!e)}
-// Checking Create Wi-Fi/Troubleshoot/De-activate reflects onto BOTH the
-// Request Type dropdown (forces it to "Cubework") and the Serves checkbox
-// below (auto-ticks era_w_serves_cubework) - 2026-08-22, per Huy's
-// request: "per selection on the tab, reflect the tick box under Serves."
-// None of the three actions has a Unis flow, so picking one always means
-// "this is a Cubework request." it("era_w_requestType","Cubework") both
-// sets the value and dispatches change (see it()'s definition further
-// down - a plain function declaration, hoisted, so it's callable here
-// even though it's defined later in this same script), which re-runs
-// ke() to reveal era_w_body. Both calls are no-ops if already set.
-$.forEach(function(e){a(e).addEventListener("change",function(){this.checked&&($e(e),it("era_w_requestType","Cubework"),p("era_w_serves_cubework",!0)),Xe(),Q(ye),x()})});
+],_e={};function L(e){const t=_e[e.mode]=(_e[e.mode]||0)+1,r=document.createElement("div");r.className="era-entry-block",r.dataset.seq=t;const i=e.typeAsCheckboxes?'<div class="era-s-type-wrap"><label>Office or Warehouse <span class="era-required-mark">*</span></label><div class="era-checks"><label class="era-check"><input type="checkbox" class="era-s-type-office"> Office</label><label class="era-check"><input type="checkbox" class="era-s-type-warehouse"> Warehouse</label></div><input type="hidden" class="era-s-type">'+(e.hasWifiPlanField?'<div class="era-s-wifiPlan-wrap era-field-hidden"><div class="era-checks"><label class="era-check era-s-freeWifi-row"><input type="checkbox" class="era-s-freeWifi"> Free Wi-Fi</label><label class="era-check"><input type="checkbox" class="era-s-paidWifi"> Paid Wi-Fi</label></div><div class="era-s-ssidNote era-field-hidden">Please provide the Cubework SSID to Tenant.</div></div>':"")+"</div>":'<div class="era-s-type-wrap"><label>Office or Warehouse <span class="era-required-mark">*</span></label><select class="era-s-type"><option value="" disabled selected>Select\u2026</option><option value="Office">Office</option><option value="Warehouse">Warehouse</option></select></div>',n=e.contactRequired&&!e.emailOptionalOverride?' <span class="era-required-mark">*</span>':"",l=e.contactRequired?' <span class="era-required-mark">*</span>':"",o=e.emailLabelOverride||"Email",u='<div class="era-row2 era-s-company-row"><div><label class="era-s-companyName-label">Company Name <span class="era-required-mark">*</span></label><input type="text" class="era-s-companyName"></div><div class="era-s-tenantName-wrap"><label class="era-s-tenantName-label">Tenant Name</label><input type="text" class="era-s-tenantName"></div></div>',d=e.hasManagerEmailField?'<div class="era-s-managerEmail-wrap era-field-hidden"><label>Report to Manager (email) <span class="era-required-mark">*</span></label><input type="email" class="era-s-managerEmail"></div>':"",h=e.hasNotesField?'<textarea class="era-s-notes" placeholder="Anything else to flag for this request"></textarea>':"",k=e.hasExtraField?'<div class="era-row2 era-s-extra-row"><div class="era-s-unit-wrap"><label>Unit Number <span class="era-required-mark">*</span></label><input type="text" class="era-s-unit"></div><div><label>'+e.fieldLabel+' <span class="era-required-mark">*</span></label><input type="text" class="era-s-extra"></div></div>':'<div class="era-s-extra-row era-s-unit-wrap"><label>Unit Number <span class="era-required-mark">*</span></label><input type="text" class="era-s-unit"></div>',v='<div class="era-row2 era-s-contact-row">'+i+'<div class="era-s-email-wrap"><label>'+o+n+'</label><input type="email" class="era-s-email"></div></div>',N='<div class="era-s-contact-row">'+i+"</div>",E='<div class="era-s-contact-row era-s-email-wrap"><label>'+o+n+'</label><input type="email" class="era-s-email"></div>',P='<div class="era-s-contact-row era-s-phone-row"><label>Phone'+l+'</label><input type="tel" class="era-s-phone" placeholder="000-000-0000" maxlength="12" inputmode="tel"></div>',S=e.separateEmailFromType?N:v,M=e.hasDescriptionNote?'<div class="era-note era-s-description-note">'+e.descriptionNoteText+"</div>":"",B=e.hasSbnField?'<div class="era-s-sbn-wrap"><label>Laptop SBN#</label><input type="text" class="era-s-sbn" placeholder="e.g. SBN1990"></div>':"",m=e.hasPaidWifiField?'<div class="era-s-paidWifi-wrap era-field-hidden"><label class="era-check"><input type="checkbox" class="era-s-paidWifi"> Paid Wi-Fi</label></div>':"";let f='<button type="button" class="era-remove-entry-btn">Remove this entry</button>';if(e.moveTypeAboveCompany&&(f+=M,f+=S,f+=B),f+=u,e.hasNotesField&&e.notesPosition==="afterCompany"&&(f+=h),f+=k,f+=d,e.moveTypeAboveCompany||(f+=M,f+=S,f+=B),e.separateEmailFromType&&(f+=E),f+=P,f+=m,e.hasNotesField&&e.notesPosition==="end"&&(f+=h),r.innerHTML=f,r.querySelector(".era-s-phone").addEventListener("input",function(){this.value=W(this.value)}),r.querySelector(".era-remove-entry-btn").addEventListener("click",function(){r.remove(),me(e)}),e.hasCubeworkNewToggle){const b=r.querySelector(".era-s-type");b&&b.addEventListener("change",C)}if(e.typeAsCheckboxes){const b=r.querySelector(".era-s-type-office"),q=r.querySelector(".era-s-type-warehouse");b.addEventListener("change",function(){this.checked&&(q.checked=!1),J(r),x()}),q.addEventListener("change",function(){this.checked&&(b.checked=!1),J(r),x()}),J(r)}if(e.hasWifiPlanField){const b=r.querySelector(".era-s-freeWifi"),q=r.querySelector(".era-s-paidWifi");b&&b.addEventListener("change",x),q&&q.addEventListener("change",x)}a(e.prefix+"_entries").appendChild(r),e.hasDeactivateToggle&&Q(e),e.hasCubeworkNewToggle&&C(),e.mode==="wifi"&&x(),me(e)}function J(e){const t=e.querySelector(".era-s-type-office"),r=e.querySelector(".era-s-type-warehouse"),i=!!(t&&t.checked),n=!!(r&&r.checked),l=e.querySelector(".era-s-type");l&&(l.value=i?"Office":n?"Warehouse":"");const o=e.querySelector(".era-s-wifiPlan-wrap");o&&o.classList.toggle("era-field-hidden",!i&&!n);const u=e.querySelector(".era-s-freeWifi-row"),d=e.querySelector(".era-s-freeWifi");u&&u.classList.toggle("era-field-hidden",n),n&&d&&d.checked&&(d.checked=!1)}function x(){const e=s("era_w_create"),t=c.querySelectorAll("#era_w_entries .era-entry-block");let r=!1;if(t.forEach(function(i){const n=i.querySelector(".era-s-type-office"),l=i.querySelector(".era-s-freeWifi"),o=i.querySelector(".era-s-paidWifi"),u=!!(n&&n.checked),d=!!(l&&l.checked),h=!!(o&&o.checked),v=!e||!(e&&u&&d&&!h)&&(d||h),N=e&&u&&d;["era-s-company-row","era-s-extra-row","era-s-email-wrap","era-s-phone-row","era-s-notes"].forEach(function(P){i.querySelectorAll("."+P).forEach(function(S){S.classList.toggle("era-field-hidden",!v)})});const E=i.querySelector(".era-s-ssidNote");E&&E.classList.toggle("era-field-hidden",!N),v&&(r=!0)}),e){const i=t.length>0&&!r,n=a("era_w_note"),l=a("era_w_attachSection");n&&n.classList.toggle("era-field-hidden",i),l&&l.classList.toggle("era-field-hidden",i)}}function me(e){const t=c.querySelectorAll("#"+e.prefix+"_entries .era-entry-block");t.forEach(function(r){r.querySelector(".era-remove-entry-btn").style.display=t.length>1?"":"none"})}function Q(e){const t=s(e.prefix+"_deactivate");c.querySelectorAll("#"+e.prefix+"_entries .era-s-extra-row").forEach(function(n){n.classList.toggle("era-field-hidden",t)}),c.querySelectorAll("#"+e.prefix+"_entries .era-s-contact-row").forEach(function(n){n.classList.toggle("era-field-hidden",t)});const r=a(e.prefix+"_note"),i=a(e.prefix+"_attachSection");r&&r.classList.toggle("era-field-hidden",t),i&&i.classList.toggle("era-field-hidden",t)}function C(){const e=s("era_pr_cubework"),t=s("era_pr_tenant"),r=s("era_pr_troubleshoot"),i=a("era_pr_body");i&&i.classList.toggle("era-field-hidden",!(e||t));const n=a("era_pr_create"),l=a("era_pr_newreplace"),o=n?n.closest(".era-check"):null,u=l?l.closest(".era-check"):null;o&&o.classList.toggle("era-field-hidden",t),u&&u.classList.toggle("era-field-hidden",t),t&&(n&&n.checked&&(n.checked=!1),l&&l.checked&&(l.checked=!1));const d=e&&s("era_pr_newreplace"),h=e&&r&&!d,k=e&&s("era_pr_create")&&!d&&!h,v=t&&!e&&r,N=k||h,E=k||h||d,P=r&&!v||d,S=a("era_pr_issue");S&&S.classList.toggle("era-field-hidden",!P);const M=a("era_pr_attachRequiredMark"),B=a("era_pr_attachRequiredHint");M&&M.classList.toggle("era-field-hidden",!v),B&&B.classList.toggle("era-field-hidden",!v),c.querySelectorAll("#era_pr_entries .era-entry-block").forEach(function(m){const f=m.querySelector(".era-s-type"),b=m.querySelector(".era-s-email-wrap"),q=m.querySelector(".era-s-unit-wrap"),Ce=m.querySelector(".era-s-phone-row"),Ae=m.querySelector(".era-s-type-wrap"),Te=m.querySelector(".era-s-tenantName-wrap"),Ne=m.querySelector(".era-s-company-row"),Fe=m.querySelector(".era-s-notes"),Re=m.querySelector(".era-s-managerEmail-wrap"),Pe=m.querySelector(".era-s-paidWifi-wrap");if(b&&b.classList.toggle("era-field-hidden",E||v),q&&q.classList.toggle("era-field-hidden",E),Ce&&Ce.classList.toggle("era-field-hidden",E),Ae&&Ae.classList.toggle("era-field-hidden",h),Te&&Te.classList.toggle("era-field-hidden",h||d),Ne&&Ne.classList.toggle("era-field-hidden",d),Fe&&Fe.classList.toggle("era-field-hidden",h||d||v),Re&&Re.classList.toggle("era-field-hidden",!d),Pe){const yt=!!f&&f.value==="Warehouse";Pe.classList.toggle("era-field-hidden",!(v&&yt))}const Me=m.querySelector(".era-s-companyName-label"),Be=m.querySelector(".era-s-tenantName-label"),Oe=m.querySelector(".era-s-companyName");Me&&(Me.innerHTML=N?'Laptop SBN# <span class="era-required-mark">*</span>':'Company Name <span class="era-required-mark">*</span>'),Oe&&(Oe.placeholder=N?"e.g. SBN1895":""),Be&&(Be.textContent=k?"Printer IP":"Tenant Name")})}R.forEach(function(e){a(e.prefix+"_addEntryBtn").addEventListener("click",function(){L(e)}),L(e),e.hasDeactivateToggle&&a(e.prefix+"_deactivate").addEventListener("change",function(){Q(e)}),e.hasCubeworkNewToggle&&["_cubework","_tenant","_create","_troubleshoot","_newreplace"].forEach(function(t){const r=a(e.prefix+t);r&&r.addEventListener("change",C)})}),a("era_pr_cubework").addEventListener("change",function(){this.checked&&(a("era_pr_tenant").checked=!1),C()}),a("era_pr_tenant").addEventListener("change",function(){this.checked&&(a("era_pr_cubework").checked=!1),C()});const ve=["era_pr_create","era_pr_troubleshoot","era_pr_newreplace"];function Qe(e){ve.forEach(function(t){if(t!==e){const r=a(t);r&&(r.checked=!1)}})}ve.forEach(function(e){const t=a(e);t&&t.addEventListener("change",function(){this.checked&&Qe(e),C()})});
+// Wi-Fi's own be()/ke()/$ group (submission-wide Create/Troubleshoot/
+// De-activate + Serves reflection) removed outright in the 2026-09-23
+// rework - Wi-Fi is no longer in the shared R factory above, and its
+// Create/Troubleshoot/De-Activate pick is now per-session, not
+// per-submission. See eraCreateWifiSession()/eraWifiRefreshFlow() further
+// down this script.
 // Electrical (2026-09-08, per Huy's request, task 2) - own Serves pair
 // (plain mutual exclusivity - no cross-reflection needed, since Electrical
 // has no tab-dropdown-driven hidden requestType field the way Wi-Fi does)
@@ -10921,7 +10822,7 @@ const we=["era_ap_create","era_ap_troubleshoot"];function Ye(e){we.forEach(funct
   const isViewable=/^image\//.test(i.type)||i.type==="application/pdf"||/\.(png|jpe?g|gif|webp|pdf)$/i.test(i.name);
   let v=null;
   if(isViewable){v=document.createElement("button"),v.type="button",v.className="secondary era-file-view",v.textContent="View",v.title="View "+i.name,v.addEventListener("click",function(){eraOpenPreviewKformLightbox(i,i.name)})}
-  const u=document.createElement("button");u.type="button",u.className="era-file-remove",u.textContent="\u2715",u.title="Remove "+i.name,u.setAttribute("aria-label","Remove "+i.name),u.addEventListener("click",function(){t.splice(n,1),H(e)}),l.appendChild(o),v&&l.appendChild(v),l.appendChild(u),r.appendChild(l)})}qe.forEach(function(e){a("era_files_"+e).addEventListener("change",function(t){const r=g[e];Array.prototype.slice.call(t.target.files).forEach(function(i){r.some(function(n){return tt(n,i)})||r.push(i)}),t.target.value="",H(e)}),H(e)});function at(e){return new Promise(function(t,r){const i=new FileReader;i.onload=function(){t({filename:e.name,mimeType:e.type,base64:i.result})},i.onerror=r,i.readAsDataURL(e)})}function w(e){const t=a(e);return t?t.value.trim():""}function s(e){const t=a(e);return t?t.checked:!1}function rt(e){const t=[];return e.querySelector(".era-k-access-standard").checked&&t.push("Standard"),e.querySelector(".era-k-access-wh").checked&&t.push("WH Only"),e.querySelector(".era-k-access-office").checked&&t.push("Office Only"),e.querySelector(".era-k-access-other").checked&&t.push(e.querySelector(".era-k-accessCustom").value.trim()||"Other"),t.length?t.join(", "):"Standard"}function Y(){const e=w(_==="phone"?"era_ph_yourEmail":_==="laptop"?"era_lt_yourEmail":"era_requesterEmailLocal");return e?e.indexOf("@")!==-1?e:e+"@cubework.com":""}function I(e){const t=e.querySelector(".era-s-extra"),r=e.querySelector(".era-s-notes"),i=e.querySelector(".era-s-managerEmail"),n=e.querySelector(".era-s-paidWifi"),l=e.querySelector(".era-s-freeWifi"),o=e.querySelector(".era-s-sbn");return{companyName:e.querySelector(".era-s-companyName").value.trim(),tenantName:e.querySelector(".era-s-tenantName").value.trim(),unit:e.querySelector(".era-s-unit").value.trim(),extra:t?t.value.trim():"",type:e.querySelector(".era-s-type").value,email:e.querySelector(".era-s-email").value.trim(),phone:e.querySelector(".era-s-phone").value.trim(),notes:r?r.value.trim():"",managerEmail:i?i.value.trim():"",paidWifi:n?n.checked:!1,freeWifi:l?l.checked:!1,sbn:o?o.value.trim():""}}function Se(){switch(_){case"keycard":var e=Array.prototype.slice.call(c.querySelectorAll("#era_k_entries .era-entry-block")).map(function(n){return{companyName:n.querySelector(".era-k-companyName").value.trim(),tenantName:n.querySelector(".era-k-tenantName").value.trim(),keycard:n.querySelector(".era-k-keycard").value.trim(),notes:"",cardHikcentral:!!(n.querySelector(".era-k-card-hikcentral")||{}).checked||n.querySelector(".era-k-repl-serves-hikcentral").checked,cardUnifi:!!(n.querySelector(".era-k-card-unifi")||{}).checked||n.querySelector(".era-k-repl-serves-unifi").checked,email:n.querySelector(".era-k-email").value.trim(),phone:n.querySelector(".era-k-phone").value.trim(),activate:n.querySelector(".era-k-activate").checked,deactivate:n.querySelector(".era-k-deactivate").checked,troubleshoot:n.querySelector(".era-k-troubleshoot").checked,transfer:n.querySelector(".era-k-transfer").checked,transferFrom:n.querySelector(".era-k-transferFrom").value.trim(),transferTo:n.querySelector(".era-k-transferTo").value.trim(),transferExtraLocations:Array.prototype.slice.call(n.querySelectorAll(".era-k-transfer-loc-pair")).slice(1).map(function(row){return{from:(row.querySelector(".era-k-transfer-extraFrom")||{value:""}).value.trim(),to:(row.querySelector(".era-k-transfer-extraTo")||{value:""}).value.trim()}}),transferExtraKeycards:Array.prototype.slice.call(n.querySelectorAll(".era-k-transfer-kc-row")).map(function(row){return{companyName:row.querySelector(".era-k-transfer-kc-company").value.trim(),tenantName:row.querySelector(".era-k-transfer-kc-tenant").value.trim(),keycard:row.querySelector(".era-k-transfer-kc-number").value.trim(),fee:row.querySelector(".era-k-transfer-kc-fee").checked}}),transferNotes:"",requestcard:n.querySelector(".era-k-requestcard").checked,location:n.querySelector(".era-k-requestcardLocation").value.trim(),quantity:n.querySelector(".era-k-requestcardQty").value.trim(),managerEmail:n.querySelector(".era-k-requestcardManagerEmail").value.trim(),issue:n.querySelector(".era-k-issue").value.trim(),fee:n.querySelector(".era-k-fee").checked,accessValue:rt(n),replacement:n.querySelector(".era-k-replacement").checked,replLocation:n.querySelector(".era-k-replacementLocation").value.trim(),replExistingLocation:"",replServesCubework:!0,replServesUnis:!1,replServesHikcentral:n.querySelector(".era-k-repl-serves-hikcentral").checked,replServesUnifi:n.querySelector(".era-k-repl-serves-unifi").checked,replCompanyName:n.querySelector(".era-k-repl-companyName").value.trim(),replTenantName:n.querySelector(".era-k-repl-tenantName").value.trim(),replEmail:n.querySelector(".era-k-repl-email").value.trim(),replPhone:n.querySelector(".era-k-repl-phone").value.trim(),replPairs:Array.prototype.slice.call(n.querySelectorAll(".era-k-repl-pair-row")).map(function(row){return{oldKeycard:row.querySelector(".era-k-repl-old").value.trim(),newKeycard:row.querySelector(".era-k-repl-new").value.trim(),fee:row.querySelector(".era-k-repl-pair-fee").checked}})}});eraKeycardDecorateEntries(e);return{serves:Ve(),haveForm:eraKeycardHaveFormValue(),hikcentral:e.some(function(en){return en.cardHikcentral}),unifi:e.some(function(en){return en.cardUnifi}),licenseeCompanyName:w("era_k_licenseeCompanyName"),entries:e};case"wifi":return{serves:be(),create:s("era_w_create"),troubleshoot:s("era_w_troubleshoot"),deactivate:s("era_w_deactivate"),entries:Array.prototype.slice.call(c.querySelectorAll("#era_w_entries .era-entry-block")).map(I)};case"electrical":return{serves:eraElServes(),create:s("era_el_create"),troubleshoot:s("era_el_troubleshoot"),deactivate:s("era_el_deactivate"),entries:Array.prototype.slice.call(c.querySelectorAll("#era_el_entries .era-entry-block")).map(I)};case"printer":return{cubework:s("era_pr_cubework"),tenant:s("era_pr_tenant"),create:s("era_pr_create"),troubleshoot:s("era_pr_troubleshoot"),newreplace:s("era_pr_newreplace"),issue:w("era_pr_issue"),entries:Array.prototype.slice.call(c.querySelectorAll("#era_pr_entries .era-entry-block")).map(I)};case"phone":var t=Array.prototype.slice.call(c.querySelectorAll("#era_ph_entries .era-entry-block")).map(function(n){return{action:n.querySelector(".era-ph-action-select").value,location:n.querySelector(".era-ph-location").value.trim(),tempAgent:n.querySelector(".era-ph-tempAgent").checked,directHire:n.querySelector(".era-ph-directHire").checked,personName:n.querySelector(".era-ph-personName").value.trim(),title:n.querySelector(".era-ph-title").value,employeeId:n.querySelector(".era-ph-employeeId").value.trim(),responsibilities:n.querySelector(".era-ph-responsibilities").value.trim(),managerEmail:n.querySelector(".era-ph-managerEmail").value.trim(),phoneTag:n.querySelector(".era-ph-phoneTag").value.trim(),userFirstName:n.querySelector(".era-ph-userFirstName").value.trim(),userLastName:n.querySelector(".era-ph-userLastName").value.trim(),userPhone:n.querySelector(".era-ph-userPhone").value.trim(),issue:n.querySelector(".era-ph-issue").value.trim(),notes:n.querySelector(".era-ph-notes").value.trim()}});return{serves:w("era_ph_serves"),entries:t};case"app":return{create:s("era_ap_create"),troubleshoot:s("era_ap_troubleshoot"),issue:w("era_ap_issue"),entries:Array.prototype.slice.call(c.querySelectorAll("#era_ap_entries .era-entry-block")).map(I)};case"laptop":var i=F(),ltVal=w("era_lt_requestType");return{serves:i,create:ltVal==="create",troubleshoot:ltVal==="troubleshoot",remove:ltVal==="remove",accessHikcentral:ltVal==="accesshikcentral",accessUnifi:ltVal==="accessunifi",accessAppcw:ltVal==="accessappcw",issue:w("era_lt_issue"),entries:i==="Unis"?Array.prototype.slice.call(c.querySelectorAll("#era_lt_unis_entries .era-entry-block")).map(I):Array.prototype.slice.call(c.querySelectorAll("#era_lt_entries .era-entry-block")).map(function(n){return{location:n.querySelector(".era-lt-location").value.trim(),jobTitle:n.querySelector(".era-lt-jobTitle").value,sbn:n.querySelector(".era-lt-sbn").value.trim(),employeeName:n.querySelector(".era-lt-employeeName").value.trim(),employeeId:n.querySelector(".era-lt-employeeId").value.trim(),managerEmail:n.querySelector(".era-lt-managerEmail").value.trim(),email:n.querySelector(".era-lt-email").value.trim(),phone:n.querySelector(".era-lt-phone").value.trim()}})}}}function y(e){const t=a("era_err");t.innerHTML=(Array.isArray(e)?e:[String(e)]).join("<br>"),t.style.display="block",a("era_ok").style.display="none",t.scrollIntoView({behavior:"smooth",block:"center"})}function nt(e){const t=a("era_ok");t.innerHTML="Sent!<br>To: "+e.to+"<br>Cc: "+e.cc+"<br>Subject: "+e.subject,t.style.display="block",a("era_err").style.display="none",t.scrollIntoView({behavior:"smooth",block:"center"})}
+  const u=document.createElement("button");u.type="button",u.className="era-file-remove",u.textContent="\u2715",u.title="Remove "+i.name,u.setAttribute("aria-label","Remove "+i.name),u.addEventListener("click",function(){t.splice(n,1),H(e)}),l.appendChild(o),v&&l.appendChild(v),l.appendChild(u),r.appendChild(l)})}qe.forEach(function(e){a("era_files_"+e).addEventListener("change",function(t){const r=g[e];Array.prototype.slice.call(t.target.files).forEach(function(i){r.some(function(n){return tt(n,i)})||r.push(i)}),t.target.value="",H(e)}),H(e)});function at(e){return new Promise(function(t,r){const i=new FileReader;i.onload=function(){t({filename:e.name,mimeType:e.type,base64:i.result})},i.onerror=r,i.readAsDataURL(e)})}function w(e){const t=a(e);return t?t.value.trim():""}function s(e){const t=a(e);return t?t.checked:!1}function rt(e){const t=[];return e.querySelector(".era-k-access-standard").checked&&t.push("Standard"),e.querySelector(".era-k-access-wh").checked&&t.push("WH Only"),e.querySelector(".era-k-access-office").checked&&t.push("Office Only"),e.querySelector(".era-k-access-other").checked&&t.push(e.querySelector(".era-k-accessCustom").value.trim()||"Other"),t.length?t.join(", "):"Standard"}function Y(){const e=w(_==="phone"?"era_ph_yourEmail":_==="laptop"?"era_lt_yourEmail":_==="wifi"?"era_w_requesterEmail":"era_requesterEmailLocal");return e?e.indexOf("@")!==-1?e:e+"@cubework.com":""}function I(e){const t=e.querySelector(".era-s-extra"),r=e.querySelector(".era-s-notes"),i=e.querySelector(".era-s-managerEmail"),n=e.querySelector(".era-s-paidWifi"),l=e.querySelector(".era-s-freeWifi"),o=e.querySelector(".era-s-sbn");return{companyName:e.querySelector(".era-s-companyName").value.trim(),tenantName:e.querySelector(".era-s-tenantName").value.trim(),unit:e.querySelector(".era-s-unit").value.trim(),extra:t?t.value.trim():"",type:e.querySelector(".era-s-type").value,email:e.querySelector(".era-s-email").value.trim(),phone:e.querySelector(".era-s-phone").value.trim(),notes:r?r.value.trim():"",managerEmail:i?i.value.trim():"",paidWifi:n?n.checked:!1,freeWifi:l?l.checked:!1,sbn:o?o.value.trim():""}}function Se(){switch(_){case"keycard":var e=Array.prototype.slice.call(c.querySelectorAll("#era_k_entries .era-entry-block")).map(function(n){return{companyName:n.querySelector(".era-k-companyName").value.trim(),tenantName:n.querySelector(".era-k-tenantName").value.trim(),keycard:n.querySelector(".era-k-keycard").value.trim(),notes:"",cardHikcentral:!!(n.querySelector(".era-k-card-hikcentral")||{}).checked||n.querySelector(".era-k-repl-serves-hikcentral").checked,cardUnifi:!!(n.querySelector(".era-k-card-unifi")||{}).checked||n.querySelector(".era-k-repl-serves-unifi").checked,email:n.querySelector(".era-k-email").value.trim(),phone:n.querySelector(".era-k-phone").value.trim(),activate:n.querySelector(".era-k-activate").checked,deactivate:n.querySelector(".era-k-deactivate").checked,troubleshoot:n.querySelector(".era-k-troubleshoot").checked,transfer:n.querySelector(".era-k-transfer").checked,transferFrom:n.querySelector(".era-k-transferFrom").value.trim(),transferTo:n.querySelector(".era-k-transferTo").value.trim(),transferExtraLocations:Array.prototype.slice.call(n.querySelectorAll(".era-k-transfer-loc-pair")).slice(1).map(function(row){return{from:(row.querySelector(".era-k-transfer-extraFrom")||{value:""}).value.trim(),to:(row.querySelector(".era-k-transfer-extraTo")||{value:""}).value.trim()}}),transferExtraKeycards:Array.prototype.slice.call(n.querySelectorAll(".era-k-transfer-kc-row")).map(function(row){return{companyName:row.querySelector(".era-k-transfer-kc-company").value.trim(),tenantName:row.querySelector(".era-k-transfer-kc-tenant").value.trim(),keycard:row.querySelector(".era-k-transfer-kc-number").value.trim(),fee:row.querySelector(".era-k-transfer-kc-fee").checked}}),transferNotes:"",requestcard:n.querySelector(".era-k-requestcard").checked,location:n.querySelector(".era-k-requestcardLocation").value.trim(),quantity:n.querySelector(".era-k-requestcardQty").value.trim(),managerEmail:n.querySelector(".era-k-requestcardManagerEmail").value.trim(),issue:n.querySelector(".era-k-issue").value.trim(),fee:n.querySelector(".era-k-fee").checked,accessValue:rt(n),replacement:n.querySelector(".era-k-replacement").checked,replLocation:n.querySelector(".era-k-replacementLocation").value.trim(),replExistingLocation:"",replServesCubework:!0,replServesUnis:!1,replServesHikcentral:n.querySelector(".era-k-repl-serves-hikcentral").checked,replServesUnifi:n.querySelector(".era-k-repl-serves-unifi").checked,replCompanyName:n.querySelector(".era-k-repl-companyName").value.trim(),replTenantName:n.querySelector(".era-k-repl-tenantName").value.trim(),replEmail:n.querySelector(".era-k-repl-email").value.trim(),replPhone:n.querySelector(".era-k-repl-phone").value.trim(),replPairs:Array.prototype.slice.call(n.querySelectorAll(".era-k-repl-pair-row")).map(function(row){return{oldKeycard:row.querySelector(".era-k-repl-old").value.trim(),newKeycard:row.querySelector(".era-k-repl-new").value.trim(),fee:row.querySelector(".era-k-repl-pair-fee").checked}})}});eraKeycardDecorateEntries(e);return{serves:Ve(),haveForm:eraKeycardHaveFormValue(),hikcentral:e.some(function(en){return en.cardHikcentral}),unifi:e.some(function(en){return en.cardUnifi}),licenseeCompanyName:w("era_k_licenseeCompanyName"),entries:e};case"wifi":return{serves:"Cubework",entries:eraReadWifiSessions()};case"electrical":return{serves:eraElServes(),create:s("era_el_create"),troubleshoot:s("era_el_troubleshoot"),deactivate:s("era_el_deactivate"),entries:Array.prototype.slice.call(c.querySelectorAll("#era_el_entries .era-entry-block")).map(I)};case"printer":return{cubework:s("era_pr_cubework"),tenant:s("era_pr_tenant"),create:s("era_pr_create"),troubleshoot:s("era_pr_troubleshoot"),newreplace:s("era_pr_newreplace"),issue:w("era_pr_issue"),entries:Array.prototype.slice.call(c.querySelectorAll("#era_pr_entries .era-entry-block")).map(I)};case"phone":var t=Array.prototype.slice.call(c.querySelectorAll("#era_ph_entries .era-entry-block")).map(function(n){return{action:n.querySelector(".era-ph-action-select").value,location:n.querySelector(".era-ph-location").value.trim(),tempAgent:n.querySelector(".era-ph-tempAgent").checked,directHire:n.querySelector(".era-ph-directHire").checked,personName:n.querySelector(".era-ph-personName").value.trim(),title:n.querySelector(".era-ph-title").value,employeeId:n.querySelector(".era-ph-employeeId").value.trim(),responsibilities:n.querySelector(".era-ph-responsibilities").value.trim(),managerEmail:n.querySelector(".era-ph-managerEmail").value.trim(),phoneTag:n.querySelector(".era-ph-phoneTag").value.trim(),userFirstName:n.querySelector(".era-ph-userFirstName").value.trim(),userLastName:n.querySelector(".era-ph-userLastName").value.trim(),userPhone:n.querySelector(".era-ph-userPhone").value.trim(),issue:n.querySelector(".era-ph-issue").value.trim(),notes:n.querySelector(".era-ph-notes").value.trim()}});return{serves:w("era_ph_serves"),entries:t};case"app":return{create:s("era_ap_create"),troubleshoot:s("era_ap_troubleshoot"),issue:w("era_ap_issue"),entries:Array.prototype.slice.call(c.querySelectorAll("#era_ap_entries .era-entry-block")).map(I)};case"laptop":var i=F(),ltVal=w("era_lt_requestType");return{serves:i,create:ltVal==="create",troubleshoot:ltVal==="troubleshoot",remove:ltVal==="remove",accessHikcentral:ltVal==="accesshikcentral",accessUnifi:ltVal==="accessunifi",accessAppcw:ltVal==="accessappcw",issue:w("era_lt_issue"),entries:i==="Unis"?Array.prototype.slice.call(c.querySelectorAll("#era_lt_unis_entries .era-entry-block")).map(I):Array.prototype.slice.call(c.querySelectorAll("#era_lt_entries .era-entry-block")).map(function(n){return{location:n.querySelector(".era-lt-location").value.trim(),jobTitle:n.querySelector(".era-lt-jobTitle").value,sbn:n.querySelector(".era-lt-sbn").value.trim(),employeeName:n.querySelector(".era-lt-employeeName").value.trim(),employeeId:n.querySelector(".era-lt-employeeId").value.trim(),managerEmail:n.querySelector(".era-lt-managerEmail").value.trim(),email:n.querySelector(".era-lt-email").value.trim(),phone:n.querySelector(".era-lt-phone").value.trim()}})}}}function y(e){const t=a("era_err");t.innerHTML=(Array.isArray(e)?e:[String(e)]).join("<br>"),t.style.display="block",a("era_ok").style.display="none",t.scrollIntoView({behavior:"smooth",block:"center"})}function nt(e){const t=a("era_ok");t.innerHTML="Sent!<br>To: "+e.to+"<br>Cc: "+e.cc+"<br>Subject: "+e.subject,t.style.display="block",a("era_err").style.display="none",t.scrollIntoView({behavior:"smooth",block:"center"})}
 // Hard reload after a Keycard Preview>Send (2026-08-30, per Huy's request:
 // reload the page - equivalent of Ctrl+Shift+R - once the "Sent!" alert
 // (nt(), above) has been shown to the user and finished/closed, never
@@ -10930,7 +10831,7 @@ const we=["era_ap_create","era_ap_troubleshoot"];function Ye(e){we.forEach(funct
 // location.reload() while online already refetches everything fresh - no
 // separate Cache Storage purge needed to match Ctrl+Shift+R's effect here.
 const ERA_SENT_ALERT_RELOAD_DELAY_MS=2500;
-function eraReloadAfterSentAlert(){setTimeout(function(){const t=a("era_ok");t&&(t.style.display="none");window.location.reload()},ERA_SENT_ALERT_RELOAD_DELAY_MS)}function p(e,t){const r=a(e);r&&(r.checked=t,r.dispatchEvent(new Event("change",{bubbles:!0})))}function it(e,t){const r=a(e);r&&(r.value=t,r.dispatchEvent(new Event("change",{bubbles:!0})))}function st(){eraEditableRecipients={to:[],cc:[],bcc:[]},eraLastComputedRecipients={to:[],cc:[],bcc:[]},eraRecipientsInitialized=!1,a("era_location").value="",a("era_requesterEmailLocal").value="",a("era_k_licenseeCompanyName").value="",a("era_k_yardiDealAccount").value="",a("era_k_floorNumber").value="",a("era_k_unitNumber").value="",qe.forEach(function(e){g[e]=[],a("era_files_"+e).value="",H(e)}),p("era_k_serves_cubework",!1),p("era_k_serves_unis",!1),a("era_k_hikcentral").checked=!1,a("era_k_unifi").checked=!1,a("era_k_haveForm_yes").checked=!1,a("era_k_haveForm_no").checked=!1,eraKeycardRequestId=null,window.eraKeycardResetPhotoIdUploads&&window.eraKeycardResetPhotoIdUploads(),a("era_k_entries").innerHTML="",Object.keys(eraExtraLocationsByMode).forEach(function(mm){eraExtraLocationsByMode[mm]=[]}),j(),it("era_w_requestType",""),p("era_w_serves_cubework",!1),p("era_w_serves_unis",!1),p("era_w_create",!1),p("era_w_troubleshoot",!1),p("era_w_deactivate",!1),a("era_w_entries").innerHTML="",L(ye),p("era_pr_cubework",!1),p("era_pr_tenant",!1),p("era_pr_newreplace",!1),p("era_pr_troubleshoot",!1),p("era_pr_create",!0),a("era_pr_issue").value="",a("era_pr_entries").innerHTML="",L(R.find(function(e){return e.mode==="printer"})),it("era_ph_serves",""),a("era_ph_yourEmail").value="",a("era_ph_entries").innerHTML="",z(),p("era_ap_create",!1),p("era_ap_troubleshoot",!1),a("era_ap_issue").value="",a("era_ap_entries").innerHTML="",L(R.find(function(e){return e.mode==="app"})),p("era_lt_serves_cubework",!1),p("era_lt_serves_unis",!1),it("era_lt_requestType","create"),a("era_lt_yourEmail").value="",a("era_lt_entries").innerHTML="",Z(),a("era_lt_unis_entries").innerHTML="",L(R.find(function(e){return e.mode==="laptopUnis"})),
+function eraReloadAfterSentAlert(){setTimeout(function(){const t=a("era_ok");t&&(t.style.display="none");window.location.reload()},ERA_SENT_ALERT_RELOAD_DELAY_MS)}function p(e,t){const r=a(e);r&&(r.checked=t,r.dispatchEvent(new Event("change",{bubbles:!0})))}function it(e,t){const r=a(e);r&&(r.value=t,r.dispatchEvent(new Event("change",{bubbles:!0})))}function st(){eraEditableRecipients={to:[],cc:[],bcc:[]},eraLastComputedRecipients={to:[],cc:[],bcc:[]},eraRecipientsInitialized=!1,a("era_location").value="",a("era_requesterEmailLocal").value="",a("era_k_licenseeCompanyName").value="",a("era_k_yardiDealAccount").value="",a("era_k_floorNumber").value="",a("era_k_unitNumber").value="",qe.forEach(function(e){g[e]=[],a("era_files_"+e).value="",H(e)}),p("era_k_serves_cubework",!1),p("era_k_serves_unis",!1),a("era_k_hikcentral").checked=!1,a("era_k_unifi").checked=!1,a("era_k_haveForm_yes").checked=!1,a("era_k_haveForm_no").checked=!1,eraKeycardRequestId=null,window.eraKeycardResetPhotoIdUploads&&window.eraKeycardResetPhotoIdUploads(),a("era_k_entries").innerHTML="",Object.keys(eraExtraLocationsByMode).forEach(function(mm){eraExtraLocationsByMode[mm]=[]}),j(),it("era_w_requestType","Cubework"),a("era_w_requesterEmail")&&(a("era_w_requesterEmail").value=""),a("era_w_sessions")&&(a("era_w_sessions").innerHTML=""),typeof eraWifiSessionSeq!=="undefined"&&(eraWifiSessionSeq=0),typeof eraCreateWifiSession==="function"&&eraCreateWifiSession(),typeof eraWifiRefreshFlow==="function"&&eraWifiRefreshFlow(),p("era_pr_cubework",!1),p("era_pr_tenant",!1),p("era_pr_newreplace",!1),p("era_pr_troubleshoot",!1),p("era_pr_create",!0),a("era_pr_issue").value="",a("era_pr_entries").innerHTML="",L(R.find(function(e){return e.mode==="printer"})),it("era_ph_serves",""),a("era_ph_yourEmail").value="",a("era_ph_entries").innerHTML="",z(),p("era_ap_create",!1),p("era_ap_troubleshoot",!1),a("era_ap_issue").value="",a("era_ap_entries").innerHTML="",L(R.find(function(e){return e.mode==="app"})),p("era_lt_serves_cubework",!1),p("era_lt_serves_unis",!1),it("era_lt_requestType","create"),a("era_lt_yourEmail").value="",a("era_lt_entries").innerHTML="",Z(),a("era_lt_unis_entries").innerHTML="",L(R.find(function(e){return e.mode==="laptopUnis"})),
 // Electrical reset (2026-09-09 bugfix) - st() reset every other mode's
 // once-per-submission checkboxes/entries after a successful send but never
 // had an era_el_* branch at all, so a sent Electrical request left its
@@ -10975,12 +10876,19 @@ ae(),_="keycard",c.querySelectorAll("#era_tabs .era-tab").forEach(function(e){e.
   // show era_requesterEmailLocal, so Y() always reads "" for them and this
   // check unconditionally blocked Submit with no visible field to fix it in
   // (the bug reported: "still asking for email but the box is not there").
-  const yourEmailRequired=_==="keycard"||_==="phone"||_==="laptop";
-  if(yourEmailRequired&&!t)return y(["Enter the Requester Email."]),!1;
+  const yourEmailRequired=_==="keycard"||_==="phone"||_==="laptop"||_==="wifi";
+  if(yourEmailRequired&&!t)return y(["Enter the Requestor Email."]),!1;
   // Keycard required fields (2026-09-22, per Huy's request). The old
   // "attach the signed keycard authorization form" block is gone - the
   // Signature/Photo ID/Attachments workflow was removed from Keycard.
-  if(_==="keycard"){const kp=eraKeycardRequiredProblems();if(kp.length)return y(kp),!1}if(_==="wifi"){const r=be();if(r==="Unis")return y(["Send an email to helpdesk and request Network Team to Create/Troubleshoot/De-activate for the request."]),!1;if(!r)return y(["Pick Cubework or Unis from the Wi-Fi tab's dropdown."]),!1;if(!s("era_w_create")&&!s("era_w_troubleshoot")&&!s("era_w_deactivate"))return y(["Select Create Wi-Fi, Troubleshoot, or De-activate."]),!1}if(_==="app"&&!s("era_ap_create")&&!s("era_ap_troubleshoot"))return y(["Select New Install / Access or Troubleshoot."]),!1;return!0}function ot(e){const t=document.createElement("div");return t.textContent=e,t.innerHTML}let ee=null,D=!1,te=!1;function xe(){D=!1,te=!1;const e=a("era_previewBody");e.contentEditable="false",e.style.outline="",e.style.background="var(--input-bg)",a("era_previewToolbar").style.display="none",a("era_previewFormatBtn").textContent="Edit"}function ct(){D=!D;const e=a("era_previewBody"),t=a("era_previewToolbar"),r=a("era_previewFormatBtn");D?(te=!0,e.contentEditable="true",e.style.outline="2px solid var(--cw-primary)",e.style.background="var(--surface-2)",t.style.display="flex",r.textContent="Done Editing",e.focus()):(e.contentEditable="false",e.style.outline="",e.style.background="var(--input-bg)",t.style.display="none",r.textContent="Edit")}function A(e,t){a("era_previewBody").focus(),document.execCommand(e,!1,t||null)}function ae(){a("era_previewModal").style.display="none",ee=null,xe(),eraClosePreviewKformLightbox();const s=a("era_previewSaveStatus");s&&(s.style.display="none")}
+  if(_==="keycard"){const kp=eraKeycardRequiredProblems();if(kp.length)return y(kp),!1}
+  // Wi-Fi (2026-09-23 rework, per Huy's spec) - replaces the old
+  // submission-wide Create/Troubleshoot/De-activate + Serves check with
+  // eraWifiRequiredProblems(), which validates every session (action
+  // picked, location-type/plan resolved, required fields/Notes for Paid
+  // sessions) plus the shared Attachments/Addendum requirement.
+  if(_==="wifi"){const wp=eraWifiRequiredProblems();if(wp.length)return y(wp),!1}
+  if(_==="app"&&!s("era_ap_create")&&!s("era_ap_troubleshoot"))return y(["Select New Install / Access or Troubleshoot."]),!1;return!0}function ot(e){const t=document.createElement("div");return t.textContent=e,t.innerHTML}let ee=null,D=!1,te=!1;function xe(){D=!1,te=!1;const e=a("era_previewBody");e.contentEditable="false",e.style.outline="",e.style.background="var(--input-bg)",a("era_previewToolbar").style.display="none",a("era_previewFormatBtn").textContent="Edit"}function ct(){D=!D;const e=a("era_previewBody"),t=a("era_previewToolbar"),r=a("era_previewFormatBtn");D?(te=!0,e.contentEditable="true",e.style.outline="2px solid var(--cw-primary)",e.style.background="var(--surface-2)",t.style.display="flex",r.textContent="Done Editing",e.focus()):(e.contentEditable="false",e.style.outline="",e.style.background="var(--input-bg)",t.style.display="none",r.textContent="Edit")}function A(e,t){a("era_previewBody").focus(),document.execCommand(e,!1,t||null)}function ae(){a("era_previewModal").style.display="none",ee=null,xe(),eraClosePreviewKformLightbox();const s=a("era_previewSaveStatus");s&&(s.style.display="none")}
 // Keycard Form attachments inside Preview (2026-08-20) - breaks the signed
 // form PDF and each card's Photo ID out of the flat Attachments file list
 // (g.keycard, this script's own live file store - see H()/g above) so
@@ -12181,7 +12089,8 @@ function dt(e){
   ["to","cc","bcc"].forEach(eraRenderRecipList),
   a("era_previewSubject").textContent=e.subject||"",a("era_previewBody").innerHTML=e.htmlBody||ot(e.textBody||"").replace(/\n/g,"<br>"),a("era_previewModal").style.display="flex",
   (function(){const s=a("era_previewSaveStatus");s&&(s.style.display="none")})(),
-  eraRenderPreviewKformSection()
+  eraRenderPreviewKformSection(),
+  (typeof eraRenderPreviewWifiAttachments==="function")&&eraRenderPreviewWifiAttachments()
 }function ut(){if(a("era_err").style.display="none",a("era_ok").style.display="none",T(""),!Le())return;const e=window.buildCwEmailRequestPreview;if(!e){y(["Missing window.buildCwEmailRequestPreview - check app.js."]);return}const t=w("era_location"),r=Y(),i=ie(t),n=a("era_submitBtn");n.disabled=!0;const l=n.textContent;n.textContent="Loading preview\u2026";window.eraShowGlobalLoading&&window.eraShowGlobalLoading();const o=(_==="phone"?g.phone.concat(g.phoneItForm):_==="keycard"?[]:g[_]).map(function(d){return{filename:d.name}}),eraSubmissionTimestampIso=new Date().toISOString(),u={mode:_,locationText:t,locationSubjectName:i?i.subjectName:t,locationBodyLine:i?i.bodyLine:t,extraLocationBodyLines:eraCollectExtraLocationBodyLines(),requesterEmail:r,fields:Se(),attachments:o,submissionTimestampIso:eraSubmissionTimestampIso};eraKeycardBatch=null;(_==="keycard"?eraBuildKeycardPreview(e,u):e(u)).then(function(d){n.disabled=!1,n.textContent=l;window.eraHideGlobalLoading&&window.eraHideGlobalLoading();const h=d.data;if(!h.ok){y(h.problems||["Something went wrong."]);return}dt(h)}).catch(function(d){n.disabled=!1,n.textContent=l,window.eraHideGlobalLoading&&window.eraHideGlobalLoading(),y(["Couldn't build the preview: "+(d&&d.message?d.message:d)])})}// Per Huy's request (2026-08-21, "duplicate files, same content under
 // different names") - the signed Keycard Form PDF (Signed_CardN.pdf)
 // already has each card's ink and the staff sign-off baked into it, so
@@ -12310,7 +12219,10 @@ a("era_previewSendBtn").addEventListener("click",function(){
     });
     return;
   }
-  eraIsHardwareFamilyMode()?eraConfirmHardwareSend().then(function(ok){ok&&proceed()}):proceed()
+  // Wi-Fi (2026-09-23, per Huy's spec section 17) - reuses the same Yes/No
+  // "Are you sure you want to send this email?" overlay the hardware family
+  // already has, rather than a new dedicated one.
+  (eraIsHardwareFamilyMode()||_==="wifi")?eraConfirmHardwareSend().then(function(ok){ok&&proceed()}):proceed()
 }),a("era_previewThemeBtn")&&a("era_previewThemeBtn").addEventListener("click",function(){const b=document.getElementById("themeToggleBtn");b&&b.click()}),a("era_previewFormatBtn").addEventListener("click",ct),a("era_fmt_bold").addEventListener("click",function(){A("bold")}),a("era_fmt_italic").addEventListener("click",function(){A("italic")}),a("era_fmt_underline").addEventListener("click",function(){A("underline")}),a("era_fmt_font").addEventListener("change",function(e){e.target.value&&A("fontName",e.target.value),e.target.selectedIndex=0}),a("era_fmt_size").addEventListener("change",function(e){e.target.value&&A("fontSize",e.target.value),e.target.selectedIndex=0}),a("era_fmt_color").addEventListener("input",function(e){A("foreColor",e.target.value)});
 // Keycard Submission History (2026-08-19) - see the big comment on
 // #era_k_historyCard above for what this reads/renders.
@@ -13120,6 +13032,292 @@ c.addEventListener("focusout", function (ev) {
   if (_ === "keycard" && ev.target && ev.target.id === "era_requesterEmailLocal") setTimeout(eraKeycardRefreshFlow, 0);
 });
 eraKeycardRefreshFlow();
+
+// ---- Wi-Fi rework (2026-09-23, per Huy's spec) ----
+// Own, bespoke session factory/flow - Wi-Fi is intentionally not in the
+// shared R/eraCreateSimpleEntry() factory above (same divergence Phone
+// already took). A "session" (.era-w-session) carries its own Create Wi-Fi/
+// Troubleshoot/De-Activate pick, own Office/Warehouse, own Free/Paid,
+// own fields/Notes. Requestor Email/Location/Attachments-Addendum/Preview
+// stay request-level (one each for the whole page).
+
+// Bare local-part accepted once the field is blurred, same predicate
+// eraKeycardRequesterReady() uses for era_requesterEmailLocal.
+function eraWifiRequesterReady() {
+  const el = a("era_w_requesterEmail");
+  const v = el ? el.value.trim() : "";
+  if (!v) return false;
+  if (v.indexOf("@") !== -1) return ERA_EMAIL_FORMAT_RE.test(v);
+  return v.length >= 2 && document.activeElement !== el;
+}
+
+function eraWifiSessionSnapshot(node) {
+  const action = node.querySelector(".era-w-action").value;
+  const office = node.querySelector(".era-w-office").checked;
+  const warehouse = node.querySelector(".era-w-warehouse").checked;
+  const freeWifi = node.querySelector(".era-w-freeWifi").checked;
+  const paidWifi = node.querySelector(".era-w-paidWifi").checked;
+  const pureFree = action === "create" && office && !warehouse && freeWifi && !paidWifi;
+  const needsPaidFields = action === "create" && (office || warehouse) && paidWifi && !pureFree;
+  return { action: action, office: office, warehouse: warehouse, freeWifi: freeWifi, paidWifi: paidWifi, pureFree: pureFree, needsPaidFields: needsPaidFields };
+}
+
+// Re-derives one session's own show/hide state from its current picks -
+// same role Keycard's per-entry i() closure plays, just a plain function
+// here since every session shares the identical shape.
+function eraWifiSyncSession(node) {
+  const snap = eraWifiSessionSnapshot(node);
+  node.querySelectorAll(".era-w-action-btn").forEach(function (btn) {
+    btn.classList.toggle("era-w-action-active", btn.getAttribute("data-action") === snap.action);
+  });
+  const createBody = node.querySelector(".era-w-createBody");
+  const otherBody = node.querySelector(".era-w-otherBody");
+  createBody.classList.toggle("era-field-hidden", snap.action !== "create");
+  otherBody.classList.toggle("era-field-hidden", snap.action !== "troubleshoot" && snap.action !== "deactivate");
+  if (snap.action === "troubleshoot" || snap.action === "deactivate") {
+    const isDeactivate = snap.action === "deactivate";
+    node.querySelectorAll(".era-w-otherUnitEmailPhone,.era-w-otherPhoneWrap").forEach(function (el) {
+      el.classList.toggle("era-field-hidden", isDeactivate);
+    });
+  }
+  if (snap.action === "create") {
+    const planWrap = node.querySelector(".era-w-planWrap");
+    planWrap.classList.toggle("era-field-hidden", !snap.office && !snap.warehouse);
+    // Free Wi-Fi is never offered once Warehouse is part of the pick (spec
+    // section 7) - Office-only is the sole path to the Free option.
+    const freeRow = node.querySelector(".era-w-freeRow");
+    const freeHidden = !snap.office || snap.warehouse;
+    freeRow.classList.toggle("era-field-hidden", freeHidden);
+    if (freeHidden && snap.freeWifi) node.querySelector(".era-w-freeWifi").checked = false;
+    const freshSnap = eraWifiSessionSnapshot(node);
+    const ssidNote = node.querySelector(".era-w-ssidNote");
+    ssidNote.classList.toggle("era-field-hidden", !freshSnap.pureFree);
+    const paidFields = node.querySelector(".era-w-paidFields");
+    paidFields.classList.toggle("era-field-hidden", !freshSnap.needsPaidFields);
+  }
+}
+
+function eraCreateWifiSession() {
+  eraWifiSessionSeq += 1;
+  const node = document.createElement("div");
+  // era-entry-block (alongside era-w-session, our own container style) -
+  // purely to inherit the existing scoped
+  // "#emailRequestAttachmentsEmbedView .era-entry-block .era-remove-entry-btn"
+  // rule (plain red text link) for our own Remove button; without it, Remove
+  // fell back to the app-wide generic `button{background:var(--green)}`
+  // default and rendered as a big solid-green pill, indistinguishable from
+  // (and confusable with) the action buttons.
+  node.className = "era-w-session era-entry-block";
+  node.dataset.seq = eraWifiSessionSeq;
+  node.innerHTML =
+    '<button type="button" class="era-remove-entry-btn">Remove this Wi-Fi request</button>' +
+    '<input type="hidden" class="era-w-action" value="">' +
+    '<div class="era-checks era-w-actionRow">' +
+      '<button type="button" class="secondary era-w-action-btn" data-action="create">Create Wi-Fi</button>' +
+      '<button type="button" class="secondary era-w-action-btn" data-action="troubleshoot">Troubleshoot</button>' +
+      '<button type="button" class="secondary era-w-action-btn" data-action="deactivate">De-Activate</button>' +
+    '</div>' +
+    '<div class="era-w-createBody era-field-hidden">' +
+      '<label>Office or Warehouse <span class="era-required-mark">*</span></label>' +
+      '<div class="era-checks">' +
+        '<label class="era-check"><input type="checkbox" class="era-w-office"> Office</label>' +
+        '<label class="era-check"><input type="checkbox" class="era-w-warehouse"> Warehouse</label>' +
+      '</div>' +
+      '<div class="era-w-planWrap era-field-hidden">' +
+        '<div class="era-checks">' +
+          '<label class="era-check era-w-freeRow"><input type="checkbox" class="era-w-freeWifi"> Free Wi-Fi</label>' +
+          '<label class="era-check"><input type="checkbox" class="era-w-paidWifi"> Paid Wi-Fi</label>' +
+        '</div>' +
+        '<div class="era-note era-w-ssidNote era-field-hidden">Give Cubework SSID to the customer to use for free.</div>' +
+        '<div class="era-w-paidFields era-field-hidden">' +
+          '<div class="era-row2"><div><label>Company Name <span class="era-required-mark">*</span></label><input type="text" class="era-w-companyName"></div><div><label>Tenant Name</label><input type="text" class="era-w-tenantName"></div></div>' +
+          '<div class="era-row2"><div><label>Unit # <span class="era-required-mark">*</span></label><input type="text" class="era-w-unit"></div><div><label>Email</label><input type="email" class="era-w-email"></div></div>' +
+          '<label>Phone</label><input type="tel" class="era-w-phone" placeholder="000-000-0000" maxlength="12" inputmode="tel">' +
+          '<label>Notes <span class="era-required-mark">*</span></label><textarea class="era-w-notes" placeholder="Anything else to flag for this request"></textarea>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="era-w-otherBody era-field-hidden">' +
+      '<div class="era-row2"><div><label>Company Name</label><input type="text" class="era-w-otherCompanyName"></div><div><label>Tenant Name</label><input type="text" class="era-w-otherTenantName"></div></div>' +
+      '<div class="era-row2 era-w-otherUnitEmailPhone"><div><label>Unit #</label><input type="text" class="era-w-otherUnit"></div><div><label>Email</label><input type="email" class="era-w-otherEmail"></div></div>' +
+      '<div class="era-w-otherPhoneWrap"><label>Phone</label><input type="tel" class="era-w-otherPhone" placeholder="000-000-0000" maxlength="12" inputmode="tel"></div>' +
+      '<label>Notes</label><textarea class="era-w-otherNotes" placeholder="Anything else to flag for this request"></textarea>' +
+    '</div>';
+  node.querySelector(".era-remove-entry-btn").addEventListener("click", function () {
+    node.remove();
+    if (!c.querySelectorAll("#era_w_sessions .era-w-session").length) eraCreateWifiSession();
+    eraWifiRefreshFlow();
+  });
+  node.querySelectorAll(".era-w-action-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      node.querySelector(".era-w-action").value = btn.getAttribute("data-action");
+      eraWifiSyncSession(node);
+      eraWifiRefreshFlow();
+    });
+  });
+  ["era-w-office", "era-w-warehouse"].forEach(function (cls) {
+    node.querySelector("." + cls).addEventListener("change", function () { eraWifiSyncSession(node); eraWifiRefreshFlow(); });
+  });
+  node.querySelector(".era-w-freeWifi").addEventListener("change", function () {
+    if (this.checked) node.querySelector(".era-w-paidWifi").checked = false;
+    eraWifiSyncSession(node); eraWifiRefreshFlow();
+  });
+  node.querySelector(".era-w-paidWifi").addEventListener("change", function () {
+    if (this.checked) node.querySelector(".era-w-freeWifi").checked = false;
+    eraWifiSyncSession(node); eraWifiRefreshFlow();
+  });
+  const phoneEl = node.querySelector(".era-w-phone"); phoneEl.addEventListener("input", function () { this.value = W(this.value); });
+  const otherPhoneEl = node.querySelector(".era-w-otherPhone"); otherPhoneEl.addEventListener("input", function () { this.value = W(this.value); });
+  a("era_w_sessions").appendChild(node);
+  eraWifiSyncSession(node);
+  return node;
+}
+
+function eraReadWifiSessions() {
+  return Array.prototype.slice.call(c.querySelectorAll("#era_w_sessions .era-w-session")).map(function (node) {
+    const snap = eraWifiSessionSnapshot(node);
+    if (snap.action === "create") {
+      return {
+        action: "create", office: snap.office, warehouse: snap.warehouse, freeWifi: snap.freeWifi, paidWifi: snap.paidWifi,
+        companyName: node.querySelector(".era-w-companyName").value.trim(),
+        tenantName: node.querySelector(".era-w-tenantName").value.trim(),
+        unit: node.querySelector(".era-w-unit").value.trim(),
+        email: node.querySelector(".era-w-email").value.trim(),
+        phone: node.querySelector(".era-w-phone").value.trim(),
+        notes: node.querySelector(".era-w-notes").value.trim()
+      };
+    }
+    return {
+      action: snap.action, office: false, warehouse: false, freeWifi: false, paidWifi: false,
+      companyName: node.querySelector(".era-w-otherCompanyName").value.trim(),
+      tenantName: node.querySelector(".era-w-otherTenantName").value.trim(),
+      unit: node.querySelector(".era-w-otherUnit").value.trim(),
+      email: node.querySelector(".era-w-otherEmail").value.trim(),
+      phone: node.querySelector(".era-w-otherPhone").value.trim(),
+      notes: node.querySelector(".era-w-otherNotes").value.trim()
+    };
+  });
+}
+
+// Per-session completeness, shared by eraWifiRequiredProblems() (Preview
+// gate) - mirrors the server's own buildWifi() validation so a submission
+// that passes here never gets rejected server-side for a reason the UI
+// didn't already surface.
+function eraWifiSessionProblems(node, label, problems) {
+  const snap = eraWifiSessionSnapshot(node);
+  if (!snap.action) { problems.push(label + ": select Create Wi-Fi, Troubleshoot, or De-Activate."); return; }
+  if (snap.action !== "create") return;
+  if (!snap.office && !snap.warehouse) { problems.push(label + ": select Office or Warehouse."); return; }
+  if (snap.pureFree) return;
+  if (!snap.paidWifi) { problems.push(label + ": select Free Wi-Fi or Paid Wi-Fi."); return; }
+  const companyName = node.querySelector(".era-w-companyName").value.trim();
+  const unit = node.querySelector(".era-w-unit").value.trim();
+  const notes = node.querySelector(".era-w-notes").value.trim();
+  const email = node.querySelector(".era-w-email").value.trim();
+  if (!companyName) problems.push(label + ": enter the Company Name.");
+  if (!unit) problems.push(label + ": enter the Unit #.");
+  if (!notes) problems.push(label + ": enter Notes (required for Paid Wi-Fi).");
+  if (email && !ERA_EMAIL_FORMAT_RE.test(email)) problems.push(label + ": enter a valid email.");
+}
+
+// Preview/Submit gate for Wi-Fi (called from Le()'s "wifi" branch) -
+// replaces the old submission-wide 3-line check. Requestor Email/Location
+// are already checked by Le() itself before this runs (yourEmailRequired/
+// locationRequired), same convention eraKeycardRequiredProblems() follows.
+function eraWifiRequiredProblems() {
+  const problems = [];
+  const sessions = c.querySelectorAll("#era_w_sessions .era-w-session");
+  if (!sessions.length) { problems.push("Add at least one Wi-Fi request."); return problems; }
+  let needsAttachment = false, allPaidNotesFilled = true;
+  sessions.forEach(function (node, idx) {
+    eraWifiSessionProblems(node, "Wi-Fi request " + (idx + 1), problems);
+    const snap = eraWifiSessionSnapshot(node);
+    if (snap.needsPaidFields) {
+      needsAttachment = true;
+      if (!node.querySelector(".era-w-notes").value.trim()) allPaidNotesFilled = false;
+    }
+  });
+  if (needsAttachment && allPaidNotesFilled && !g.wifi.length) problems.push("Attach the signed Contract or Addendum before continuing.");
+  return problems;
+}
+
+// var, not let: eraSyncLocationUiForMode() (defined/called much earlier in
+// this script, before this point) already calls eraWifiRefreshFlow() if it
+// exists - eraWifiRefreshFlow itself is hoisted (function declaration) and
+// callable that early, but a `let` here would still be in its temporal
+// dead zone at that point, throwing "Cannot access before initialization".
+// `var` has no TDZ; that early call just sees `undefined` (falsy, so the
+// busy-guard below still behaves like "not busy") and returns immediately
+// anyway since `_ !== "wifi"` that early in the page's life.
+var eraWifiSessionSeq = 0, eraWifiFlowBusy = false;
+function eraWifiRefreshFlow() {
+  if (eraWifiFlowBusy) return;
+  eraWifiFlowBusy = true;
+  try {
+    if (_ !== "wifi") return;
+    if (w("era_w_requestType") !== "Cubework") it("era_w_requestType", "Cubework");
+    const ready = eraWifiRequesterReady();
+    const headerEl = a("era_w_requestHeader"); headerEl && headerEl.classList.toggle("era-field-hidden", !ready);
+    const sessionsEl = a("era_w_sessions"); sessionsEl && sessionsEl.classList.toggle("era-field-hidden", !ready);
+    const sessionNodes = c.querySelectorAll("#era_w_sessions .era-w-session");
+    sessionNodes.forEach(eraWifiSyncSession);
+    sessionNodes.forEach(function (node) {
+      const btn = node.querySelector(".era-remove-entry-btn");
+      btn && (btn.style.display = sessionNodes.length > 1 ? "" : "none");
+    });
+    // "Add Another Wi-Fi Request" only appears once a session has reached
+    // its own paid-fields/plan-resolved point (spec sections 6B/7 list it
+    // under Paid Wi-Fi, not right after picking Create) - Troubleshoot/
+    // De-Activate have no further sub-steps, so picking either is itself
+    // "far enough."
+    const anyStarted = Array.prototype.some.call(sessionNodes, function (n) {
+      const snap = eraWifiSessionSnapshot(n);
+      if (snap.action === "troubleshoot" || snap.action === "deactivate") return true;
+      return snap.action === "create" && (snap.pureFree || snap.needsPaidFields);
+    });
+    const addBtn = a("era_w_addEntryBtn"); addBtn && addBtn.classList.toggle("era-field-hidden", !ready || !anyStarted);
+    let needsAttachment = false, allPaidNotesFilled = true;
+    sessionNodes.forEach(function (node) {
+      const snap = eraWifiSessionSnapshot(node);
+      if (snap.needsPaidFields) {
+        needsAttachment = true;
+        if (!node.querySelector(".era-w-notes").value.trim()) allPaidNotesFilled = false;
+      }
+    });
+    const showAttach = needsAttachment && allPaidNotesFilled;
+    const noteEl = a("era_w_note"); noteEl && noteEl.classList.toggle("era-field-hidden", !showAttach);
+    const attachEl = a("era_w_attachSection"); attachEl && attachEl.classList.toggle("era-field-hidden", !showAttach);
+    const submitBtn = a("era_w_submitBtn");
+    submitBtn && submitBtn.classList.toggle("era-field-hidden", !ready || eraWifiRequiredProblems().length > 0);
+  } finally {
+    eraWifiFlowBusy = false;
+  }
+}
+
+// Preview modal attachments list (spec section 16) - plain filename list
+// pulled from g.wifi, the same in-memory file store the real Send already
+// reads (see qe/g above and pt()'s Promise.all(g[_].map(at))).
+function eraRenderPreviewWifiAttachments() {
+  const section = a("era_previewWifiAttachSection"), list = a("era_previewWifiAttachList");
+  if (!section || !list) return;
+  if (_ !== "wifi" || !g.wifi.length) { section.style.display = "none"; list.innerHTML = ""; return; }
+  list.innerHTML = "";
+  g.wifi.forEach(function (f) {
+    const row = document.createElement("div");
+    row.textContent = f.name;
+    list.appendChild(row);
+  });
+  section.style.display = "block";
+}
+
+if (!c.querySelectorAll("#era_w_sessions .era-w-session").length) eraCreateWifiSession();
+c.addEventListener("input", function () { if (_ === "wifi") eraWifiRefreshFlow(); });
+c.addEventListener("change", function () { if (_ === "wifi") eraWifiRefreshFlow(); });
+c.addEventListener("focusout", function (ev) {
+  if (_ === "wifi" && ev.target && ev.target.id === "era_w_requesterEmail") setTimeout(eraWifiRefreshFlow, 0);
+});
+a("era_w_addEntryBtn").addEventListener("click", function () { eraCreateWifiSession(); eraWifiRefreshFlow(); });
+eraWifiRefreshFlow();
 })();
 </script>
 <script>

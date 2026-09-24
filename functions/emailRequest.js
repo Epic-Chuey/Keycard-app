@@ -23,6 +23,13 @@ TO_EMAILS_PHONE_UNISCO=["miguel.ochoabello@unisco.com","david.rodriguez@unisco.c
 // buildGeneric()'s "laptop" entry ever referenced it), so this only needs
 // to cover Jose.
 CC_EMAILS_LAPTOP=["huy.nguyen@cubework.com"],CC_NAMES_LAPTOP=["Huy Nguyen"],
+// Wi-Fi recipients (2026-09-23 rework, per Huy's spec item 14) - same
+// reasoning as Phone's/Laptop's own dedicated pairs above: drop Jose Ortiz
+// from Wi-Fi's Cc without touching the shared CC_EMAILS_GENERAL (which
+// Keycard/Printer/App/Electrical still read unchanged). The requester's own
+// email (now always collected via the client's dedicated era_w_requesterEmail
+// field) is appended in buildWifi() itself, same as before.
+CC_EMAILS_WIFI=["huy.nguyen@cubework.com"],CC_NAMES_WIFI=["Huy Nguyen"],
 FEE_TO_EMAILS=["ar@cubework365.onmicrosoft.com","novie.boston@cubework.com"],FEE_PER_KEYCARD=30,EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]+$/,INLINE_ATTACHMENT_THRESHOLD_BYTES=3*1024*1024,SIMPLE_ATTACHMENT_MAX_BYTES=3*1024*1024,UPLOAD_CHUNK_BYTES=4*320*1024;function fmtAddr(t,e){return t?`${t} <${e}>`:e}function displayAddr(t){return t.map(e=>fmtAddr(e.name,e.email)).join(", ")}function graphRecipients(t){return t.map(e=>({emailAddress:{address:e.email,name:e.name||void 0}}))}function dedupeRecipientsAcrossFields(t,e,n){const s=new Set;function a(i){return(Array.isArray(i)?i:[]).filter(l=>{const d=String(l&&l.email||"").trim();if(!d)return!1;const h=d.toLowerCase();return s.has(h)?!1:(s.add(h),!0)})}return{toRecipients:a(t),ccRecipients:a(e),bccRecipients:a(n)}}function collectDistinctEmails(t,e){const n=new Set,s=[];return(Array.isArray(t)?t:[]).forEach(a=>{const i=String(a&&a[e]||"").trim();if(!i||!EMAIL_RE.test(i))return;const l=i.toLowerCase();n.has(l)||(n.add(l),s.push({name:null,email:i}))}),s}function distinctSubjectLabel(t,e,n){const s=String(t||"").trim();return!s||s.toLowerCase()===String(e||"").trim().toLowerCase()?n:s}function esc(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 // Multiple locations, every mode (2026-08-19 fix - was Keycard-only): given
 // the request's own Location #1 body line plus whatever extra location rows
@@ -387,35 +394,98 @@ F=F.split("%%CW_GREET_RED_START%%").join('<span style="color:#dc2626;font-weight
 // Troubleshoot's own bold+red block (2026-09-05, per Huy's request) - see
 // TRBS/TRBE's declaration comment above and where v() wraps them around
 // the Serves/Company/Tenant/Keycard+Access+Issue block.
-F=F.split(TRBS).join('<span style="color:#dc2626;font-weight:700;">').split(TRBE).join("</span>"),F+=e.unifi?z:"";const Q=[{name:TO_NAME,email:TO_EMAIL}],X=[{name:null,email:CC_EMAIL_KEYCARD},{name:null,email:t.requesterEmail}],Z=collectDistinctEmails(s.filter(o=>entryKeycardAction(o)==="requestcard"),"managerEmail"),FEE_CC=feeCcTrigger?FEE_TO_EMAILS.map(o=>({name:null,email:o})):[],ee=X.concat(Z).concat(FEE_CC),Y=appendSignature(t.mode,J,F);return{ok:!0,subject:A,textBody:Y.body,htmlBody:Y.htmlBody,toRecipients:Q,ccRecipients:ee,mode:t.mode}}function buildWifi(t){const e=t.fields||{},n=[];e.serves?e.serves==="Unis"&&n.push("Send an email to helpdesk and request Network Team to Create/Troubleshoot/De-activate for the request."):n.push("Select who this Wi-Fi request serves (Cubework or Unis).");const s=Array.isArray(e.entries)?e.entries:[];s.length||n.push("Add at least one Wi-Fi entry.");const a=p=>!!e.create&&p.type==="Office"&&!!p.freeWifi&&!p.paidWifi,i=!!e.create&&s.length>0&&s.every(a);if(s.forEach((p,q)=>{const m=`Entry ${q+1}: `;(e.troubleshoot||a(p)?[]:["companyName","unit"]).forEach(I=>{String(p[I]||"").trim()||n.push(`${m}fill in every field (missing: ${I}).`)}),!e.troubleshoot&&!e.deactivate&&!p.type&&n.push(`${m}select Office or Warehouse.`),p.email&&!EMAIL_RE.test(p.email)&&n.push(`${m}enter a valid email.`)}),n.length)return{ok:!1,problems:n};const l=t.locationBodyLine||t.locationText,LOC=buildLocationLines(l,t.extraLocationBodyLines),d=t.locationSubjectName||t.locationText,h=s[0].companyName||(a(s[0])?"Free Wi-Fi SSID":""),u=e.create?"Create":e.deactivate?"De-activate":e.troubleshoot?"Troubleshoot":"Create",y=`${d} - WiFi ${u}${h?` - ${h}`:""}`,A=[e.create?"Create Wi-Fi":null,e.troubleshoot?"Troubleshoot":null,e.deactivate?"De-activate Wi-Fi":null].filter(Boolean).join(", "),L=s.map(p=>{const q=[companyDisplay(p),p.unit].filter(Boolean).join(" - ")||(a(p)?"Free Wi-Fi SSID handoff (no ticket needed - tenant given the SSID directly)":"(no company/unit given)");let m;if(e.deactivate)m=q;else{const $=[];p.type&&$.push(p.type),p.freeWifi&&$.push("Free Wi-Fi: Yes"),p.paidWifi&&$.push("Paid Wi-Fi: Yes"),p.email&&$.push(`Email: ${p.email}`),p.phone&&$.push(`Phone: ${formatPhoneForDisplay(p.phone)}`),m=q+($.length?`
-${$.join(`
-`)}`:"")}return p.notes&&(m+=`
-Notes: ${p.notes}`),m}).join(`
-
-`);let S="";e.serves&&(S+=`Serves: ${e.serves}
-`),A&&(S+=`Request: ${A}
-`);const w=!!e.create,b=!!e.deactivate,v=!!e.troubleshoot,N=w?"Please activate Wi-Fi:":b?"Please de-activate Wi-Fi:":v?"Please help troubleshoot Wi-Fi:":"Please activate Wi-Fi:",B=`SSID - Cubework is free for the office. (Even in the WH as long as Cubework build the office there.)
-Everywhere else need the signed Contract or Addendum showing WiFi +$ on there monthly.`;let C=`Hello Team,
-
-`+(w&&!i?`REQUEST WILL BE IGNORED WITHOUT MANDATORY SIGNED DOCUMENT CONTRACT OR ADDENDUM
-
-`:"")+N+`
-
-`+LOC.plain+`
-`+S+`
-`+L;w&&!i&&(C+=`
-
-${B}`);let Cm=`Hello Team,
-
-`+(w&&!i?`REQUEST WILL BE IGNORED WITHOUT MANDATORY SIGNED DOCUMENT CONTRACT OR ADDENDUM
-
-`:"")+N+`
-
-`+LOC.marked+`
-`+S+`
-`+L;w&&!i&&(Cm+=`
-
-${B}`);const k="REQUEST WILL BE IGNORED WITHOUT MANDATORY SIGNED DOCUMENT ",R="CONTRACT OR ADDENDUM";let c=esc(Cm).replace(k+R,`<span style="color:#dc2626;font-weight:600;font-size:14px;">${k}</span><span style="color:#dc2626;font-weight:bold;font-size:20px;">${R}</span>`).replace(/Notes: ([^\n]*)/g,'<span style="color:#dc2626;font-weight:bold;">Notes: $1</span>').replace(/\n/g,"<br>");c=c.split(LOC.START).join('<span style="color:#dc2626;font-weight:700;">').split(LOC.END).join("</span>");const f=CC_EMAILS_GENERAL.map((p,q)=>({name:CC_NAMES_GENERAL[q],email:p})).concat([{name:null,email:t.requesterEmail}]),r=[{name:TO_NAME,email:TO_EMAIL}],g=appendSignature(t.mode,C,c);return{ok:!0,subject:y,textBody:g.body,htmlBody:g.htmlBody,toRecipients:r,ccRecipients:f,mode:t.mode}}const GENERIC_CONFIG={printer:{fieldLabel:"Printer Model",subjectSuffix:"Printer Request",subjectModeLabel:"Printer",createLabel:"Setup New Printer",greetingSetup:"Please set up printer:",greetingTroubleshoot:"Please help troubleshoot printer:",hasServes:!0,relaxTroubleshoot:!0,managerEmailField:"managerEmail"},app:{fieldLabel:"Application Name",subjectSuffix:"Application/Software Request",subjectModeLabel:"App/Soft/Hardware",createLabel:"New Install / Access",greetingSetup:"Please set up application/software:",greetingTroubleshoot:"Please help troubleshoot application/software:",hasServes:!1,relaxTroubleshoot:!1,emailOptional:!0,emailLabel:"Manager's Email",managerEmailField:"email"},laptop:{fieldLabel:"Laptop Model / Asset Tag",subjectSuffix:"Laptop Request",subjectModeLabel:"Laptop",createLabel:"New Laptop",greetingSetup:"Please set up laptop:",greetingTroubleshoot:"Please help troubleshoot laptop:",hasServes:!1,relaxTroubleshoot:!1,
+F=F.split(TRBS).join('<span style="color:#dc2626;font-weight:700;">').split(TRBE).join("</span>"),F+=e.unifi?z:"";const Q=[{name:TO_NAME,email:TO_EMAIL}],X=[{name:null,email:CC_EMAIL_KEYCARD},{name:null,email:t.requesterEmail}],Z=collectDistinctEmails(s.filter(o=>entryKeycardAction(o)==="requestcard"),"managerEmail"),FEE_CC=feeCcTrigger?FEE_TO_EMAILS.map(o=>({name:null,email:o})):[],ee=X.concat(Z).concat(FEE_CC),Y=appendSignature(t.mode,J,F);return{ok:!0,subject:A,textBody:Y.body,htmlBody:Y.htmlBody,toRecipients:Q,ccRecipients:ee,mode:t.mode}}// Wi-Fi (2026-09-23 rework, per Huy's spec) - each entry now carries its
+// OWN action ("create"/"troubleshoot"/"deactivate") instead of the old
+// submission-wide e.create/e.troubleshoot/e.deactivate booleans; Office/
+// Warehouse and Free/Paid Wi-Fi were already per-entry before this rework
+// and are unchanged in shape. e.serves is always "Cubework" now (the
+// client-side Cubework/Unis tab-dropdown picker was removed), but the Unis
+// rejection stays below as a server-side safety net.
+function buildWifi(t){
+  const e=t.fields||{},problems=[];
+  if(e.serves==="Unis")problems.push("Send an email to helpdesk and request Network Team to Create/Troubleshoot/De-activate for the request.");
+  else if(e.serves!=="Cubework")problems.push("Select who this Wi-Fi request serves (Cubework or Unis).");
+  const entries=Array.isArray(e.entries)?e.entries:[];
+  entries.length||problems.push("Add at least one Wi-Fi request.");
+  const isPureFreeEntry=p=>p.action==="create"&&!!p.office&&!p.warehouse&&!!p.freeWifi&&!p.paidWifi;
+  const needsPaidFields=p=>p.action==="create"&&(!!p.office||!!p.warehouse)&&!!p.paidWifi&&!isPureFreeEntry(p);
+  entries.forEach((p,idx)=>{
+    const label=`Wi-Fi request ${idx+1}: `;
+    if(p.action!=="create"&&p.action!=="troubleshoot"&&p.action!=="deactivate"){problems.push(`${label}select Create Wi-Fi, Troubleshoot, or De-Activate.`);return}
+    if(p.action!=="create")return;
+    if(!p.office&&!p.warehouse){problems.push(`${label}select Office or Warehouse.`);return}
+    if(isPureFreeEntry(p))return;
+    if(!p.paidWifi){problems.push(`${label}select Free Wi-Fi or Paid Wi-Fi.`);return}
+    String(p.companyName||"").trim()||problems.push(`${label}enter the Company Name.`);
+    String(p.unit||"").trim()||problems.push(`${label}enter the Unit #.`);
+    String(p.notes||"").trim()||problems.push(`${label}enter Notes (required for Paid Wi-Fi).`);
+    p.email&&!EMAIL_RE.test(p.email)&&problems.push(`${label}enter a valid email.`);
+  });
+  // Addendum/Contract required (server-side enforcement added 2026-09-23,
+  // per Huy's spec section 11/20) - mirrors Keycard's own
+  // p.attachments.length>0 check, scoped to only the entries that actually
+  // need a signed contract (Create + Paid, not the pure Free-Wi-Fi-SSID
+  // shortcut, and not Troubleshoot/De-Activate-only submissions).
+  if(entries.some(needsPaidFields)&&(!Array.isArray(t.attachments)||t.attachments.length===0))problems.push("Attach the signed Contract or Addendum before submitting.");
+  if(problems.length)return{ok:!1,problems};
+  const locPlain=t.locationBodyLine||t.locationText,LOC=buildLocationLines(locPlain,t.extraLocationBodyLines),
+    subjectLoc=t.locationSubjectName||t.locationText,
+    subjectCompany=entries[0].companyName||(isPureFreeEntry(entries[0])?"Free Wi-Fi SSID":""),
+    distinctActions=Array.from(new Set(entries.map(p=>p.action))),
+    actionLabel={create:"Create Wi-Fi",troubleshoot:"Troubleshoot",deactivate:"De-activate"},
+    subjectAction=distinctActions.length===1?actionLabel[distinctActions[0]]:"Wi-Fi Request",
+    subject=`${subjectLoc} - WiFi ${subjectAction}${subjectCompany?` - ${subjectCompany}`:""}`,
+    requestLine=distinctActions.map(act=>actionLabel[act]).join(", "),
+    mixedActions=distinctActions.length>1,
+    entryLines=entries.map(p=>{
+      const head=[companyDisplay(p),p.unit].filter(Boolean).join(" - ")||(isPureFreeEntry(p)?"Free Wi-Fi SSID handoff (no ticket needed - tenant given the SSID directly)":"(no company/unit given)");
+      let body;
+      if(p.action==="deactivate")body=head;
+      else{
+        const bits=[];
+        p.action==="create"&&(p.office&&bits.push("Office"),p.warehouse&&bits.push("Warehouse"),p.freeWifi&&bits.push("Free Wi-Fi: Yes"),p.paidWifi&&bits.push("Paid Wi-Fi: Yes"));
+        p.email&&bits.push(`Email: ${p.email}`);
+        p.phone&&bits.push(`Phone: ${formatPhoneForDisplay(p.phone)}`);
+        body=head+(bits.length?`\n${bits.join("\n")}`:"")
+      }
+      p.notes&&(body+=`\nNotes: ${p.notes}`);
+      return(mixedActions?`Type: ${actionLabel[p.action]}\n`:"")+body
+    }).join("\n\n");
+  let summary="";
+  e.serves&&(summary+=`Serves: ${e.serves}\n`);
+  requestLine&&(summary+=`Request: ${requestLine}\n`);
+  const allCreate=distinctActions.length===1&&distinctActions[0]==="create",
+    allTroubleshoot=distinctActions.length===1&&distinctActions[0]==="troubleshoot",
+    allDeactivate=distinctActions.length===1&&distinctActions[0]==="deactivate",
+    greeting=allCreate?"Please Activate Wi-Fi:":allTroubleshoot?"Please help troubleshoot Wi-Fi:":allDeactivate?"Please de-activate Wi-Fi:":"Please process the Wi-Fi request(s) below:",
+    needsContractWarning=entries.some(needsPaidFields),
+    contractNote=`SSID - Cubework is free for the office. (Even in the WH as long as Cubework build the office there.)\nEverywhere else need the signed Contract or Addendum showing WiFi +$ on there monthly.`,
+    // Bold+green greeting line, with the current request date/time directly
+    // underneath it (2026-09-23, per Huy's spec section 15) - only for the
+    // Create greeting, same sentinel-swap technique buildKeycard() already
+    // uses for its own greeting (GREET_START/END), plus formatSubmissionTimestamp()
+    // shared with buildKeycard() so Preview and the real send always agree.
+    GREET_START="%%CW_WGREET_START%%",GREET_END="%%CW_WGREET_END%%",
+    greetingPlain=greeting,
+    greetingMarked=allCreate?`${GREET_START}${greeting}${GREET_END}`:greeting,
+    timestampLine=allCreate?`\n${formatSubmissionTimestamp(t.submissionTimestampIso)}`:"";
+  let textBody=`Hello Team,\n\n`+(needsContractWarning?`REQUEST WILL BE IGNORED WITHOUT MANDATORY SIGNED DOCUMENT CONTRACT OR ADDENDUM\n\n`:"")+greetingPlain+timestampLine+`\n\n`+LOC.plain+`\n`+summary+`\n`+entryLines;
+  needsContractWarning&&(textBody+=`\n\n${contractNote}`);
+  let htmlSource=`Hello Team,\n\n`+(needsContractWarning?`REQUEST WILL BE IGNORED WITHOUT MANDATORY SIGNED DOCUMENT CONTRACT OR ADDENDUM\n\n`:"")+greetingMarked+timestampLine+`\n\n`+LOC.marked+`\n`+summary+`\n`+entryLines;
+  needsContractWarning&&(htmlSource+=`\n\n${contractNote}`);
+  const WARN_A="REQUEST WILL BE IGNORED WITHOUT MANDATORY SIGNED DOCUMENT ",WARN_B="CONTRACT OR ADDENDUM";
+  let htmlBody=esc(htmlSource)
+    .replace(WARN_A+WARN_B,`<span style="color:#dc2626;font-weight:600;font-size:14px;">${WARN_A}</span><span style="color:#dc2626;font-weight:bold;font-size:20px;">${WARN_B}</span>`)
+    .replace(/Notes: ([^\n]*)/g,'<span style="color:#dc2626;font-weight:bold;">Notes: $1</span>')
+    .replace(/\n/g,"<br>");
+  htmlBody=htmlBody.split(LOC.START).join('<span style="color:#dc2626;font-weight:700;">').split(LOC.END).join("</span>");
+  htmlBody=htmlBody.split(GREET_START).join('<span style="color:#1a7f37;font-weight:700;">').split(GREET_END).join("</span>");
+  const ccRecipients=CC_EMAILS_WIFI.map((email,idx)=>({name:CC_NAMES_WIFI[idx],email})).concat([{name:null,email:t.requesterEmail}]),
+    toRecipients=[{name:TO_NAME,email:TO_EMAIL}],
+    signed=appendSignature(t.mode,textBody,htmlBody);
+  return{ok:!0,subject,textBody:signed.body,htmlBody:signed.htmlBody,toRecipients,ccRecipients,mode:t.mode}
+}
+const GENERIC_CONFIG={printer:{fieldLabel:"Printer Model",subjectSuffix:"Printer Request",subjectModeLabel:"Printer",createLabel:"Setup New Printer",greetingSetup:"Please set up printer:",greetingTroubleshoot:"Please help troubleshoot printer:",hasServes:!0,relaxTroubleshoot:!0,managerEmailField:"managerEmail"},app:{fieldLabel:"Application Name",subjectSuffix:"Application/Software Request",subjectModeLabel:"App/Soft/Hardware",createLabel:"New Install / Access",greetingSetup:"Please set up application/software:",greetingTroubleshoot:"Please help troubleshoot application/software:",hasServes:!1,relaxTroubleshoot:!1,emailOptional:!0,emailLabel:"Manager's Email",managerEmailField:"email"},laptop:{fieldLabel:"Laptop Model / Asset Tag",subjectSuffix:"Laptop Request",subjectModeLabel:"Laptop",createLabel:"New Laptop",greetingSetup:"Please set up laptop:",greetingTroubleshoot:"Please help troubleshoot laptop:",hasServes:!1,relaxTroubleshoot:!1,
 // Laptop-only Cc override (2026-09-10, per Huy's request) - this is the
 // Unis-serves branch of Laptop (buildLaptop() routes Unis through this
 // shared buildGeneric() path, Cubework through buildLaptopCubework() below,
@@ -623,13 +693,14 @@ ${v}`;let k=esc(C).replace(/\n/g,"<br>");k=k.split(j).join('<span style="color:#
 // requesterEmail is only required where the client actually shows a "your
 // email" field for it - Keycard's era_requesterEmailLocal, Phone's
 // era_ph_yourEmail, Laptop's era_lt_yourEmail (eraSyncYourEmailGroupVisibility(),
-// index.html). Wi-Fi/Electrical/App(Software) hide that field entirely, so
-// requiring it here unconditionally left those three modes permanently
-// unable to Submit after the client-side Le() gate was relaxed to match
-// (the reported bug: "Enter a valid requester email." with no visible box
-// to fill it in) - still format-check it if somehow present, just don't
-// require it be non-empty for those three.
-requesterEmailRequired=t.mode==="keycard"||t.mode==="phone"||t.mode==="laptop";
+// index.html), and - since the 2026-09-23 rework - Wi-Fi's own dedicated
+// era_w_requesterEmail (spec item "Requestor Email" gate). Electrical/
+// App(Software) still hide any such field entirely, so requiring it here
+// unconditionally would leave those two modes permanently unable to Submit
+// (the earlier reported bug: "Enter a valid requester email." with no
+// visible box to fill it in) - still format-check it if somehow present,
+// just don't require it be non-empty for those two.
+requesterEmailRequired=t.mode==="keycard"||t.mode==="phone"||t.mode==="laptop"||t.mode==="wifi";
 (requesterEmailRequired?!n||!EMAIL_RE.test(n):n&&!EMAIL_RE.test(n))&&e.push("Enter a valid requester email.");const s=(t.locationText||"").trim(),
 // Location is not required when every submitted keycard entry is Transfer
 // (2026-09-06, per Huy's request - "Clicking Preview still triggers 'Enter
