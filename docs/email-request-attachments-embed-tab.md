@@ -143,29 +143,38 @@ Every other mode's `.era-mode-fields` is capped at `max-width:820px`; Keycard ov
 - **Reaching the submit payload:** `pt()` (the Graph submit path) now adds `toRecipientsOverride`/`ccRecipientsOverride`/`bccRecipientsOverride` (plain email-string arrays, `eraEditableRecipients` verbatim) to the payload sent to `window.submitCwEmailRequest`. Server-side, `submitEmailRequest()` (`functions/emailRequest.js`) applies them *after* `buildEmailRequest()` computes the normal recipients — To/Cc override whenever the client sent an array at all (even empty, so removing every Cc actually removes it), Bcc only overrides when non-empty (there's no server-computed Bcc to fall back to otherwise); each address is re-validated against `EMAIL_RE` server-side regardless of client-side validation. `sendViaGraph()` now sends a real `bccRecipients` block to Graph when present — Bcc didn't exist on any send path before this pass. The Outlook-deeplink fallback path (`ft()`, `ERA_SUBMIT_MODE==="outlook"`) was similarly switched from the original `e.toRecipients`/`e.ccRecipients` to `eraEditableRecipients`, plus a new `&bcc=` param when Bcc has entries.
 - **Format toolbar sizing fix:** the font-family and font-size `<select>`s previously set only `font-size`+`height` inline, so each browser's native select chrome (padding/border sized to the widest option text, e.g. "Times New Roman") made them look oversized and misaligned next to the square B/I/U/color-swatch buttons beside them. Every toolbar control now shares one explicit box model inline: `box-sizing:border-box`, a fixed `height:30px` matching every sibling, a fixed `width` (118px font / 92px size, so a long option label can't blow the control up), and matching `border`/`border-radius`/`background`/`font-family:inherit` — the same visual language the toolbar's B/I/U buttons and the color swatch already used, just made consistent across all six controls. (Not verified by rendering — no browser available in this pass; click-test before trusting it.)
 
-### Wi-Fi / Printer / App(Software) / Laptop (generic, `ERA_SIMPLE_MODES` / `eraCreateSimpleEntry()` / `eraReadSimpleEntry()`)
+### Printer / App(Software) / Laptop (generic, `ERA_SIMPLE_MODES` / `eraCreateSimpleEntry()` / `eraReadSimpleEntry()`)
 
-Shared per-entry fields: Company Name (required) / Tenant Name (optional), Unit Number, one type-specific field (Near AP/Node for Wi-Fi — since removed, see below; Printer Model/Location for Printer; Application Name for App; "Laptop Model / Asset Tag" for Laptop), Office or Warehouse, Email, Phone (`era-s-phone`, same live auto-format as Keycard's).
+> **Wi-Fi was pulled out of this shared factory on 2026-09-23** (same divergence Phone already took on 2026-08-16) — its per-entry shape no longer fits this mold once each session got its own action pick. See "Wi-Fi (bespoke, 2026-09-23 rework)" further down for its current behavior; everything below this note now describes Printer/App/Laptop only.
+
+Shared per-entry fields: Company Name (required) / Tenant Name (optional), Unit Number, one type-specific field (Printer Model/Location for Printer; Application Name for App; "Laptop Model / Asset Tag" for Laptop), Office or Warehouse, Email, Phone (`era-s-phone`, same live auto-format as Keycard's).
 
 Shared **once per submission** (not per entry): Create/Troubleshoot/De-activate checkboxes, Serves.
 
 `eraCompanyDisplay(entry)` renders `"CompanyName / TenantName"` when Tenant Name is present and distinct (case-insensitive) from Company Name, else just `"CompanyName"`. Subject lines use `companyName` alone (first entry), unchanged by the split.
 
-**Wi-Fi specifics (current):**
-- Office or Warehouse moved above Company Name/Tenant Name (`moveTypeAboveCompany`).
-- "Near AP / Node" field removed outright (`hasExtraField: false`).
-- Email/Phone unconditionally optional (`contactRequired: false`).
-- New free-text notes box (`era-s-notes`) directly under Company Name/Tenant Name — stays visible even when De-activate hides the rest of the entry.
-- Troubleshoot mode: zero required entry fields (Create/De-activate keep their existing requirements).
-- De-activate hides Unit/AP-Node/Type/Email/Phone via `eraApplySimpleDeactivateVisibility()` (reapplied per entry).
+**Printer specifics (current):** Office or Warehouse moved above Company Name/Tenant Name (`moveTypeAboveCompany`); a free-text notes box at the very end of the entry (under Phone); Troubleshoot mode has zero required entry fields; Setup New Printer's requirements unchanged.
 
-**Printer specifics (current):** same Office-or-Warehouse reorder as Wi-Fi; a free-text notes box at the very end of the entry (under Phone); Troubleshoot mode also has zero required entry fields; Setup New Printer's requirements unchanged.
-
-**App/Laptop:** untouched by the Wi-Fi/Printer relaxation above (no reorder, no relaxed validation).
+**App/Laptop:** untouched by the Printer relaxation above (no reorder, no relaxed validation).
 
 **Laptop mode** (added 2026-08-10, `GENERIC_CONFIG.laptop`): fields Company Name, Tenant Name, Unit Number, "Laptop Model / Asset Tag", Office or Warehouse, Email, Phone; checkboxes New Laptop / Troubleshoot; own attachment group `era_files_laptop`/`era_fileList_laptop`.
 
-**Server:** `buildWifi()`/`buildGeneric()` have Troubleshoot-aware required-field logic via `GENERIC_CONFIG`'s `relaxTroubleshoot` flag (true for Printer only); both only print Type/Email/Phone/Notes when present rather than assuming they're filled in.
+**Server:** `buildGeneric()` has Troubleshoot-aware required-field logic via `GENERIC_CONFIG`'s `relaxTroubleshoot` flag (true for Printer only); only prints Type/Email/Phone/Notes when present rather than assuming they're filled in.
+
+### Wi-Fi (bespoke, 2026-09-23 rework — progressive-disclosure sessions)
+
+Reworked per Huy's own written spec into a guided, step-gated flow mirroring Keycard's UX, replacing the old submission-wide Create/Troubleshoot/De-activate checkbox trio and the Cubework/Unis tab-dropdown picker (see "Wi-Fi tab dropdown..." below — now historical/superseded). Full write-up: [docs/log/2026-09-23-wifi-progressive-disclosure-rework.md](log/2026-09-23-wifi-progressive-disclosure-rework.md).
+
+- **Cubework-only, no dropdown**: clicking "Wi-Fi" (nav tab, header, dashboard tile) opens the form directly — `era_w_requestType` is forced to `"Cubework"` unconditionally by `eraWifiRefreshFlow()`. `WIFI.UNIS`/the `requireEraAccess()` Unis rejection are left in place as dead-but-harmless server-side safety nets; nothing in the UI can reach that value anymore.
+- **Requestor Email gate** (`#era_w_requesterEmail`, own dedicated field — not the shared Keycard-tied `era_requesterEmailLocal`, same "own field" pattern Phone/Laptop use): nothing else in the card shows until it passes the same bare-local-part/blurred-or-full-format check `eraKeycardRequesterReady()` uses (`eraWifiRequesterReady()`). Shares the `"requesterEmail"` inline-suggestion history key with Keycard's field (`ERA_EMAIL_FIELDS`).
+- **Sessions replace flat entries**: `eraCreateWifiSession()` (bespoke factory — Wi-Fi removed from the shared `R` array, see the note above) builds one `.era-w-session` card with its own Create Wi-Fi/Troubleshoot/De-Activate button trio (`.era-w-action-btn`, mutually exclusive, stored in a hidden `.era-w-action`), independently-toggleable Office/Warehouse checkboxes, a Free/Paid Wi-Fi choice (Free hidden outright once Warehouse is picked — no Free option for Warehouse, mutually exclusive with Paid), and paid fields (Company Name/Tenant Name/Unit #/Email/Phone/**required** Notes). Troubleshoot/De-Activate reuse the same field set minus type/plan (De-Activate additionally hides Unit/Email/Phone, mirroring the old `Q()` behavior; neither has any required field). "Add Another Wi-Fi Request" (`eraCreateWifiSession()` called again) appends a fully independent session — own DOM node, own closure state — and only becomes visible once the current last session has reached its own paid-fields/plan-resolved point (spec explicitly lists it under Paid Wi-Fi, not right after picking Create).
+- **Shared, request-level**: Requestor Email, Location (`era_k_locationGroup` — already had its own per-mode extra-location array, `eraExtraLocationsByMode.wifi`, untouched), Attachments/Addendum (`#era_w_attachSection`, hidden until **every** Create+Paid session's Notes is filled in), and the Preview button (`#era_w_submitBtn`, now labeled "Preview" — was "Wi-Fi Submission").
+- **Validation**: `eraWifiRequiredProblems()` (client, called from `Le()`'s wifi branch) and `buildWifi()` (server, `functions/emailRequest.js`) both walk every session — action picked, Office/Warehouse picked if Create, Free/Paid resolved, Company/Unit/Notes filled for Paid entries — and both now require at least one attachment when any session is Create+Paid-and-not-the-free-SSID-shortcut (server-side enforcement is new this pass; previously only a client-side/text warning).
+- **Preview modal**: `#era_previewWifiAttachSection`/`eraRenderPreviewWifiAttachments()` show the attached filenames (fixes a real gap — Wi-Fi's attachments reached Send fine but were never shown in Preview, same gap every other non-Keycard mode still has). Send now goes through the same Yes/No confirmation overlay the Printer/Phone/Laptop/Hardware family already used (`eraIsHardwareFamilyMode()||_==="wifi"`).
+- **Cc**: dedicated `CC_EMAILS_WIFI`/`CC_NAMES_WIFI` (`functions/emailRequest.js`) drops Jose Ortiz for Wi-Fi specifically, without touching the shared `CC_EMAILS_GENERAL` other modes still read.
+- **Body cosmetics**: the Create-action greeting ("Please Activate Wi-Fi:") renders bold+green with the current request date/time directly beneath it (`formatSubmissionTimestamp()`, shared with `buildKeycard()`'s own greeting-timestamp feature); Troubleshoot/De-activate greetings stay plain text, unchanged.
+- **Layout**: `.era-mode-fields[data-mode="wifi"]` now also gets the full-width (no 820px cap) override Keycard already had.
+- Click-tested end to end against the deployed Cloud Function, including one real Send (Free Wi-Fi path) — Preview, all three actions, Office vs. Warehouse, session add/remove, attachment gating, Cc, and the Send confirmation all verified working.
 
 ### Phone (bespoke, rebuilt off the shared template — `eraCreatePhoneEntry()`, mirrors Keycard's pattern)
 
@@ -479,6 +488,8 @@ Per Huy's request, scoped to a Keycard entry set to **De-activate** only — eve
 - Verified via a throwaway Node script calling `buildEmailRequest()` directly with a mock De-activate entry (Company Name printed, "Access:" line absent) and a mock Activate entry (unchanged: "Access:" line present, licensee-name fallback still used) — not click-tested in a real browser this pass.
 
 ### Wi-Fi tab dropdown (Cubework/Unis), Serves reflection, "ice spikes" hover effect (2026-08-22, later pass)
+
+> **Superseded 2026-09-23** — the Cubework/Unis tab-dropdown picker and the plain Serves checkbox pair described below were removed outright as part of the Wi-Fi progressive-disclosure rework (see "Wi-Fi (bespoke, 2026-09-23 rework)" above); Wi-Fi is Cubework-only now with no dropdown, and clicking "Wi-Fi" opens the form directly. Left below as historical record of the dropdown/hover-effect mechanics, most of which (the rain-effect passes) had already moved to the Printer tab before this rework anyway.
 
 Per Huy's request, scoped to the Wi-Fi tab only. **Two earlier attempts at this got the architecture wrong** — the first converted Serves itself into a `<select>`; the second added a separate "Request Type" `<select>` field inside the Wi-Fi form. Both were reverted the same day per Huy's follow-ups: the "Dropdown Cubework and Unis" from the original ask is the **Wi-Fi tab button itself**, not a field inside the form. The write-up below describes the corrected, current shape only:
 
