@@ -202,7 +202,25 @@ function initSidebarCollapse() {
   applySidebarCollapsed(initial);
   const btn = document.getElementById("sidebarToggleBtn");
   if (!btn) return;
+
+  // Mobile drawer (2026-09-24, per Huy's report): below 640px the sidebar is
+  // forced to the icon-only rail by its own @media rule regardless of
+  // sidebar-manual-collapsed (see that class's own comment in index.html),
+  // so reusing the desktop collapsed/expanded toggle here was a no-op on a
+  // phone - the FAB still flipped aria-pressed (which is why it visibly
+  // looked "pressed"), but nothing on screen ever changed. A separate,
+  // NOT-persisted class/state drives that breakpoint instead - a drawer that
+  // silently reopens on the next visit would be surprising on a phone,
+  // unlike the desktop collapse choice which is a deliberate, lasting layout
+  // preference worth remembering.
+  const isMobileSidebarViewport = () => window.matchMedia("(max-width:640px)").matches;
+  const setSidebarMobileOpen = (open) => document.body.classList.toggle("sidebar-mobile-open", open);
+
   btn.addEventListener("click", () => {
+    if (isMobileSidebarViewport()) {
+      setSidebarMobileOpen(!document.body.classList.contains("sidebar-mobile-open"));
+      return;
+    }
     const next = !document.body.classList.contains("sidebar-manual-collapsed");
     applySidebarCollapsed(next);
     try {
@@ -211,6 +229,18 @@ function initSidebarCollapse() {
       // localStorage unavailable - the toggle still works for the rest of
       // this session, it just won't persist across reloads.
     }
+  });
+
+  // Closes the same way #userPopover does (tap outside, see that handler
+  // further up this file) - otherwise the open drawer would sit there
+  // covering whatever tab the user just switched to.
+  document.addEventListener("click", (e) => {
+    if (!document.body.classList.contains("sidebar-mobile-open")) return;
+    if (e.target.closest("header, #sidebarToggleBtn")) return;
+    setSidebarMobileOpen(false);
+  });
+  document.getElementById("appSwitcher")?.addEventListener("click", () => {
+    if (isMobileSidebarViewport()) setSidebarMobileOpen(false);
   });
 }
 initSidebarCollapse();
@@ -227,7 +257,6 @@ initSidebarCollapse();
 const requestEmailOtpFn = httpsCallable(functions, "requestEmailOtp");
 const verifyEmailOtpFn = httpsCallable(functions, "verifyEmailOtp");
 
-const otpToggleBtn = document.getElementById("otpToggleBtn");
 const otpPanel = document.getElementById("otpPanel");
 const otpEmailInput = document.getElementById("otpEmailInput");
 const otpSendBtn = document.getElementById("otpSendBtn");
@@ -305,13 +334,6 @@ async function sendOtpCode() {
     if (otpSendBtn) otpSendBtn.disabled = false;
   }
 }
-
-otpToggleBtn?.addEventListener("click", () => {
-  const showing = otpPanel && otpPanel.style.display !== "none";
-  if (otpPanel) otpPanel.style.display = showing ? "none" : "flex";
-  otpToggleBtn.textContent = showing ? "Create/Login with Email Code" : "Return Users Login instead";
-  if (!showing) otpEmailInput?.focus();
-});
 
 otpSendBtn?.addEventListener("click", sendOtpCode);
 otpResendBtn?.addEventListener("click", sendOtpCode);
@@ -534,9 +556,14 @@ window.ensurePdfLib = ensurePdfLib;
 // signature-field positions via its viewport - see that block's
 // prepareKformView().
 window.ensurePdfJs = ensurePdfJs;
+// Same bridge (2026-09-28) - the Network Map tool (public/network-map/
+// network-map-tool.js, a classic script) imports Excel/CSV data via SheetJS.
+window.ensureXLSX = ensureXLSX;
 const accessTabBtn = document.getElementById("accessTabBtn");
 const noAccessViewEl = document.getElementById("noAccessView");
 const accessViewEl = document.getElementById("accessView");
+const networkMapViewEl = document.getElementById("networkMapView");
+const networkMapMountEl = document.getElementById("networkMapMount");
 const standupViewEl = document.getElementById("standupView");
 const standupWorkflowNavEl = document.getElementById("standupWorkflowNav");
 const standupPullPanelEl = document.getElementById("standupPullPanel");
@@ -611,6 +638,16 @@ const standupTransferSelectNoneBtn = document.getElementById("standupTransferSel
 const standupTransferToIssueBtn = document.getElementById("standupTransferToIssueBtn");
 const standupTransferToIssueStatusEl = document.getElementById("standupTransferToIssueStatus");
 const standupTransferLocationPromptEl = document.getElementById("standupTransferLocationPrompt");
+// Second entry point for the same bridge, in the Pull step (2026-09-29) - see
+// standupPullTransferBar in index.html. Shares every handler below with
+// Report Section 2's own toolbar; only the DOM ids differ.
+const standupPullTransferBarEl = document.getElementById("standupPullTransferBar");
+const standupPullTransferSelectAllBtn = document.getElementById("standupPullTransferSelectAllBtn");
+const standupPullTransferSelectNoneBtn = document.getElementById("standupPullTransferSelectNoneBtn");
+const standupPullTransferToIssueBtn = document.getElementById("standupPullTransferToIssueBtn");
+const standupPullTransferStatusEl = document.getElementById("standupPullTransferStatus");
+const standupPullTransferLocationPromptEl = document.getElementById("standupPullTransferLocationPrompt");
+const standupCategoryRulesListEl = document.getElementById("standupCategoryRulesList");
 const standupSavedListEl = document.getElementById("standupSavedList");
 const standupExportAllBtn = document.getElementById("standupExportAllBtn");
 const standupSavedFromInput = document.getElementById("standupSavedFromInput");
@@ -918,6 +955,30 @@ const DAILY_TODO_LABEL = "Daily To-Do";
 // other manual-entry tab already reads from.
 const ISSUE_APP_KEY = "issue";
 const ISSUE_LABEL = "Issue";
+
+// Network Map Tool V0.5 (2026-09-28): a top-level nav item under Roadmap, a
+// purely client-side drawing tool (no Firestore data - layouts persist in the
+// browser's own localStorage / exported JSON) ported from
+// "Network Map/Network_Map_Tool_v0.5.html" into public/network-map/
+// network-map-tool.js. Originally role-gated (owner + "full" role);
+// 2026-09-29 it became a regular per-user grant in MANAGEABLE_TABS ("Network
+// Map Tool", right under Roadmap in Manage Access) - owner always, everyone
+// else only if their tabs list explicitly includes it - see
+// canSeeNetworkMap(). Never granted implicitly: new users start unchecked,
+// and the null-tabs display expansion / migrateAccessControlPermissions
+// backfill both leave it out (ACCESS_TABS_NEVER_IMPLIED below). The tool's
+// script/markup is only fetched once that check passes (mountNetworkMap()),
+// never for anyone else. Special-cased everywhere via currentApp ===
+// NETWORK_MAP_APP_KEY like Roadmap/Access/Issue, not forced into APPS.
+const NETWORK_MAP_APP_KEY = "networkMap";
+const NETWORK_MAP_LABEL = "Layout";
+const NETWORK_MAP_SCRIPT_URL = "network-map/network-map-tool.js";
+// Client copy of the gate, UI/loading only (this tool has no backend data to
+// protect). Stricter than canSeeTab(): a null tabs list ("unrestricted") does
+// NOT imply this grant - only the owner, or an explicit "networkMap" entry.
+function canSeeNetworkMap() {
+  return isOwner() || (Array.isArray(currentUserTabs) && currentUserTabs.includes(NETWORK_MAP_APP_KEY));
+}
 const ISSUE_REGIONS = [
   { key: "cali", label: "Cali" },
   { key: "outsideCali", label: "Outside Cali" },
@@ -1064,9 +1125,15 @@ const MANAGEABLE_TABS = [
   { key: STANDUP_APP_KEY, label: "Standup" },
   { key: DAILY_TODO_APP_KEY, label: "Daily To-Do" },
   { key: ROADMAP_APP_KEY, label: "Roadmap" },
+  { key: NETWORK_MAP_APP_KEY, label: "Layout" },
   { key: EMAIL_REQUEST_ATTACHMENTS_EMBED_APP_KEY, label: "Cubework Email Request" },
   { key: ISSUE_APP_KEY, label: "Issue" },
 ];
+// Grants a null ("unrestricted") tabs list must never be read as including -
+// they're opt-in only, via an explicit checkbox in Manage Access. Mirrors the
+// migrateAccessControlPermissions backfill exclusion in functions/index.js.
+const ACCESS_TABS_NEVER_IMPLIED = [NETWORK_MAP_APP_KEY];
+const ACCESS_TABS_IMPLIED_BY_NULL = MANAGEABLE_TABS.map((t) => t.key).filter((k) => !ACCESS_TABS_NEVER_IMPLIED.includes(k));
 
 // null = unrestricted (every tab) - matches how the server stores/returns
 // it (see getMyRole/sanitizeTabs in functions/index.js): a brand-new user
@@ -1089,7 +1156,7 @@ function canSeeTab(appKey) {
 // eraApplyAccessGating() there). Leaf IDs are dotted paths through this
 // object, e.g. "KEYCARD.ACTIVATE", "SOFTWARE.CUBEWORK.LAPTOP.NEW_INSTALL",
 // "HARDWARE.PRINTER.TENANT.TROUBLESHOOT" - only leaves are ever "granted";
-// a branch (Keycard, Electrical.Cubework, etc.) is just a grouping whose own
+// a branch (Keycard, Employee.Cubework, etc.) is just a grouping whose own
 // checkbox state is derived from its leaves (see eraNodeState below).
 // See docs/email-request-attachments-embed-tab.md for the mapping from each
 // leaf back to its real submit-field meaning, and CHAT_LOG.md / docs/log/
@@ -1097,11 +1164,15 @@ function canSeeTab(appKey) {
 const ERA_TREE = {
   KEYCARD: { label: "Keycard", children: { ACTIVATE: "Activate", DEACTIVATE: "De-Activate", REPLACEMENT: "Replacement", TROUBLESHOOT: "Troubleshoot", TRANSFER: "Transfer", REQUEST_BLANK_KEYCARD: "Request Blank Keycard" } },
   WIFI: { label: "Wi-Fi", children: { CUBEWORK: "Cubework", UNIS: "Unis" } },
-  ELECTRICAL: {
-    label: "Electrical",
+  // Renamed/repurposed from Electrical 2026-09-26, per Huy's request - kept
+  // byte-for-byte equivalent in shape to functions/index.js's own copy (see
+  // that file's own comment on this same branch for why Unis is kept
+  // despite Employee being Cubework-only in practice today).
+  EMPLOYEE: {
+    label: "Employee",
     children: {
-      CUBEWORK: { label: "Cubework", children: { CREATE: "Create", TROUBLESHOOT: "Troubleshoot", DEACTIVATE: "De-Activate" } },
-      UNIS: { label: "Unis", children: { CREATE: "Create", TROUBLESHOOT: "Troubleshoot", DEACTIVATE: "De-Activate" } },
+      CUBEWORK: { label: "Cubework", children: { NEW_HIRE: "New Hire", END_ASSIGNMENT: "End Assignment" } },
+      UNIS: { label: "Unis", children: { NEW_HIRE: "New Hire", END_ASSIGNMENT: "End Assignment" } },
     },
   },
   SOFTWARE: {
@@ -1327,6 +1398,42 @@ actionTabsEl?.addEventListener("click", (e) => {
   render();
 });
 
+// Lazily loads + mounts the Network Map tool the first time a permitted user
+// opens it, then just shows/hides it (state - placed markers, background,
+// etc. - survives switching to another tab and back). The role check is
+// repeated here, at load time, not just in the nav/click handlers, so the
+// script is never even requested for anyone below Full access.
+let networkMapInstance = null;
+let networkMapLoadPromise = null;
+function mountNetworkMap() {
+  if (!canSeeNetworkMap() || !networkMapMountEl) return Promise.resolve(null);
+  if (networkMapInstance) return Promise.resolve(networkMapInstance);
+  if (!networkMapLoadPromise) {
+    networkMapLoadPromise = (async () => {
+      if (!window.NetworkMapTool) {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement("script");
+          s.src = NETWORK_MAP_SCRIPT_URL;
+          s.onload = resolve;
+          s.onerror = () => reject(new Error("Network Map tool failed to load — check your connection and try again."));
+          document.head.appendChild(s);
+        });
+      }
+      // Re-check after the await: the session may have changed while loading.
+      if (!canSeeNetworkMap()) return null;
+      networkMapMountEl.textContent = ""; // clears a previous load-failure message before a retry
+      networkMapInstance = window.NetworkMapTool.mount(networkMapMountEl);
+      return networkMapInstance;
+    })().catch((err) => {
+      console.error(err);
+      networkMapLoadPromise = null; // let the next visit retry
+      networkMapMountEl.innerHTML = `<div style="padding:24px; color:var(--danger);">${escapeHtml(err.message || "Network Map tool failed to load.")}</div>`;
+      return null;
+    });
+  }
+  return networkMapLoadPromise;
+}
+
 // Roadmap is the only tab left that uses the shared chrome (search/sort/
 // tabs); Access, Email Request, Standup, and Daily To-Do each swap it out
 // for whatever actually applies to them instead. Email Request
@@ -1342,6 +1449,7 @@ function updateAppChrome() {
   const isDailyTodo = currentApp === DAILY_TODO_APP_KEY;
   const isIssue = currentApp === ISSUE_APP_KEY;
   const isNoAccess = currentApp === NO_ACCESS_APP_KEY;
+  const isNetworkMap = currentApp === NETWORK_MAP_APP_KEY;
   // Access, Email Request, Standup, Daily To-Do, and Issue (see
   // #standupView/#dailyTodoView/#issueView - each has its own nav handling
   // step/region/status navigation instead) have none of the shared chrome
@@ -1398,6 +1506,19 @@ function updateAppChrome() {
   if (isEmailRequestAttachmentsEmbed) window.eraApplyAccessGating?.();
   if (issueViewEl) issueViewEl.style.display = isIssue ? "block" : "none";
   if (noAccessViewEl) noAccessViewEl.style.display = isNoAccess ? "block" : "none";
+  // Network Map (2026-09-28): the view is shown only for a permitted user
+  // (canSeeNetworkMap), and only after mountNetworkMap() has loaded the tool.
+  // The instance is told when it becomes visible/hidden so it can re-fit its
+  // canvas and drop transient overlays (cursor ghost, tooltip).
+  const showNetworkMap = isNetworkMap && canSeeNetworkMap();
+  if (networkMapViewEl) networkMapViewEl.style.display = showNetworkMap ? "block" : "none";
+  if (showNetworkMap) {
+    mountNetworkMap().then((inst) => {
+      if (inst && currentApp === NETWORK_MAP_APP_KEY) requestAnimationFrame(() => inst.onShow());
+    });
+  } else if (networkMapInstance) {
+    networkMapInstance.onHide();
+  }
   // Coarse "could this ever show" gate - just enough so the form doesn't
   // flash visible while switching away from Issue entirely. renderIssueView()
   // (called right below) sets the actual final display, since only it knows
@@ -1468,6 +1589,7 @@ function syncHeaderForCurrentApp() {
     else if (currentApp === STANDUP_APP_KEY) appHeading.textContent = STANDUP_LABEL;
     else if (currentApp === DAILY_TODO_APP_KEY) appHeading.textContent = DAILY_TODO_LABEL;
     else if (currentApp === ISSUE_APP_KEY) appHeading.textContent = ISSUE_LABEL;
+    else if (currentApp === NETWORK_MAP_APP_KEY) appHeading.textContent = NETWORK_MAP_LABEL;
     else if (currentApp === NO_ACCESS_APP_KEY) appHeading.textContent = NO_ACCESS_LABEL;
   }
   if (currentApp === ROADMAP_APP_KEY) searchInput.placeholder = ROADMAP_SEARCH_PLACEHOLDER;
@@ -1477,16 +1599,31 @@ appSwitcherEl?.addEventListener("click", (e) => {
   const btn = e.target.closest(".tab");
   if (!btn) return;
   const appKey = btn.dataset.app;
-  // Cubework Email Request sub-nav (2026-09-22, per Huy's request) - the six
+  // Cubework Email Request sub-nav (2026-09-22, per Huy's request) - the
   // .tab-sub buttons under it share the parent's own data-app value (so the
   // rest of this handler's canSeeTab/currentApp plumbing applies to them
   // for free) plus their own data-era-mode identifying which #era_tabs mode
   // to open, forwarded to window.eraGoToMode() (index.html's own "CW Email
   // Request embed logic" script) below.
   const eraMode = btn.dataset.eraMode;
+  // Employee (2026-09-26, sidebar dropdown removed 2026-09-27; reworked
+  // into an entry chooser same day, later pass, per Huy's written spec) -
+  // carries data-emp-subview="" (present but empty, a marker rather than a
+  // real mode name) so every sidebar click - even a re-click while already
+  // mid-workflow - resets eraEmpSubview to null BEFORE forwarding into
+  // eraGoToMode below. index.html's era_emp_card then lands on its own
+  // inline entry chooser (shared Requestor Email, then New Hire/End
+  // Assignment buttons once that email passes eraEmpRequesterReady()) -
+  // see era_emp_entryChooser's own markup comment - instead of jumping
+  // straight into either workflow.
+  const empSubview = btn.dataset.empSubview;
+  if (btn.hasAttribute("data-emp-subview")) window.eraSetEmployeeSubview?.(empSubview || null);
   if (!appKey) return;
   if (appKey === ACCESS_APP_KEY && !isOwner()) return;
-  if (appKey !== ACCESS_APP_KEY && !canSeeTab(appKey)) return;
+  // Network Map is role-gated (Admin/Full access), not a per-user tab grant,
+  // so it bypasses canSeeTab() - see canSeeNetworkMap().
+  if (appKey === NETWORK_MAP_APP_KEY && !canSeeNetworkMap()) return;
+  if (appKey !== ACCESS_APP_KEY && appKey !== NETWORK_MAP_APP_KEY && !canSeeTab(appKey)) return;
   // Email Request (Attachments) is a link, not a tab - see
   // EMAIL_REQUEST_ATTACHMENTS_APP_KEY above for why (script.google.com
   // can't be framed on this domain). Open its Apps Script URL in a new tab
@@ -1500,7 +1637,7 @@ appSwitcherEl?.addEventListener("click", (e) => {
     // Already on this tab - a sub-nav click still needs to switch the
     // in-page mode; a re-click of the already-active top-level tab itself
     // (no data-era-mode) stays a no-op, same as before this sub-nav existed.
-    if (eraMode) window.eraGoToMode?.(eraMode);
+    if (eraMode) window.eraGoToMode?.(eraMode, true);
     return;
   }
 
@@ -1516,8 +1653,8 @@ appSwitcherEl?.addEventListener("click", (e) => {
   searchInput.value = "";
   syncHeaderForCurrentApp();
   updateAppChrome();
-  if (eraMode) window.eraGoToMode?.(eraMode);
-  if (currentApp !== ACCESS_APP_KEY && currentApp !== EMAIL_REQUEST_APP_KEY && currentApp !== EMAIL_REQUEST_ATTACHMENTS_EMBED_APP_KEY && currentApp !== STANDUP_APP_KEY && currentApp !== DAILY_TODO_APP_KEY && currentApp !== ISSUE_APP_KEY) renderActionTabs();
+  if (eraMode) window.eraGoToMode?.(eraMode, true);
+  if (currentApp !== ACCESS_APP_KEY && currentApp !== EMAIL_REQUEST_APP_KEY && currentApp !== EMAIL_REQUEST_ATTACHMENTS_EMBED_APP_KEY && currentApp !== STANDUP_APP_KEY && currentApp !== DAILY_TODO_APP_KEY && currentApp !== ISSUE_APP_KEY && currentApp !== NETWORK_MAP_APP_KEY) renderActionTabs();
   subscribeToCurrentApp();
 });
 
@@ -1786,6 +1923,160 @@ function subscribeToKeycardHistory(email, role) {
 }
 window.getKeycardHistoryCache = () => keycardHistoryById;
 
+// Wi-Fi Submission History (added 2026-09-23, per Huy's request) - same
+// bridging pattern as the Keycard block just above, deliberately simpler
+// (no photo-ID/signature callables - Wi-Fi has no e-signature workflow).
+// See functions/wifiHistory.js.
+const recordWifiSubmissionFn = httpsCallable(functions, "recordWifiSubmission");
+const deleteWifiHistoryFn = httpsCallable(functions, "deleteWifiHistory");
+const setWifiHistoryStatusFn = httpsCallable(functions, "setWifiHistoryStatus");
+window.recordWifiSubmission = recordWifiSubmissionFn;
+window.deleteWifiHistory = deleteWifiHistoryFn;
+window.setWifiHistoryStatus = setWifiHistoryStatusFn;
+let wifiHistoryById = {};
+let unsubscribeWifiHistory = null;
+// Same ownership filtering as subscribeToKeycardHistory above - mirrors
+// firestore.rules' wifiRequestHistory match block.
+function subscribeToWifiHistory(email, role) {
+  if (unsubscribeWifiHistory) {
+    unsubscribeWifiHistory();
+    unsubscribeWifiHistory = null;
+  }
+  wifiHistoryById = {};
+  if (!email) return;
+  const historyQuery =
+    role === "full"
+      ? collection(db, "wifiRequestHistory")
+      : query(collection(db, "wifiRequestHistory"), where("createdBy", "==", email));
+  unsubscribeWifiHistory = onSnapshot(
+    historyQuery,
+    (snapshot) => {
+      const next = {};
+      snapshot.docs.forEach((d) => {
+        next[d.id] = d.data();
+      });
+      wifiHistoryById = next;
+    },
+    (err) => console.error(err)
+  );
+}
+window.getWifiHistoryCache = () => wifiHistoryById;
+
+// Employee Submission History (renamed/repurposed from Electrical
+// 2026-09-26, per Huy's request) - same bridging pattern as the Wi-Fi block
+// just above. See functions/employeeHistory.js.
+const recordEmployeeSubmissionFn = httpsCallable(functions, "recordEmployeeSubmission");
+const deleteEmployeeHistoryFn = httpsCallable(functions, "deleteEmployeeHistory");
+const setEmployeeHistoryStatusFn = httpsCallable(functions, "setEmployeeHistoryStatus");
+window.recordEmployeeSubmission = recordEmployeeSubmissionFn;
+window.deleteEmployeeHistory = deleteEmployeeHistoryFn;
+window.setEmployeeHistoryStatus = setEmployeeHistoryStatusFn;
+let employeeHistoryById = {};
+let unsubscribeEmployeeHistory = null;
+// Same ownership filtering as subscribeToKeycardHistory/subscribeToWifiHistory
+// above - mirrors firestore.rules' employeeRequestHistory match block.
+function subscribeToEmployeeHistory(email, role) {
+  if (unsubscribeEmployeeHistory) {
+    unsubscribeEmployeeHistory();
+    unsubscribeEmployeeHistory = null;
+  }
+  employeeHistoryById = {};
+  if (!email) return;
+  const historyQuery =
+    role === "full"
+      ? collection(db, "employeeRequestHistory")
+      : query(collection(db, "employeeRequestHistory"), where("createdBy", "==", email));
+  unsubscribeEmployeeHistory = onSnapshot(
+    historyQuery,
+    (snapshot) => {
+      const next = {};
+      snapshot.docs.forEach((d) => {
+        next[d.id] = d.data();
+      });
+      employeeHistoryById = next;
+    },
+    (err) => console.error(err)
+  );
+}
+window.getEmployeeHistoryCache = () => employeeHistoryById;
+
+// Software Submission History (2026-09-29, per Huy's written spec) - same
+// bridging pattern as the Employee block just above. See
+// functions/softwareHistory.js.
+const recordSoftwareSubmissionFn = httpsCallable(functions, "recordSoftwareSubmission");
+const deleteSoftwareHistoryFn = httpsCallable(functions, "deleteSoftwareHistory");
+const setSoftwareHistoryStatusFn = httpsCallable(functions, "setSoftwareHistoryStatus");
+window.recordSoftwareSubmission = recordSoftwareSubmissionFn;
+window.deleteSoftwareHistory = deleteSoftwareHistoryFn;
+window.setSoftwareHistoryStatus = setSoftwareHistoryStatusFn;
+let softwareHistoryById = {};
+let unsubscribeSoftwareHistory = null;
+// Same ownership filtering as subscribeToEmployeeHistory above - mirrors
+// firestore.rules' softwareRequestHistory match block.
+function subscribeToSoftwareHistory(email, role) {
+  if (unsubscribeSoftwareHistory) {
+    unsubscribeSoftwareHistory();
+    unsubscribeSoftwareHistory = null;
+  }
+  softwareHistoryById = {};
+  if (!email) return;
+  const historyQuery =
+    role === "full"
+      ? collection(db, "softwareRequestHistory")
+      : query(collection(db, "softwareRequestHistory"), where("createdBy", "==", email));
+  unsubscribeSoftwareHistory = onSnapshot(
+    historyQuery,
+    (snapshot) => {
+      const next = {};
+      snapshot.docs.forEach((d) => {
+        next[d.id] = d.data();
+      });
+      softwareHistoryById = next;
+    },
+    (err) => console.error(err)
+  );
+}
+window.getSoftwareHistoryCache = () => softwareHistoryById;
+
+// Hardware Submission History (2026-10-02, per Huy's written spec) - same
+// bridging pattern as the Software block just above. See
+// functions/hardwareHistory.js.
+const recordHardwareSubmissionFn = httpsCallable(functions, "recordHardwareSubmission");
+const deleteHardwareHistoryFn = httpsCallable(functions, "deleteHardwareHistory");
+const setHardwareHistoryStatusFn = httpsCallable(functions, "setHardwareHistoryStatus");
+window.recordHardwareSubmission = recordHardwareSubmissionFn;
+window.deleteHardwareHistory = deleteHardwareHistoryFn;
+window.setHardwareHistoryStatus = setHardwareHistoryStatusFn;
+let hardwareHistoryById = {};
+let unsubscribeHardwareHistory = null;
+// Same ownership filtering as subscribeToSoftwareHistory above - mirrors
+// firestore.rules' hardwareRequestHistory match block.
+function subscribeToHardwareHistory(email, role) {
+  if (unsubscribeHardwareHistory) {
+    unsubscribeHardwareHistory();
+    unsubscribeHardwareHistory = null;
+  }
+  hardwareHistoryById = {};
+  if (!email) return;
+  const historyQuery =
+    role === "full"
+      ? collection(db, "hardwareRequestHistory")
+      : query(collection(db, "hardwareRequestHistory"), where("createdBy", "==", email));
+  unsubscribeHardwareHistory = onSnapshot(
+    historyQuery,
+    (snapshot) => {
+      const next = {};
+      snapshot.docs.forEach((d) => {
+        next[d.id] = d.data();
+      });
+      hardwareHistoryById = next;
+    },
+    (err) => console.error(err)
+  );
+}
+window.getHardwareHistoryCache = () => hardwareHistoryById;
+
+
 // 2026-08-10: no longer called anywhere in this file - the plain "Pull
 // emails" button that used this was removed once #standupPullBtn (renamed
 // from "Pull with Summary") became the only Pull action, always doing the
@@ -1817,6 +2108,12 @@ const saveDailyTodoFn = httpsCallable(functions, "saveDailyTodo");
 const deleteDailyTodoSaveFn = httpsCallable(functions, "deleteDailyTodoSave");
 
 const addIssueItemFn = httpsCallable(functions, "addIssueItem");
+// Standup Transfer to Issue (2026-09-29): match-or-create, preview lookup, and
+// the learned-category rules - see functions/standupTransfer.js.
+const transferStandupEntryToIssueFn = httpsCallable(functions, "transferStandupEntryToIssue", { timeout: 60000 });
+const lookupStandupIssueLinksFn = httpsCallable(functions, "lookupStandupIssueLinks", { timeout: 60000 });
+const saveStandupCategoryRulesFn = httpsCallable(functions, "saveStandupCategoryRules");
+const deleteStandupCategoryRuleFn = httpsCallable(functions, "deleteStandupCategoryRule");
 const updateIssueItemFn = httpsCallable(functions, "updateIssueItem");
 const setIssueItemStatusFn = httpsCallable(functions, "setIssueItemStatus");
 const setIssueItemTagFn = httpsCallable(functions, "setIssueItemTag");
@@ -2170,6 +2467,10 @@ function standupRestoreTagPickerScroll(listEl, rowClass, classPrefix, itemId, sc
 // leaves an entry with zero tags (falls back to "other") - a picker with
 // every box unchecked would otherwise vanish from every tag section.
 function standupToggleItemTag(item, tagKey, checked) {
+  // 2026-09-29: a hand-made pick - stops an existing Issue's categories from
+  // pre-filling over it (standupRefreshIssueLinks) and hides the "learned"
+  // badge, since the row no longer reflects what the app auto-selected.
+  item.tagsTouched = true;
   const tags = new Set(standupItemTags(item));
   if (checked) tags.add(tagKey);
   else tags.delete(tagKey);
@@ -2472,6 +2773,253 @@ function standupGuessSubjectCategories(subject, allTags = standupAllTags()) {
   return matched;
 }
 
+// ---- Learned categories (2026-09-29) --------------------------------------
+// The keyword rules above only know the categories somebody wrote a regex for
+// (nothing for "Troubleshoot - Gate Reader Not Working", for instance). This
+// layer LEARNS from what the user finally selected at Transfer to Issue and
+// re-applies it on later Pulls. Design rules (see docs/standup-tab.md):
+//   - Persisted per user in standupCategoryRules (firestore.rules limits reads
+//     to the owner) - never browser-only, never shared with other users.
+//   - A rule is a normalized SUBJECT TOKEN SET (dates, numbers, ticket ids,
+//     RE:/FW: and stop-words stripped, light stemming), not a stored email, so
+//     "...Not Working" generalizes to "...Not Responding".
+//   - A match needs >=2 shared tokens AND a Dice similarity >=0.7 (>=0.6 if
+//     the requester email was seen on that rule) - a single shared keyword
+//     ("Troubleshooting Documentation for New Wi-Fi Installation" vs a
+//     Gate Reader rule) is never enough. Two rules that disagree and score
+//     within 0.05 of each other = ambiguous = nothing is auto-selected.
+//   - A "lead" pattern ("Troubleshoot - <anything>") is only ever DERIVED,
+//     never stored: it applies once >=2 different learned topics share the
+//     same lead AND the same categories, i.e. it has been confirmed twice.
+//   - Learned categories are authoritative over keyword detection (they are
+//     the user's own earlier correction); with no learned match the normal
+//     keyword detection runs unchanged.
+let allStandupCategoryRules = [];
+const STANDUP_LEARN_STOPWORDS = new Set([
+  "a", "an", "the", "for", "to", "and", "or", "of", "in", "on", "at", "with", "from", "by",
+  "is", "are", "was", "be", "please", "re", "fw", "fwd", "not", "no",
+]);
+const STANDUP_LEARN_MIN_SHARED_TOKENS = 2;
+const STANDUP_LEARN_SIMILARITY = 0.7;
+const STANDUP_LEARN_SIMILARITY_KNOWN_SENDER = 0.6;
+const STANDUP_LEARN_LEAD_SCORE = 0.72;
+const STANDUP_LEARN_AMBIGUITY_MARGIN = 0.05;
+
+function standupStemToken(w) {
+  if (w.length > 5 && w.endsWith("ing")) return w.slice(0, -3);
+  if (w.length > 4 && w.endsWith("ed")) return w.slice(0, -2);
+  if (w.length > 3 && w.endsWith("s") && !w.endsWith("ss")) return w.slice(0, -1);
+  return w;
+}
+
+function standupStripSubjectNoise(subject) {
+  let t = String(subject || "").toLowerCase();
+  let prev;
+  do {
+    prev = t;
+    t = t.replace(/^\s*(re|fw|fwd)\s*:\s*/, "");
+  } while (t !== prev);
+  return t;
+}
+
+// Meaningful, stemmed, de-duplicated tokens of a subject. Tokens containing a
+// digit (unit numbers, dates, ticket numbers) are dropped on purpose - they
+// identify ONE email, not a recurring pattern.
+function standupSubjectTokens(subject) {
+  let t = standupStripSubjectNoise(subject);
+  t = t.replace(/\[[^\]]*\]/g, " ");
+  t = t.replace(/\b\d{1,4}[\/.-]\d{1,2}(?:[\/.-]\d{1,4})?\b/g, " ");
+  t = t.replace(/\bwi[\s-]?fi\b/g, "wifi").replace(/\bkey[\s-]?cards?\b/g, "keycard").replace(/\bhik[\s-]?central\b/g, "hikcentral");
+  const out = [];
+  for (const raw of t.split(/[^a-z0-9]+/)) {
+    if (raw.length < 2 || /\d/.test(raw) || STANDUP_LEARN_STOPWORDS.has(raw)) continue;
+    const w = standupStemToken(raw);
+    if (!out.includes(w)) out.push(w);
+  }
+  return out;
+}
+
+// "Troubleshoot - Gate Reader Not Working" -> "troubleshoot". Only when the
+// subject really has a delimited lead (" - ", ": ", " | ") with a topic after
+// it; a bare "Troubleshooting Documentation for ..." has no lead at all.
+function standupSubjectLead(subject) {
+  const m = standupStripSubjectNoise(subject).match(/^(.+?)(?:\s+[-\u2013\u2014|]\s+|:\s+)(.+)$/);
+  if (!m) return null;
+  const lead = standupSubjectTokens(m[1]);
+  if (!lead.length || lead.length > 4 || !standupSubjectTokens(m[2]).length) return null;
+  return lead.join(" ");
+}
+
+function standupCategorySignature(categories) {
+  return (Array.isArray(categories) ? categories : []).slice().sort().join("|");
+}
+
+// Best learned rule for a subject, or null (= no confident match, fall back to
+// the keyword rules). Returns { categories, ruleId, kind, score } where
+// categories is limited to tags that still exist.
+function standupMatchLearnedRules(subject, senderEmail, allTags = standupAllTags(), rules = allStandupCategoryRules) {
+  const tokens = standupSubjectTokens(subject);
+  if (tokens.length < STANDUP_LEARN_MIN_SHARED_TOKENS || !rules.length) return null;
+  const tokenSet = new Set(tokens);
+  const sender = (senderEmail || "").toLowerCase();
+  const candidates = [];
+  for (const rule of rules) {
+    const ruleTokens = Array.isArray(rule.tokens) ? rule.tokens : [];
+    if (ruleTokens.length < STANDUP_LEARN_MIN_SHARED_TOKENS) continue;
+    let shared = 0;
+    for (const tk of ruleTokens) if (tokenSet.has(tk)) shared++;
+    if (shared < STANDUP_LEARN_MIN_SHARED_TOKENS) continue;
+    const dice = (2 * shared) / (ruleTokens.length + tokens.length);
+    const knownSender = Boolean(sender) && Array.isArray(rule.senders) && rule.senders.includes(sender);
+    if (dice >= (knownSender ? STANDUP_LEARN_SIMILARITY_KNOWN_SENDER : STANDUP_LEARN_SIMILARITY)) {
+      candidates.push({ score: dice + (knownSender ? 0.05 : 0), rule, kind: "topic" });
+    }
+  }
+  const lead = standupSubjectLead(subject);
+  if (lead) {
+    const sameLead = rules.filter((r) => r.lead === lead);
+    const sig = sameLead.length ? standupCategorySignature(sameLead[0].categories) : "";
+    if (sameLead.length >= 2 && sig && sameLead.every((r) => standupCategorySignature(r.categories) === sig)) {
+      candidates.push({ score: STANDUP_LEARN_LEAD_SCORE, rule: sameLead[0], kind: "lead" });
+    }
+  }
+  if (!candidates.length) return null;
+  candidates.sort((a, b) => b.score - a.score);
+  const top = candidates[0];
+  const topSig = standupCategorySignature(top.rule.categories);
+  const ambiguous = candidates.some(
+    (c) => c !== top && standupCategorySignature(c.rule.categories) !== topSig && top.score - c.score < STANDUP_LEARN_AMBIGUITY_MARGIN
+  );
+  if (ambiguous) return null;
+  const valid = new Set(allTags.map((t) => t.key));
+  const categories = (top.rule.categories || []).filter((k) => valid.has(k));
+  return { categories, ruleId: top.rule.id, kind: top.kind, score: top.score };
+}
+
+// The requester (not Huy) behind an entry - what a learned rule remembers as
+// its "sender" metadata. Falls back through the conversation for rows
+// restored from a Saved day.
+function standupRequesterEmail(item) {
+  const cands = [item.initial?.senderEmail, item.senderEmail, item.conversationMessages?.[0]?.senderEmail];
+  for (const c of cands) {
+    const e = typeof c === "string" ? c.trim().toLowerCase() : "";
+    if (e && e !== STANDUP_OWN_EMAIL) return e;
+  }
+  return null;
+}
+
+// Category auto-selection for one freshly pulled message: a confident learned
+// rule wins, else the normal subject-keyword detection. autoTags is the
+// baseline "what the app chose" used later to tell a genuine user correction
+// from a plain confirmation.
+function standupAutoSelectCategories(subject, senderEmail, allTags) {
+  const keyword = standupGuessSubjectCategories(subject, allTags);
+  const learned = standupMatchLearnedRules(subject, senderEmail, allTags);
+  if (learned) return { tags: learned.categories.slice(), source: "learned", ruleId: learned.kind === "topic" ? learned.ruleId : null, ruleKind: learned.kind };
+  return { tags: keyword, source: keyword.length ? "keyword" : null, ruleId: null, ruleKind: null };
+}
+
+// Rules to persist for a batch of just-transferred items (their FINAL
+// category selection). Skips anything that carries no new information: no
+// learned rule involved and the selection is exactly what the keyword rules
+// already chose (or nothing) - that keeps the rule table from filling up with
+// accidental/duplicate entries. A rule that fired and was then edited IS
+// saved (with its ruleId, so the correction overwrites it in place).
+function standupCollectLearningRules(items) {
+  const rules = [];
+  for (const item of items) {
+    const subject = item.subject || item.text || "";
+    const tokens = standupSubjectTokens(subject);
+    if (tokens.length < STANDUP_LEARN_MIN_SHARED_TOKENS) continue;
+    const finalTags = standupItemTags(item).filter((k) => k !== "other");
+    const autoTags = Array.isArray(item.autoTags) ? item.autoTags.filter((k) => k !== "other") : [];
+    const involvedRule = item.autoSource === "learned";
+    if (!involvedRule && standupCategorySignature(finalTags) === standupCategorySignature(autoTags)) continue;
+    if (!involvedRule && !finalTags.length) continue;
+    rules.push({
+      ruleId: item.learnedRuleId || undefined,
+      tokens,
+      lead: standupSubjectLead(subject),
+      categories: finalTags,
+      sender: standupRequesterEmail(item),
+      exampleSubject: subject.slice(0, 300),
+    });
+  }
+  return rules;
+}
+
+async function standupLearnFromTransferredItems(items) {
+  const rules = standupCollectLearningRules(items);
+  if (!rules.length) return 0;
+  try {
+    await saveStandupCategoryRulesFn({ rules });
+    return rules.length;
+  } catch (err) {
+    // Learning is a convenience layered on top of an already-successful
+    // transfer - never let it fail or undo that.
+    console.error("saveStandupCategoryRules failed", err);
+    return 0;
+  }
+}
+
+// Ticket for matching/prefilling - subject/title only. The wider
+// standupExtractTicketNumber also reads bodies, where a quoted OLD ticket
+// could falsely tie two unrelated Issues together.
+function standupSubjectTicket(item) {
+  const m = String(item.subject || item.text || "").match(STANDUP_TICKET_ID_RE);
+  return m ? m[1] : "";
+}
+
+function standupItemConversationId(item) {
+  return item.conversationId || item.initial?.conversationId || item.conversationMessages?.find((m) => m && m.conversationId)?.conversationId || null;
+}
+
+// Identifiers the server matches an entry to an existing Issue with - one
+// shape for both the preview lookup and the real transfer.
+function standupIssueMatchFields(item, location) {
+  return {
+    existingIssueId: item.issueLink?.issueId || "",
+    conversationId: standupItemConversationId(item) || "",
+    sourceMessageId: item.sourceMessageId || "",
+    ticket: standupSubjectTicket(item),
+    title: (item.text || "").trim(),
+    location: location || effectiveEntryLocation(item) || "",
+    senderEmail: standupRequesterEmail(item) || "",
+  };
+}
+
+// After a Pull: ask the server which rows already belong to an existing Issue
+// (read-only preview - the transfer re-matches authoritatively), badge them,
+// and let an existing Issue's categories pre-fill a row nothing else (learned
+// rule / manual pick) has decided.
+async function standupRefreshIssueLinks() {
+  const items = standupChecklistItems.filter((i) => !i.transferredToIssueId && (i.text || "").trim());
+  if (!items.length) return;
+  try {
+    const res = await lookupStandupIssueLinksFn({ entries: items.map((i) => ({ clientKey: i.id, ...standupIssueMatchFields(i, "") })) });
+    const links = res.data?.links || {};
+    let changed = false;
+    for (const item of items) {
+      const link = links[item.id] || null;
+      if (!link && !item.issueLink) continue;
+      item.issueLink = link;
+      changed = true;
+      if (link && Array.isArray(link.tags) && link.tags.length && item.autoSource !== "learned" && !item.tagsTouched) {
+        const merged = [...new Set([...standupItemTags(item).filter((k) => k !== "other"), ...link.tags])];
+        if (merged.length !== standupItemTags(item).length) {
+          item.tags = merged;
+          item.tag = standupPrimaryTag(item);
+          item.autoTags = merged.slice();
+          item.autoSource = "issue";
+        }
+      }
+    }
+    if (changed && currentStandupStep === "pull") renderStandupChecklist();
+  } catch (err) {
+    console.error("lookupStandupIssueLinks failed", err);
+  }
+}
+
 // Ticket-number extraction (2026-09-11) - same bracketed pattern mail-sync's
 // own parseEmail.js already uses (TICKET_ID_RE = /\[(ITS-\d+)\]/i), widened
 // from ITS-only to any bracketed [LETTERS-digits] ticket prefix per the
@@ -2686,10 +3234,27 @@ async function standupRunPull(buttonEl, pullFn, pullSourceTag) {
       // resolves to "other" for display grouping via standupPrimaryTag, but
       // the tag-picker checkboxes show nothing checked - see
       // standupItemTags).
-      const matchedTags = standupGuessSubjectCategories(m.subject, allTags);
+      // 2026-09-29: a confident LEARNED rule (see standupMatchLearnedRules)
+      // wins over the keyword rules; otherwise this is exactly the keyword
+      // detection above. autoTags/autoSource record what the app chose so the
+      // Transfer step can tell a real user correction from a confirmation.
+      const requesterForRule = [m.initial?.senderEmail, m.senderEmail].find((e) => e && String(e).toLowerCase() !== STANDUP_OWN_EMAIL) || "";
+      const auto = standupAutoSelectCategories(m.subject, requesterForRule, allTags);
+      const matchedTags = auto.tags;
       return {
         id: `msg-${m.pulledDate}-${m.id || i}`,
         text: m.subject || "(no subject)",
+        // Identifiers for Transfer to Issue's existing-Issue matching and the
+        // category-learning rules (2026-09-29) - the original subject (text
+        // is hand-editable), the thread's Conversation ID, this message's own
+        // id, and the sender.
+        subject: m.subject || "",
+        conversationId: m.conversationId || null,
+        sourceMessageId: m.id || null,
+        senderEmail: m.senderEmail || null,
+        autoTags: matchedTags.slice(),
+        autoSource: auto.source,
+        learnedRuleId: auto.ruleId,
         tag: matchedTags.length ? standupPrimaryTag({ tags: matchedTags }, allTags) : "other",
         // Every matched category, not just one (2026-08-18 multi-tag support
         // made this possible; 2026-09-14 is what actually populates more
@@ -2723,6 +3288,10 @@ async function standupRunPull(buttonEl, pullFn, pullSourceTag) {
     standupLastPulledDates = datesToPull;
     standupLastPulledDate = datesToPull[datesToPull.length - 1];
     renderStandupChecklist();
+    // Transfer to Issue is live the moment the rows render (renderStandupChecklist
+    // shows the Pull-step toolbar) - this just adds the existing-Issue badges
+    // in the background, it never gates the button.
+    standupRefreshIssueLinks();
     buttonEl.textContent = originalText;
   } catch (err) {
     buttonEl.textContent = "Pull failed";
@@ -2778,6 +3347,9 @@ function renderStandupChecklist() {
       ? `${includedCount} of ${standupChecklistItems.length} included`
       : "";
   }
+  // Transfer to Issue is available the moment there are rows (2026-09-29) -
+  // no need to open 2. Report first. Both branches set explicitly (pitfall #14).
+  if (standupPullTransferBarEl) standupPullTransferBarEl.style.display = standupChecklistItems.length ? "block" : "none";
   if (!standupChecklistItems.length) {
     standupChecklistListEl.innerHTML = `<p style="font-size:13px; color:var(--text); text-align:center;">No tasks yet — pull in step 1, or add one manually.</p>`;
     return;
@@ -2914,7 +3486,10 @@ function renderStandupChecklist() {
           ${mailboxSourceBadge}
           ${ticketBadge}
           <input type="text" class="standup-task-text" value="${escapeHtml(item.text)}" style="flex:1; min-width:120px; padding:6px 8px; border:1px solid var(--border);background:var(--input-bg);color:var(--text); border-radius:6px; font-size:13px;" />
+          ${standupAutoCategoryBadgeHtml(item)}
           ${standupTagPickerHtml(item, allTags, "standup-task-tag", item.id === standupPullOpenTagPickerId, true)}
+          ${standupIssueLinkBadgeHtml(item)}
+          ${standupTransferControlHtml(item, "standup-task-transfer-select")}
           <button type="button" class="standup-task-remove secondary" style="font-size:12px; padding:4px 8px;">Remove</button>
         </div>
         ${summaryBlock}
@@ -2991,6 +3566,10 @@ standupChecklistListEl?.addEventListener("change", (e) => {
   const row = e.target.closest(".standup-task-row");
   const item = standupChecklistItems.find((i) => i.id === row?.dataset.id);
   if (!item) return;
+  if (e.target.classList.contains("standup-task-transfer-select")) {
+    item.selectedForTransfer = e.target.checked;
+    return; // nothing else on the page depends on this
+  }
   if (e.target.classList.contains("standup-task-included")) {
     item.included = e.target.checked;
     if (standupChecklistStatusEl) {
@@ -3723,7 +4302,11 @@ function standupCategoryLocationBlockHtml(items) {
   ].join("");
 }
 
-function buildStandupSummaryDetailSectionsHtml(items = standupChecklistItems) {
+// Per-tag included/deduped items behind both the legacy block layout below
+// (Saved tab's Summary panel) and the table layout further down (Generate
+// Report + the Preview & Send email) - one source so they can never disagree
+// on what's in the report.
+function standupDetailIncludedByTag(items = standupChecklistItems) {
   // Grouped by label (standupTagGroups), not raw key (standupAllTags) - see
   // that function's own comment for the duplicate-tag ("two 'Camera'
   // headers") bug this fixes. Flattening every key in the group before
@@ -3733,12 +4316,165 @@ function buildStandupSummaryDetailSectionsHtml(items = standupChecklistItems) {
   // like before.
   // (2026-08-08) standupTagGroupsAlphabetical(), not standupTagGroups() -
   // Section 1 only, per Huy's request; see that helper's own comment.
-  const includedByTag = standupTagGroupsAlphabetical()
+  return standupTagGroupsAlphabetical()
     .map((tag) => ({
       tag,
       items: standupReportDedupe(tag.keys.flatMap((key) => standupIncludedItemsByTag(key, items))),
     }))
     .filter((c) => c.items.length);
+}
+
+// ---- Report tables (2026-10-02) ---------------------------------------------
+// Generate Report's output (the srcdoc'd iframe/Download HTML/PDF/Save
+// document AND the Preview & Send email, which share these builders) renders
+// as label/value tables instead of loose text, matching the Preview Email
+// table in CW Email Request. The style strings below are a copy of
+// functions/emailRequest.js's CW_TBL_STYLE/CW_TD_LABEL/CW_TD_VALUE/
+// CW_TD_SECTION (that file is server-only and can't be imported into this
+// unbundled client file) - keep the two in sync by hand. Differences: no
+// max-width (the iframe is wider than the email modal), fixed layout +
+// overflow-wrap so long text wraps inside its cell instead of widening the
+// table, and a header row (th) because these tables have real columns.
+// All inline styles, since the same HTML is baked into emails/downloads.
+const STANDUP_TBL_STYLE = "border-collapse:collapse;width:100%;table-layout:fixed;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#1e293b;";
+const STANDUP_TD_BASE = "padding:8px 10px;border:1px solid #d0d7de;vertical-align:top;overflow-wrap:anywhere;word-break:break-word;";
+const STANDUP_TD_VALUE = STANDUP_TD_BASE;
+const STANDUP_TD_LABEL = `${STANDUP_TD_BASE}background:#f6f8fa;font-weight:700;`;
+const STANDUP_TD_SECTION = `${STANDUP_TD_BASE}background:#eef2ff;font-weight:700;font-size:15px;`;
+
+// One table: a full-width section-title row, a column-header row, then the
+// caller's pre-built <tr> rows. widths are per-column CSS widths (table-layout:
+// fixed needs them up front): fixed px for short label columns so a header
+// like "Category" never breaks mid-word at narrow widths, % for the main text
+// column, null for "take whatever is left" so the table can never overflow. Wrapped in a .card div so the PDF
+// export's pagination treats the table as one unsplittable block, same as
+// every other block in this report (see generateStandupReportPdf).
+function standupTableHtml(title, headers, widths, rowsHtml) {
+  const cols = widths.map((w) => (w ? `<col style="width:${w};">` : "<col>")).join("");
+  const head = headers.map((h) => `<th style="${STANDUP_TD_LABEL}text-align:left;">${escapeHtml(h)}</th>`).join("");
+  return `<div class="card" style="page-break-inside:avoid; break-inside:avoid; margin-top:18px;">
+    <table style="${STANDUP_TBL_STYLE}"><colgroup>${cols}</colgroup>
+      <thead><tr><th colspan="${headers.length}" style="${STANDUP_TD_SECTION}text-align:left;">${escapeHtml(title)}</th></tr><tr>${head}</tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+  </div>`;
+}
+
+function standupTdHtml(html, { rowspan = 1, label = false, color = "" } = {}) {
+  const rs = rowspan > 1 ? ` rowspan="${rowspan}"` : "";
+  const style = (label ? STANDUP_TD_LABEL : STANDUP_TD_VALUE) + (color ? `color:${color};` : "");
+  return `<td${rs} style="${style}">${html}</td>`;
+}
+
+// Today's Standup: Category | Location | Summary, one row per item. Category
+// and Location cells span their rows (rowspan) so grouping stays visible
+// without repeating the label on every line.
+function standupDetailTableRowsHtml(items) {
+  return standupDetailIncludedByTag(items)
+    .map((c) => {
+      const { groups, unassigned } = groupItemsByLocation(c.items);
+      const blocks = [
+        ...groups.map((g) => ({ label: g.label, items: g.items })),
+        ...(unassigned.length ? [{ label: "No location on file", items: unassigned }] : []),
+      ];
+      const total = blocks.reduce((n, b) => n + b.items.length, 0);
+      let first = true;
+      return blocks
+        .map((b) =>
+          b.items
+            .map((item, idx) => {
+              const catCell = first ? standupTdHtml(escapeHtml(c.tag.label), { rowspan: total, label: true, color: c.tag.color }) : "";
+              first = false;
+              const locCell = idx === 0 ? standupTdHtml(escapeHtml(b.label), { rowspan: b.items.length }) : "";
+              return `<tr>${catCell}${locCell}${standupTdHtml(escapeHtml(standupItemDisplayText(item)))}</tr>`;
+            })
+            .join("")
+        )
+        .join("");
+    })
+    .join("");
+}
+
+function standupDetailTableHtml(items, title) {
+  const rows = standupDetailTableRowsHtml(items);
+  return rows ? standupTableHtml(title, ["Category", "Location", "Summary"], ["120px", "26%", null], rows) : "";
+}
+
+// Cali/Outside Cali Issues: Category | Issue | Notes. sections is
+// [{ title, groups: [{ label, color, items: [{ title, notes }] }] }] - built
+// from the Issue tab's structured items for the email, or parsed back out of
+// the editable intro text for the report (standupParseIntroSections below).
+// One table per section, empty sections omitted.
+function standupIssuesTablesHtml(sections) {
+  return sections
+    .filter((s) => s.groups.some((g) => g.items.length))
+    .map((s) => {
+      const rows = s.groups
+        .filter((g) => g.items.length)
+        .map((g) =>
+          g.items
+            .map((it, idx) => {
+              const catCell = idx === 0 ? standupTdHtml(escapeHtml(g.label), { rowspan: g.items.length, label: true, color: g.color }) : "";
+              return `<tr>${catCell}${standupTdHtml(`<strong>${escapeHtml(it.title)}</strong>`)}${standupTdHtml(escapeHtml(it.notes || ""))}</tr>`;
+            })
+            .join("")
+        )
+        .join("");
+      return standupTableHtml(s.title, ["Category", "Issue", "Notes"], ["120px", "38%", null], rows);
+    })
+    .join("");
+}
+
+// The report's Cali Issues/Outside Cali Issues text is a freely hand-editable
+// plain-text textarea (standupSummaryIntroText), so unlike the email it has
+// no structured data behind it. This reads it back line by line - an
+// unindented "Heading:" starts a table, an indented "Topic:" starts a
+// category, "- text" is an issue (split into Issue/Notes on the first " — ",
+// the separator issueItemAsIsText writes), and any other non-empty line is
+// kept as an issue under the current category rather than dropped - so every
+// line of an edited intro still lands in a row.
+function standupParseIntroSections(text) {
+  const sections = [];
+  let section = null;
+  let group = null;
+  const tagColors = new Map(standupAllTags().map((t) => [t.label.toLowerCase(), t.color]));
+  const ensureSection = () => {
+    if (!section) {
+      section = { title: "Summary", groups: [] };
+      sections.push(section);
+    }
+  };
+  const ensureGroup = () => {
+    ensureSection();
+    if (!group) {
+      group = { label: "", color: "", items: [] };
+      section.groups.push(group);
+    }
+    return group;
+  };
+  for (const raw of String(text || "").split("\n")) {
+    if (!raw.trim()) continue;
+    const trimmed = raw.trim();
+    const indented = /^\s/.test(raw);
+    if (!indented && /:$/.test(trimmed) && !/^-\s/.test(trimmed)) {
+      section = { title: trimmed.slice(0, -1), groups: [] };
+      sections.push(section);
+      group = null;
+    } else if (indented && /:$/.test(trimmed) && !/^-\s/.test(trimmed)) {
+      ensureSection();
+      const label = trimmed.slice(0, -1);      group = { label, color: tagColors.get(label.toLowerCase()) || "", items: [] };
+      section.groups.push(group);
+    } else {
+      const body = trimmed.replace(/^-\s+/, "");
+      const cut = body.indexOf(" — ");
+      ensureGroup().items.push(cut === -1 ? { title: body, notes: "" } : { title: body.slice(0, cut), notes: body.slice(cut + 3) });
+    }
+  }
+  return sections;
+}
+
+function buildStandupSummaryDetailSectionsHtml(items = standupChecklistItems) {
+  const includedByTag = standupDetailIncludedByTag(items);
   return includedByTag
     .map(
       (c) => `<div style="margin-top:16px;">
@@ -3773,7 +4509,7 @@ function standupAttachmentsForDate(dateStr = standupTargetDate()) {
 // background; standupRefreshReportIfGenerated()'s call site re-runs this once
 // it lands, same "best-effort, self-heals on next render" pattern Roadmap/
 // Issue attachment thumbnails already use.
-function standupBuildAttachmentsHtml(dateStr = standupTargetDate()) {
+function standupBuildAttachmentsHtml(dateStr = standupTargetDate(), asTable = false) {
   const atts = standupAttachmentsForDate(dateStr);
   if (!atts.length) return "";
   const tiles = atts.map((a) => {
@@ -3790,6 +4526,16 @@ function standupBuildAttachmentsHtml(dateStr = standupTargetDate()) {
     }
     return `<a href="${cached}" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:5px; font-size:12px; padding:6px 10px; border-radius:8px; background:#f1f5f9; border:1px solid #e2e8f0; color:#0f172a; text-decoration:none;">📎 ${escapeHtml(a.name)}</a>`;
   });
+  // Generate Report's table layout (2026-10-02): same tiles, just inside a
+  // one-cell table so the whole report reads as tables.
+  if (asTable) {
+    return standupTableHtml(
+      "Attachments",
+      ["Files"],
+      [null],
+      `<tr><td style="${STANDUP_TD_VALUE}"><div style="display:flex; flex-wrap:wrap; gap:10px;">${tiles.join("")}</div></td></tr>`
+    );
+  }
   return `<div style="margin-top:16px; padding-top:12px; border-top:1px solid #e2e8f0;">
     <div style="font-weight:700; font-size:13px; color:#0f172a; margin-bottom:8px;">Attachments</div>
     <div style="display:flex; flex-wrap:wrap; gap:10px;">${tiles.join("")}</div>
@@ -3921,27 +4667,23 @@ function standupReportEntriesStaticHtml(items) {
   }
   const allTags = standupAllTags();
   const sorted = standupSortByTagThenLocation(list, allTags);
-  return sorted
+  // Table layout (2026-10-02, Generate Report): Category | Entry | Location -
+  // same entries, same order, same included/category/location values the
+  // card rows used to show, one row each. The ✓/☐ included mark rides in the
+  // Category cell (legend in the title) rather than its own column: a fourth
+  // column left Location a sliver at narrow widths.
+  const rows = sorted
     .map((item) => {
-      // Keyed off standupPrimaryTag() (2026-08-18), not the raw item.tag -
-      // see step 1's own row render for why. The label lists every tag the
-      // entry carries (not just the primary one it's grouped under) so this
-      // static export still shows the full picture.
       const tags = standupItemTags(item);
       const primary = standupPrimaryTag(item, allTags);
       const tagInfo = allTags.find((t) => t.key === primary) || STANDUP_TAGS.find((t) => t.key === "other");
       const tagLabel = tags
         .map((k) => (allTags.find((t) => t.key === k) || STANDUP_TAGS.find((t) => t.key === "other")).label)
         .join(", ");
-      const loc = effectiveEntryLocation(item);
-      return `<div class="card" style="page-break-inside:avoid; break-inside:avoid; display:flex; gap:8px; align-items:flex-start; padding:6px 8px; border:1px solid #e2e8f0; border-radius:6px; margin-bottom:4px; font-size:12px;">
-        <span>${item.included !== false ? "✓" : "☐"}</span>
-        <span style="width:8px; height:8px; border-radius:50%; background:${tagInfo.color}; margin-top:3px; flex-shrink:0;"></span>
-        <span style="flex:1;">${escapeHtml(item.text || "")}${loc ? ` <span style="color:#0f172a;">(${escapeHtml(loc)})</span>` : ""}</span>
-        <span style="color:#0f172a; white-space:nowrap;">${escapeHtml(tagLabel)}</span>
-      </div>`;
+      return `<tr>${standupTdHtml(`${item.included !== false ? "✓" : "☐"} ${escapeHtml(tagLabel)}`, { label: true, color: tagInfo.color })}${standupTdHtml(escapeHtml(item.text || ""))}${standupTdHtml(escapeHtml(effectiveEntryLocation(item) || ""))}</tr>`;
     })
     .join("");
+  return standupTableHtml("Section 2 — Pull entries (✓ included · ☐ not included)", ["Category", "Entry", "Location"], ["130px", null, "28%"], rows);
 }
 
 // `items`/`introText`/`dateStr` all default to the live Step 2 state (no
@@ -3968,20 +4710,23 @@ function buildStandupReportHtml(items = standupChecklistItems, introText = stand
   // Class/structure kept exactly as `.boss-summary` (still one atomic,
   // never-split block for generateStandupReportPdf's pagination - see its
   // own comment) - only the internal typography/spacing changed here.
-  const summaryHtml = `<div class="boss-summary" style="page-break-inside:avoid; break-inside:avoid; background:#f8fafc; border:1px solid #dbe3ee; border-radius:12px; padding:20px 22px; margin-bottom:26px;">
-    <div style="font-weight:700; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#2563eb; margin-bottom:4px;">Summary for Kuan Goh</div>
-    <div style="font-size:13.5px; line-height:1.55; color:#1e293b; white-space:pre-wrap;">${escapeHtml(introText || "")}</div>
-    ${buildStandupSummaryDetailSectionsHtml(items)}
-    ${standupBuildAttachmentsHtml(dateStr)}
-  </div>`;
+  //
+  // (2026-10-02) Everything below renders as tables (see the "Report tables"
+  // block above buildStandupSummaryDetailSectionsHtml): the intro text
+  // becomes one Category/Issue/Notes table per heading (standupParseIntroSections),
+  // the per-tag breakdown a Category/Location/Summary table, attachments a
+  // one-cell table. Same data as before, new presentation only. Each table
+  // is its own .card block for the PDF export's page-break measuring, which
+  // replaces the old single .boss-summary wrapper.
+  const summaryHtml = `<div style="font-weight:700; font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:#2563eb;">Summary for Kuan Goh</div>
+    ${standupIssuesTablesHtml(standupParseIntroSections(introText))}
+    ${standupDetailTableHtml(items, "Today's Standup")}
+    ${standupBuildAttachmentsHtml(dateStr, true)}`;
 
   // (2026-08-08) Section 2 - see standupReportEntriesStaticHtml's own
   // comment for why this is the plain/static rendering, not the live
   // editable one.
-  const sectionTwoHtml = `<div style="margin-top:26px;">
-    <div style="font-weight:700; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:#64748b; margin-bottom:10px;">Section 2 &mdash; Pull entries</div>
-    ${standupReportEntriesStaticHtml(items)}
-  </div>`;
+  const sectionTwoHtml = standupReportEntriesStaticHtml(items);
 
   return `<!DOCTYPE html>
 <html>
@@ -4063,23 +4808,53 @@ function buildStandupReportEntriesEditorHtml() {
   return visibleItems.map((item) => standupReportEditRowHtml(item)).join("");
 }
 
+// "→ Issue" checkbox / "already sent" badge, shared by the Pull step's rows and
+// Report Section 2's rows (2026-09-29) so both surfaces read and write the
+// same item.selectedForTransfer/item.transferredToIssueId state. selectClass is
+// the surface's own change-handler hook ("standup-task-transfer-select" in
+// Pull, "standup-report-transfer-select" in Report).
+function standupTransferControlHtml(item, selectClass) {
+  // Defaults to UNCHECKED (2026-08-18 request - Huy must manually pick which
+  // entries actually transfer), then fully independent once toggled.
+  if (item.selectedForTransfer === undefined) item.selectedForTransfer = false;
+  if (item.transferredToIssueId) {
+    const updated = item.transferredMode === "updated";
+    return `<span class="standup-report-transfer-badge" title="${updated ? "Added to an existing Issue this session" : "Sent to Issue this session"}" style="font-size:11px; color:var(--success-text); font-weight:600; white-space:nowrap;">${updated ? "✓ Issue updated" : "✓ In Issue"}</span>`;
+  }
+  return `<label style="display:flex; align-items:center; gap:4px; font-size:11px; color:var(--info-text); white-space:nowrap; cursor:pointer;" title="Send this entry to the Issue tab when Transfer to Issue is clicked">
+        <input type="checkbox" class="${selectClass}" ${item.selectedForTransfer ? "checked" : ""} />→ Issue
+      </label>`;
+}
+
+// "Belongs to an existing Issue" preview badge (standupRefreshIssueLinks) -
+// same-Issue entries get folded into it at transfer time instead of creating
+// a duplicate.
+function standupIssueLinkBadgeHtml(item) {
+  if (item.transferredToIssueId || !item.issueLink) return "";
+  const l = item.issueLink;
+  const by = { conversationId: "Conversation ID", issueId: "Issue ID", sourceMessageId: "source message", subject: "subject", ticket: "ticket number" }[l.matchedBy] || l.matchedBy;
+  const title = `Already tracked in Issue "${l.title || "(untitled)"}" (matched by ${by}). Transfer will add this entry to that Issue instead of creating a new one.`;
+  return `<span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; border:1px solid #7dd3fc; border-radius:9999px; padding:2px 8px; flex-shrink:0; white-space:nowrap;" title="${escapeHtml(title)}">🔗 Existing Issue</span>`;
+}
+
+// Tells the user their categories were pre-selected by something smarter than
+// the keyword rules - and that they're free to change them. Disappears once
+// the row's categories are touched by hand.
+function standupAutoCategoryBadgeHtml(item) {
+  if (item.tagsTouched || (item.autoSource !== "learned" && item.autoSource !== "issue")) return "";
+  const label = item.autoSource === "learned" ? "🎓 learned" : "🔗 from Issue";
+  const title = item.autoSource === "learned" ? "Categories auto-selected from a pattern you taught earlier. Change them any time - your correction updates what's learned." : "Categories pre-filled from the existing Issue this entry belongs to. Change them any time.";
+  return `<span style="font-size:10px; font-weight:700; color:#7c3aed; background:#f5f3ff; border:1px solid #c4b5fd; border-radius:9999px; padding:2px 8px; flex-shrink:0; white-space:nowrap;" title="${escapeHtml(title)}">${label}</span>`;
+}
+
 function standupReportEditRowHtml(item) {
   const allTags = standupAllTags();
   // Keyed off standupPrimaryTag() (2026-08-18), not the raw item.tag - see
   // step 1's own row render for why.
   const tagInfo = allTags.find((t) => t.key === standupPrimaryTag(item, allTags)) || STANDUP_TAGS.find((t) => t.key === "other");
-  // "Transfer to Issue" selection - its own checkbox, separate from
-  // "included" above. Defaults to UNCHECKED (2026-08-18 request - Huy must
-  // manually pick which entries actually transfer, rather than every
-  // included entry pre-selecting itself), then fully independent once he's
-  // toggled it either way for a given row.
-  if (item.selectedForTransfer === undefined) item.selectedForTransfer = false;
-  const alreadyTransferred = !!item.transferredToIssueId;
-  const transferCheckboxHtml = alreadyTransferred
-    ? `<span class="standup-report-transfer-badge" title="Already sent to Issue this session" style="font-size:11px; color:var(--success-text); font-weight:600; white-space:nowrap;">✓ In Issue</span>`
-    : `<label style="display:flex; align-items:center; gap:4px; font-size:11px; color:var(--info-text); white-space:nowrap; cursor:pointer;" title="Send this entry to the Issue tab when Transfer to Issue is clicked">
-        <input type="checkbox" class="standup-report-transfer-select" ${item.selectedForTransfer ? "checked" : ""} />→ Issue
-      </label>`;
+  // "Transfer to Issue" selection - see standupTransferControlHtml (shared with
+  // the Pull step's rows, 2026-09-29).
+  const transferCheckboxHtml = standupTransferControlHtml(item, "standup-report-transfer-select");
   return `<div class="standup-report-edit-row" data-id="${item.id}" style="padding:8px; border:1px solid var(--border); border-radius:8px; margin-bottom:6px; background:#ffffff;">
     <div style="display:flex; gap:8px; align-items:center;">
       <input type="checkbox" class="standup-report-edit-included" ${item.included ? "checked" : ""} />
@@ -4175,14 +4950,36 @@ standupReportAddEntryBtn?.addEventListener("click", () => {
   textInputs?.[textInputs.length - 1]?.focus();
 });
 
-// ---- "Transfer to Issue" bridge (2026-08-10) ----------------------------
-// Sends selected Section 2 entries to the Issue tab via the real
-// addIssueItem callable. See docs/standup-tab.md's "Transfer to Issue"
-// bullet for the full write-up.
+// ---- "Transfer to Issue" bridge (2026-08-10, reworked 2026-09-29) -----------
+// Sends selected entries to the Issue tab. Two entry points share everything
+// below: the Pull step's own toolbar (live as soon as Pull renders rows) and
+// Report Section 2's original toolbar. Each entry goes through the
+// transferStandupEntryToIssue callable, which matches it to an EXISTING Issue
+// first (Conversation ID -> Issue ID -> source message -> exact subject +
+// metadata -> ticket, see functions/standupTransfer.js) and only creates a new
+// one when nothing matches. See docs/standup-tab.md's "Transfer to Issue from
+// Pull" section.
 
 // item.id -> "cali" | "outsideCali" | "skip" for entries with no
 // catalog-matched location - session-only, same as transferredToIssueId.
 let standupTransferManualRegion = new Map();
+
+// Both surfaces' status line / prompt box / buttons, driven together so
+// whichever step is visible always reflects the same transfer state.
+function setStandupTransferStatus(text) {
+  [standupTransferToIssueStatusEl, standupPullTransferStatusEl].forEach((el) => {
+    if (el) el.textContent = text;
+  });
+}
+function setStandupTransferBusy(busy) {
+  [standupTransferToIssueBtn, standupPullTransferToIssueBtn].forEach((btn) => {
+    if (btn) btn.disabled = busy;
+  });
+}
+function standupRefreshTransferViews() {
+  renderStandupChecklist();
+  standupRefreshReportEntriesEditor();
+}
 
 // Auto region resolution via the same location-catalog lookup the Summary
 // breakdown uses. Returns null (never a guess) on no match.
@@ -4200,31 +4997,32 @@ function standupEntriesSelectedForTransfer() {
   return standupChecklistItems.filter((i) => i.selectedForTransfer && !i.transferredToIssueId && (i.text || "").trim());
 }
 
-standupTransferSelectAllBtn?.addEventListener("click", () => {
+function standupTransferSetAll(value) {
   standupChecklistItems.forEach((i) => {
-    if (!i.transferredToIssueId) i.selectedForTransfer = true;
+    if (value) {
+      if (!i.transferredToIssueId) i.selectedForTransfer = true;
+    } else {
+      i.selectedForTransfer = false;
+    }
   });
-  standupRefreshReportEntriesEditor();
-});
-
-standupTransferSelectNoneBtn?.addEventListener("click", () => {
-  standupChecklistItems.forEach((i) => {
-    i.selectedForTransfer = false;
-  });
-  standupRefreshReportEntriesEditor();
-});
+  standupRefreshTransferViews();
+}
+standupTransferSelectAllBtn?.addEventListener("click", () => standupTransferSetAll(true));
+standupPullTransferSelectAllBtn?.addEventListener("click", () => standupTransferSetAll(true));
+standupTransferSelectNoneBtn?.addEventListener("click", () => standupTransferSetAll(false));
+standupPullTransferSelectNoneBtn?.addEventListener("click", () => standupTransferSetAll(false));
 
 // Title = raw entry text (not the AI-summarized display text). Description
-// = existing AI summary, if any. Tag carries over as-is, whatever it is -
-// before the 2026-08-10 shared-tag-catalog unification, a custom Standup
-// tag had no Issue-side equivalent (its "custom:<id>" key only meant
-// something in Standup's own now-retired catalog) so this used to drop
-// anything but the 8 fixed tags to null; now that all three tabs read the
-// same catalog, any tag - fixed or custom - resolves the same way on the
-// Issue side too.
+// = existing AI summary, if any. Categories: the FULL final selection goes
+// along (tags) with the primary one as the Issue's own single tag - Issues
+// keep a single `tag` for their card pill plus, since 2026-09-29, a `tags`
+// array for every category picked. The identifiers (conversationId,
+// sourceMessageId, senderEmail, ticket, existingIssueId) are what the server
+// matches an existing Issue on.
 function standupBuildIssuePayload(item, autoLocation, manualRegion) {
   const title = (item.text || "").trim();
   const notes = item.threadSummary || item.aiReportSummary || "";
+  const tags = standupItemTags(item).filter((k) => k !== "other");
   const tag = item.tag || null;
   let location = item.locationOverride || "";
   let state = "";
@@ -4236,11 +5034,23 @@ function standupBuildIssuePayload(item, autoLocation, manualRegion) {
   } else if (manualRegion === "outsideCali") {
     state = "OTHER"; // mirrors the New tab's own catch-all state
   }
-  return { title, ticket: "", location, region: state ? issueRegionForState(state) : "outsideCali", state, tag, notes };
+  return {
+    ...standupIssueMatchFields(item, location),
+    title,
+    location,
+    region: state ? issueRegionForState(state) : "outsideCali",
+    state,
+    tag,
+    tags,
+    notes,
+    dateLabel: item.pulledDate ? standupDateToMMDDYYYY(item.pulledDate) : "",
+  };
 }
 
 // Splits a selection into resolved (payload ready) / unresolved (needs a
-// decision) / skipped.
+// decision) / skipped. An entry already known to belong to an existing Issue
+// (item.issueLink, from standupRefreshIssueLinks) never needs a Cali/Outside
+// Cali decision - it's joining an Issue that already has its region.
 function standupCategorizeForTransfer(selected) {
   const resolved = [];
   const unresolved = [];
@@ -4249,6 +5059,10 @@ function standupCategorizeForTransfer(selected) {
     const auto = standupAutoIssueLocation(item);
     if (auto) {
       resolved.push({ item, payload: standupBuildIssuePayload(item, auto, null) });
+      return;
+    }
+    if (item.issueLink) {
+      resolved.push({ item, payload: standupBuildIssuePayload(item, null, null) });
       return;
     }
     const manual = standupTransferManualRegion.get(item.id);
@@ -4265,49 +5079,72 @@ function standupCategorizeForTransfer(selected) {
   return { resolved, unresolved, skipped };
 }
 
-// Sends one payload per resolved item to addIssueItem, sequentially, each
-// in its own try/catch so one failure can't sink the batch.
+// Sends one payload per resolved item to transferStandupEntryToIssue,
+// sequentially (so a second entry of the same thread sees the Issue the first
+// one just created and folds into it), each in its own try/catch so one
+// failure can't sink the batch. Afterwards the user's FINAL category choices
+// are saved as learning data.
 async function standupRunIssueTransfer(resolved) {
-  let sent = 0;
+  let created = 0;
+  let updated = 0;
   let cali = 0;
   let outsideCali = 0;
   const failures = [];
+  const done = [];
   for (let i = 0; i < resolved.length; i++) {
     const { item, payload } = resolved[i];
-    if (standupTransferToIssueStatusEl) standupTransferToIssueStatusEl.textContent = `Transferring… (${i + 1}/${resolved.length})`;
+    setStandupTransferStatus(`Transferring… (${i + 1}/${resolved.length})`);
     try {
-      const res = await addIssueItemFn(payload);
-      item.transferredToIssueId = res?.data?.id || true;
+      const res = await transferStandupEntryToIssueFn(payload);
+      const d = res?.data || {};
+      item.transferredToIssueId = d.id || true;
+      item.transferredMode = d.created ? "created" : "updated";
+      item.issueLink = null;
       item.selectedForTransfer = false;
       standupTransferManualRegion.delete(item.id);
-      sent++;
-      if (res?.data?.region === "cali") cali++;
-      else outsideCali++;
+      done.push(item);
+      if (d.created) {
+        created++;
+        if (d.region === "cali") cali++;
+        else outsideCali++;
+      } else {
+        updated++;
+      }
     } catch (err) {
       console.error(err);
       const shortTitle = payload.title.length > 40 ? `${payload.title.slice(0, 40)}…` : payload.title;
       failures.push(`"${shortTitle}": ${err?.message || "failed"}`);
     }
   }
-  standupRefreshReportEntriesEditor();
-  const parts = [`Transferred ${sent} of ${resolved.length} to Issue`];
-  if (sent) parts.push(`(${cali} → Cali, ${outsideCali} → Outside Cali)`);
+  const learned = await standupLearnFromTransferredItems(done);
+  standupRefreshTransferViews();
+  const parts = [`Transferred ${done.length} of ${resolved.length}:`];
+  const kinds = [];
+  if (created) kinds.push(`${created} new Issue${created === 1 ? "" : "s"} (${cali} → Cali, ${outsideCali} → Outside Cali)`);
+  if (updated) kinds.push(`${updated} added to existing Issue${updated === 1 ? "" : "s"}`);
+  if (kinds.length) parts.push(kinds.join(", "));
+  if (learned) parts.push("· category choices saved for future Pulls");
   if (failures.length) parts.push(`— ${failures.length} failed: ${failures.join("; ")}`);
-  if (standupTransferToIssueStatusEl) standupTransferToIssueStatusEl.textContent = parts.join(" ");
+  setStandupTransferStatus(parts.join(" "));
 }
 
 // California/Outside California/Skip prompt for entries with no
 // auto-resolved location - same "ask before guessing" shape as
-// renderStandupLocationCandidates() above.
+// renderStandupLocationCandidates() above. Rendered into both surfaces'
+// prompt boxes (only one step is visible at a time).
+function standupTransferPromptEls() {
+  return [standupTransferLocationPromptEl, standupPullTransferLocationPromptEl].filter(Boolean);
+}
 function renderStandupTransferLocationPrompt(unresolvedItems) {
-  if (!standupTransferLocationPromptEl) return;
+  const els = standupTransferPromptEls();
   if (!unresolvedItems.length) {
-    standupTransferLocationPromptEl.style.display = "none";
-    standupTransferLocationPromptEl.innerHTML = "";
+    els.forEach((el) => {
+      el.style.display = "none";
+      el.innerHTML = "";
+    });
     return;
   }
-  standupTransferLocationPromptEl.style.display = "block";
-  standupTransferLocationPromptEl.innerHTML = `
+  const html = `
     <div style="font-size:13px; font-weight:600; color:var(--warning); margin-bottom:8px;">${unresolvedItems.length} selected entr${
     unresolvedItems.length === 1 ? "y has" : "ies have"
   } no matched location — pick where each goes, edit its 📍 field below and try again, or skip it for this transfer:</div>
@@ -4326,12 +5163,16 @@ function renderStandupTransferLocationPrompt(unresolvedItems) {
       })
       .join("")}
     <div style="margin-top:10px;">
-      <button type="button" id="standupTransferContinueBtn" style="font-size:13px; padding:6px 12px;">Continue transfer</button>
+      <button type="button" class="standup-transfer-continue-btn" style="font-size:13px; padding:6px 12px;">Continue transfer</button>
       <span style="font-size:11px; color:var(--warning); margin-left:8px;">Anything left undecided below is skipped, never guessed.</span>
     </div>`;
+  els.forEach((el) => {
+    el.style.display = "block";
+    el.innerHTML = html;
+  });
 }
 
-standupTransferLocationPromptEl?.addEventListener("click", (e) => {
+function standupTransferPromptClick(e) {
   const regionBtn = e.target.closest(".standup-transfer-region-btn");
   if (regionBtn) {
     const row = regionBtn.closest(".standup-transfer-unresolved-row");
@@ -4345,8 +5186,9 @@ standupTransferLocationPromptEl?.addEventListener("click", (e) => {
     row.appendChild(decided);
     return;
   }
-  if (e.target.closest("#standupTransferContinueBtn")) standupBeginIssueTransfer();
-});
+  if (e.target.closest(".standup-transfer-continue-btn")) standupBeginIssueTransfer();
+}
+standupTransferPromptEls().forEach((el) => el.addEventListener("click", standupTransferPromptClick));
 
 // Entry point for "Transfer to Issue →" (after its confirm) and "Continue
 // transfer". Re-categorizes fresh each run so a 📍 edit between clicks is
@@ -4355,47 +5197,50 @@ function standupBeginIssueTransfer() {
   const selected = standupEntriesSelectedForTransfer();
   if (!selected.length) {
     renderStandupTransferLocationPrompt([]);
-    if (standupTransferToIssueStatusEl) standupTransferToIssueStatusEl.textContent = 'Nothing selected to transfer — check a row\'s "→ Issue" box first.';
+    setStandupTransferStatus('Nothing selected to transfer — check a row\'s "→ Issue" box first.');
     return;
   }
   const { resolved, unresolved } = standupCategorizeForTransfer(selected);
   renderStandupTransferLocationPrompt(unresolved);
   if (unresolved.length) {
-    if (standupTransferToIssueStatusEl) {
-      standupTransferToIssueStatusEl.textContent = `${unresolved.length} entr${
+    setStandupTransferStatus(
+      `${unresolved.length} entr${
         unresolved.length === 1 ? "y needs" : "ies need"
-      } a location decision above before they can transfer — everything else will send once you hit "Continue transfer".`;
-    }
+      } a location decision above before they can transfer — everything else will send once you hit "Continue transfer".`
+    );
     return;
   }
   if (!resolved.length) {
-    if (standupTransferToIssueStatusEl) standupTransferToIssueStatusEl.textContent = "Nothing left to transfer — every selected entry was skipped.";
+    setStandupTransferStatus("Nothing left to transfer — every selected entry was skipped.");
     return;
   }
-  standupTransferToIssueBtn.disabled = true;
-  standupRunIssueTransfer(resolved).finally(() => {
-    standupTransferToIssueBtn.disabled = false;
-  });
+  setStandupTransferBusy(true);
+  standupRunIssueTransfer(resolved).finally(() => setStandupTransferBusy(false));
 }
 
-standupTransferToIssueBtn?.addEventListener("click", () => {
+function standupTransferButtonClick() {
   const selected = standupEntriesSelectedForTransfer();
   if (!selected.length) {
-    if (standupTransferToIssueStatusEl) standupTransferToIssueStatusEl.textContent = 'Nothing selected to transfer — check a row\'s "→ Issue" box first.';
+    setStandupTransferStatus('Nothing selected to transfer — check a row\'s "→ Issue" box first.');
     return;
   }
   const { resolved, unresolved, skipped } = standupCategorizeForTransfer(selected);
-  const caliCount = resolved.filter((r) => r.payload.region === "cali").length;
-  const outsideCount = resolved.filter((r) => r.payload.region === "outsideCali").length;
+  const existingCount = resolved.filter((r) => r.item.issueLink).length;
+  const newOnes = resolved.filter((r) => !r.item.issueLink);
+  const caliCount = newOnes.filter((r) => r.payload.region === "cali").length;
+  const outsideCount = newOnes.filter((r) => r.payload.region === "outsideCali").length;
   const parts = [`Transfer ${selected.length} entr${selected.length === 1 ? "y" : "ies"} to Issue?`];
+  if (existingCount) parts.push(`${existingCount} already belong${existingCount === 1 ? "s" : ""} to an existing Issue and will be added to it (no duplicate).`);
   if (caliCount) parts.push(`${caliCount} → Cali`);
   if (outsideCount) parts.push(`${outsideCount} → Outside Cali`);
   if (unresolved.length) parts.push(`${unresolved.length} need a location decision first`);
   if (skipped) parts.push(`${skipped} already marked Skip`);
-  parts.push("This creates new Issue items; it does not remove or change anything in Standup.");
+  parts.push("A new Issue is created only for an entry that doesn't already belong to one; nothing in Standup is removed or changed.");
   if (!confirm(parts.join(" "))) return;
   standupBeginIssueTransfer();
-});
+}
+standupTransferToIssueBtn?.addEventListener("click", standupTransferButtonClick);
+standupPullTransferToIssueBtn?.addEventListener("click", standupTransferButtonClick);
 
 // "Ask before adding" prompt (2026-08-03 request) - one row per
 // standupLocationCandidates() entry, each with a California/Outside
@@ -6959,6 +7804,10 @@ onAuthStateChanged(auth, async (user) => {
   if (!user) {
     currentUserRole = null;
     subscribeToKeycardHistory(null, null);
+    subscribeToWifiHistory(null, null);
+    subscribeToEmployeeHistory(null, null);
+    subscribeToSoftwareHistory(null, null);
+    subscribeToHardwareHistory(null, null);
     document.body.classList.remove("no-animations");
     signInScreen.style.display = "flex";
     appScreen.style.display = "none";
@@ -6967,8 +7816,7 @@ onAuthStateChanged(auth, async (user) => {
     // got pulled) - a shared device shouldn't show the previous person's
     // typed-in email or a stale "code sent" state to whoever's next.
     clearInterval(otpResendCooldownTimer);
-    if (otpPanel) otpPanel.style.display = "none";
-    if (otpToggleBtn) otpToggleBtn.textContent = "Create/Login with Email Code";
+    if (otpPanel) otpPanel.style.display = "flex";
     if (otpCodeRow) otpCodeRow.style.display = "none";
     if (otpEmailInput) { otpEmailInput.value = ""; otpEmailInput.disabled = false; }
     if (otpCodeInput) otpCodeInput.value = "";
@@ -7012,6 +7860,10 @@ onAuthStateChanged(auth, async (user) => {
   currentUserRole = role;
   currentUserEmail = user.email || null;
   subscribeToKeycardHistory(currentUserEmail, currentUserRole);
+  subscribeToWifiHistory(currentUserEmail, currentUserRole);
+  subscribeToEmployeeHistory(currentUserEmail, currentUserRole);
+  subscribeToSoftwareHistory(currentUserEmail, currentUserRole);
+  subscribeToHardwareHistory(currentUserEmail, currentUserRole);
   currentUserTabs = tabs;
   currentUserEraPermissions = eraPermissions;
   signInScreen.style.display = "none";
@@ -7026,6 +7878,11 @@ onAuthStateChanged(auth, async (user) => {
   appSwitcherEl?.querySelectorAll(".tab[data-app]").forEach((btn) => {
     const key = btn.dataset.app;
     if (key === ACCESS_APP_KEY) return; // handled separately, just above
+    // Network Map: explicit-grant only (see canSeeNetworkMap), not canSeeTab().
+    if (key === NETWORK_MAP_APP_KEY) {
+      btn.style.display = canSeeNetworkMap() ? "" : "none";
+      return;
+    }
     // Email Request / Email (Attachments) are globally hidden (2026-08-10,
     // superseded by "CW Email Request") regardless of any user's
     // Access-tab grants - leave index.html's static display:none alone
@@ -7039,7 +7896,13 @@ onAuthStateChanged(auth, async (user) => {
     // no longer see.
     currentApp = ROADMAP_APP_KEY;
   }
-  if (currentApp !== ACCESS_APP_KEY && !canSeeTab(currentApp)) {
+  if (currentApp === NETWORK_MAP_APP_KEY && !canSeeNetworkMap()) {
+    // Same idea, for Network Map: a previous session with the grant left
+    // it selected and this sign-in doesn't qualify. Falls through to the
+    // tabs-list check below, which picks the first tab this person can see.
+    currentApp = ROADMAP_APP_KEY;
+  }
+  if (currentApp !== ACCESS_APP_KEY && currentApp !== NETWORK_MAP_APP_KEY && !canSeeTab(currentApp)) {
     // Same idea, for the tabs-list restriction: land on the first tab this
     // person is actually allowed to see instead of a blank/inaccessible one.
     // Email Request (Attachments) is excluded from the candidates - it's a
@@ -7068,7 +7931,7 @@ onAuthStateChanged(auth, async (user) => {
   appSwitcherEl?.querySelectorAll(".tab:not(.tab-sub)").forEach((t) => t.classList.toggle("active", t.dataset.app === currentApp));
   syncHeaderForCurrentApp();
   updateAppChrome();
-  if (currentApp !== ACCESS_APP_KEY && currentApp !== EMAIL_REQUEST_APP_KEY && currentApp !== EMAIL_REQUEST_ATTACHMENTS_EMBED_APP_KEY && currentApp !== STANDUP_APP_KEY && currentApp !== DAILY_TODO_APP_KEY && currentApp !== ISSUE_APP_KEY) renderActionTabs();
+  if (currentApp !== ACCESS_APP_KEY && currentApp !== EMAIL_REQUEST_APP_KEY && currentApp !== EMAIL_REQUEST_ATTACHMENTS_EMBED_APP_KEY && currentApp !== STANDUP_APP_KEY && currentApp !== DAILY_TODO_APP_KEY && currentApp !== ISSUE_APP_KEY && currentApp !== NETWORK_MAP_APP_KEY) renderActionTabs();
   subscribeToCurrentApp();
   subscribeToThreadStatus();
   subscribeToCustomLineItemCatalog();
@@ -7077,6 +7940,7 @@ onAuthStateChanged(auth, async (user) => {
   // any of standup/dailyTodo/issue) - otherwise a user without those tabs
   // granted gets an unconditional permission-denied error on every sign-in.
   if (canSeeTab(STANDUP_APP_KEY)) subscribeToStandupLocationCatalog();
+  if (canSeeTab(STANDUP_APP_KEY)) subscribeToStandupCategoryRules();
   if (canSeeTab(STANDUP_APP_KEY) || canSeeTab(DAILY_TODO_APP_KEY) || canSeeTab(ISSUE_APP_KEY)) subscribeToSharedTagCatalog();
 });
 
@@ -7471,7 +8335,7 @@ function applyEraTreeIndeterminateMarkers(root) {
 // MANAGEABLE_TABS entry, each with its own tiny Select All/Remove All
 // controls (2026-08-30, requested for UI consistency even where there's
 // only one checkbox to toggle); CW Email Request additionally nests the
-// full ERA_TREE (Keycard/Wi-Fi/Electrical/Software/Hardware and everything
+// full ERA_TREE (Keycard/Wi-Fi/Employee/Software/Hardware and everything
 // under them) under .access-era-tree - see handleEraNodeToggle/
 // recomputeEraTreeIndeterminate below for the cascade/indeterminate wiring,
 // and collectEraPermissions for how the checked leaves round-trip to
@@ -7480,7 +8344,7 @@ function buildAccessTabsSectionsHtml(email, userTabs, userEraPermissions) {
   const isNew = email == null;
   const tabCheckboxClass = isNew ? "access-new-tab-checkbox" : "access-tab-checkbox";
   const emailAttr = isNew ? "" : ` data-email="${escapeHtml(email)}"`;
-  const tabChecked = (key) => (isNew ? false : userTabs === null || userTabs.includes(key));
+  const tabChecked = (key) => (isNew ? false : userTabs === null ? ACCESS_TABS_IMPLIED_BY_NULL.includes(key) : userTabs.includes(key));
   const grantedEraLeaves = isNew ? [] : userEraPermissions;
 
   const tabsHtml = MANAGEABLE_TABS.map((t) => {
@@ -7616,7 +8480,7 @@ function bulkAccessStateFromUser(u) {
   return {
     role: u.role || "view",
     position: POSITION_LABELS[u.position] ? u.position : "",
-    tabs: accessExpandOptionList(Array.isArray(u.tabs) ? u.tabs : null, MANAGEABLE_TABS.map((t) => t.key)),
+    tabs: accessExpandOptionList(Array.isArray(u.tabs) ? u.tabs : null, ACCESS_TABS_IMPLIED_BY_NULL),
     // A doc with no eraPermissions yet (not migrated - see
     // deriveEraPermissionsFromLegacy in functions/index.js) falls back to
     // "every leaf" here purely as a display convenience, same transitional
@@ -8275,7 +9139,7 @@ function handleEraMainToggle(checkboxEl) {
 // Recomputes every branch checkbox's checked/indeterminate state, bottom-up,
 // from its own children's live checkbox state - generic over the whole
 // ERA_TREE shape (unlike the old two-level Keycard/Hardware-only version),
-// so it works unchanged at every depth (Electrical's 2 levels, Software's
+// so it works unchanged at every depth (Employee's 2 levels, Software's
 // and Hardware>Printer's 3-4). A leaf's own checkbox is authoritative (set
 // directly by handleEraNodeToggle or a Select All/None button) and is never
 // recomputed here.
@@ -8640,6 +9504,68 @@ function subscribeToCustomLineItemCatalog() {
 // STANDUP_LOCATION_INDEX, so it's recognized on every future report, not
 // just for the rest of this session.
 let allStandupCustomLocations = [];
+// Learned category rules (2026-09-29) - per-user (firestore.rules only lets an
+// owner read their own docs, and this query filters by the same owner so the
+// rule authorizes it). Live listener so a rule saved by a transfer, or deleted
+// from the manage list, takes effect on the next Pull without a reload.
+let unsubscribeStandupCategoryRules = null;
+function subscribeToStandupCategoryRules() {
+  const email = (currentUserEmail || "").toLowerCase();
+  if (!email) return;
+  if (unsubscribeStandupCategoryRules) unsubscribeStandupCategoryRules();
+  unsubscribeStandupCategoryRules = onSnapshot(
+    query(collection(db, "standupCategoryRules"), where("owner", "==", email)),
+    (snapshot) => {
+      allStandupCategoryRules = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      renderStandupCategoryRulesList();
+    },
+    (err) => console.error(err)
+  );
+}
+
+// Collapsed list (see #standupCategoryRulesWrap) of what's been learned, with a
+// per-rule Delete - the escape hatch for a rule that learned something wrong.
+function renderStandupCategoryRulesList() {
+  if (!standupCategoryRulesListEl) return;
+  if (!allStandupCategoryRules.length) {
+    standupCategoryRulesListEl.innerHTML = `<p class="standup-subtle" style="margin:0;">Nothing learned yet. When you pick categories on a pulled entry and Transfer it to Issue, that choice is remembered for similar subjects.</p>`;
+    return;
+  }
+  const allTags = standupAllTags();
+  const rows = allStandupCategoryRules
+    .slice()
+    .sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0))
+    .map((rule) => {
+      const chips = (rule.categories || [])
+        .map((k) => allTags.find((t) => t.key === k))
+        .filter(Boolean)
+        .map((t) => `<span class="tag" style="border-color:${t.color}; color:${t.color};">${escapeHtml(t.label)}</span>`)
+        .join(" ");
+      return `<div class="standup-category-rule-row" data-id="${escapeHtml(rule.id)}" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:6px 0; border-top:1px solid var(--border);">
+        <span style="flex:1; min-width:180px; font-size:12px; color:var(--text);">"${escapeHtml(rule.exampleSubject || (rule.tokens || []).join(" "))}"</span>
+        <span style="display:flex; gap:4px; flex-wrap:wrap;">${chips || '<span class="standup-subtle">no category</span>'}</span>
+        <span class="standup-subtle" title="How many times this exact pattern was confirmed">×${rule.count || 1}</span>
+        <button type="button" class="standup-category-rule-delete secondary" style="font-size:11px; padding:2px 8px;">Delete</button>
+      </div>`;
+    })
+    .join("");
+  standupCategoryRulesListEl.innerHTML = rows;
+}
+standupCategoryRulesListEl?.addEventListener("click", async (e) => {
+  const btn = e.target.closest(".standup-category-rule-delete");
+  if (!btn) return;
+  const row = btn.closest(".standup-category-rule-row");
+  if (!row || !confirm("Forget this learned category pattern?")) return;
+  btn.disabled = true;
+  try {
+    await deleteStandupCategoryRuleFn({ ruleId: row.dataset.id });
+  } catch (err) {
+    console.error(err);
+    btn.disabled = false;
+    alert(err?.message || "Could not delete that rule.");
+  }
+});
+
 function subscribeToStandupLocationCatalog() {
   onSnapshot(
     collection(db, "standupLocationCatalog"),
@@ -12643,31 +13569,19 @@ function buildIssueCaliIssuesIntroText(caliItems, outsideItems) {
 // 10px so there's real breathing room between the 1st/2nd/etc. entry, not
 // just the old near-zero gap.
 function buildCaliIssuesSectionsHtml(caliItems, outsideItems) {
-  const entryHtml = (item) => {
-    const title = escapeHtml(item.title || "(untitled)");
-    const notes = (item.notes || "").trim();
-    return notes ? `<strong>${title}</strong> — ${escapeHtml(notes)}` : `<strong>${title}</strong>`;
-  };
-  const renderRegionHtml = (label, items) => {
-    if (!items.length) return "";
-    const groupsHtml = issueTagGroupsFor(items)
-      .map(
-        (g) => `<div style="margin-top:14px;">
-          <div style="font-weight:600; font-size:14px; color:${g.color};">${escapeHtml(g.label)}</div>
-          <ul style="margin:6px 0 0; padding-left:18px; font-size:13px; color:var(--text);">
-            ${g.items.map((it) => `<li style="margin-bottom:10px;">${entryHtml(it)}</li>`).join("")}
-          </ul>
-        </div>`
-      )
-      .join("");
-    return `<div style="margin-top:20px;">
-      <div style="font-weight:700; font-size:18px; color:var(--text);">${escapeHtml(label)}:</div>
-      ${groupsHtml}
-    </div>`;
-  };
-  return [renderRegionHtml("Cali Issues", caliItems), renderRegionHtml("Outside Cali Issues", outsideItems)]
-    .filter(Boolean)
-    .join("");
+  // (2026-10-02) Rendered as Category/Issue/Notes tables via the shared
+  // Generate Report table helpers (standupIssuesTablesHtml) instead of the
+  // colored heading + bullet list this used to build - same items, same
+  // tag grouping, every title/notes value preserved.
+  const toSection = (title, items) => ({
+    title,
+    groups: issueTagGroupsFor(items).map((g) => ({
+      label: g.label,
+      color: g.color,
+      items: g.items.map((it) => ({ title: it.title || "(untitled)", notes: (it.notes || "").trim() })),
+    })),
+  });
+  return standupIssuesTablesHtml([toSection("Cali Issues", caliItems), toSection("Outside Cali Issues", outsideItems)]);
 }
 
 // (2026-08-15, ninth pass) "Today's Standup" email section - Huy asked to
@@ -12683,12 +13597,9 @@ function buildCaliIssuesSectionsHtml(caliItems, outsideItems) {
 // contributes nothing) when there's nothing included in today's checklist,
 // same empty-means-omit convention as the Cali/Outside Cali sections.
 function buildTodaysStandupSectionHtml(items = standupChecklistItems) {
-  const detailHtml = buildStandupSummaryDetailSectionsHtml(items);
-  if (!detailHtml) return "";
-  return `<div style="margin-top:20px;">
-    <div style="font-weight:700; font-size:18px; color:var(--text);">Today's Standup:</div>
-    ${detailHtml}
-  </div>`;
+  // (2026-10-02) Category/Location/Summary table (standupDetailTableHtml),
+  // titled "Today's Standup"; "" when nothing is included, as before.
+  return standupDetailTableHtml(items, "Today's Standup");
 }
 
 // (2026-08-15, ninth pass) Combines the Cali/Outside Cali Issues sections
@@ -13169,6 +14080,17 @@ function renderIssueItemCard(item) {
             : tagInfo
             ? `<span class="tag" style="flex-shrink:0; border-color:${tagInfo.color}; color:${tagInfo.color};">${escapeHtml(tagInfo.label)}</span>`
             : ""
+        }
+        ${
+          // Extra categories (2026-09-29): an Issue created/updated from Standup
+          // can carry several (item.tags) - the select above only edits the
+          // primary one, so the rest show as read-only pills here.
+          (Array.isArray(item.tags) ? item.tags : [])
+            .filter((k) => k && k !== item.tag)
+            .map((k) => issueAllTags().find((t) => t.key === k))
+            .filter(Boolean)
+            .map((t) => `<span class="tag" style="flex-shrink:0; border-color:${t.color}; color:${t.color};" title="Additional category">${escapeHtml(t.label)}</span>`)
+            .join("")
         }
         ${
           canEdit()

@@ -139,6 +139,20 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Standup's learned category rules (2026-09-29) - subject-pattern ->
+    // categories associations learned from what a user finally selected when
+    // transferring a pulled entry to Issue. PER-USER: every doc carries an
+    // `owner` email and is readable only by that owner, so one user's
+    // personal rules are never exposed to (or applied to) anyone else. The
+    // client's own query filters by the same owner, which is what lets this
+    // rule authorize a list read. Written only via the
+    // saveStandupCategoryRules/deleteStandupCategoryRule callables.
+    match /standupCategoryRules/{ruleId} {
+      allow read: if hasAnyRole() && tabAllowed("standup")
+                  && resource.data.owner == request.auth.token.email.lower();
+      allow write: if false;
+    }
+
     // Daily To-Do tab's own "Saved" step - one doc per calendar day (docId
     // is the "YYYY-MM-DD" date string), written only via the saveDailyTodo
     // callable (Admin SDK bypasses this rule) when its Report step's "Save"
@@ -241,6 +255,43 @@ service cloud.firestore {
       // in subscribeToKeycardHistory (src/app.js) - both sides must agree,
       // since a listable collection query is denied outright unless every
       // doc it could return already satisfies this rule.
+      allow read: if hasAnyRole() && tabAllowed("emailRequestAttachmentsEmbed")
+        && (isFullAccess() || resource.data.createdBy == request.auth.token.email);
+      allow write: if false;
+    }
+
+    // Wi-Fi Submission History (2026-09-23) - same shape as
+    // keycardRequestHistory just above, one doc per Wi-Fi-mode send. See
+    // functions/wifiHistory.js.
+    match /wifiRequestHistory/{requestId} {
+      allow read: if hasAnyRole() && tabAllowed("emailRequestAttachmentsEmbed")
+        && (isFullAccess() || resource.data.createdBy == request.auth.token.email);
+      allow write: if false;
+    }
+
+    // Employee Submission History (2026-09-26, renamed/repurposed from the
+    // Electrical mode this collection would otherwise have been named for)
+    // - same shape as wifiRequestHistory just above, one doc per
+    // Employee-mode send. See functions/employeeHistory.js.
+    match /employeeRequestHistory/{requestId} {
+      allow read: if hasAnyRole() && tabAllowed("emailRequestAttachmentsEmbed")
+        && (isFullAccess() || resource.data.createdBy == request.auth.token.email);
+      allow write: if false;
+    }
+
+    // Software Submission History (2026-09-29) - same shape as
+    // employeeRequestHistory just above, one doc per Software > New Install
+    // Preview/Send. See functions/softwareHistory.js.
+    match /softwareRequestHistory/{requestId} {
+      allow read: if hasAnyRole() && tabAllowed("emailRequestAttachmentsEmbed")
+        && (isFullAccess() || resource.data.createdBy == request.auth.token.email);
+      allow write: if false;
+    }
+
+    // Hardware Submission History (2026-10-02) - same shape as
+    // softwareRequestHistory just above, one doc per Printer / Phone /
+    // Hardware-route Laptop Save/Preview/Send. See functions/hardwareHistory.js.
+    match /hardwareRequestHistory/{requestId} {
       allow read: if hasAnyRole() && tabAllowed("emailRequestAttachmentsEmbed")
         && (isFullAccess() || resource.data.createdBy == request.auth.token.email);
       allow write: if false;

@@ -31,6 +31,7 @@ const FIRESTORE_COLLECTIONS = [
   "wifiRequestHistory",
   "employeeRequestHistory",
   "softwareRequestHistory",
+  "hardwareRequestHistory",
   "standupSaves",
   "issueItems",
   "roadmapItems",

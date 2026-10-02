@@ -1,4 +1,4 @@
-const{onCall,onRequest,HttpsError}=require("firebase-functions/v2/https"),{setGlobalOptions}=require("firebase-functions/v2"),admin=require("firebase-admin"),crypto=require("crypto"),{Client}=require("@microsoft/microsoft-graph-client"),{GoogleGenAI}=require("@google/genai"),{getAccessToken}=require("./graphAuth"),{submitEmailRequest:buildAndSendEmailRequest,buildEmailRequest,entryKeycardAction}=require("./emailRequest"),{buildSignedKeycardFormPdf,sha256Hex:signatureSha256Hex}=require("./signatureRequests"),{KEYCARD_REQUEST_HISTORY_COLLECTION,KEYCARD_PHOTO_ID_STORAGE_PREFIX,MAX_KEYCARD_PHOTO_ID_BYTES,MAX_KEYCARD_PHOTO_ID_BASE64_CHARS,KEYCARD_REQUEST_ID_RE,KEYCARD_CARD_NUMBER_RE,sanitizeEntriesSummary:sanitizeKeycardEntriesSummary,sanitizeExtraLocationLines:sanitizeKeycardExtraLocationLines,sanitizeKeycardFullEntries,sanitizeKeycardFormSnapshot,sanitizeKeycardSignIdSignatureDataUrl,computeKeycardHistoryStatus,buildKeycardFormPdfInputsFromHistory}=require("./keycardHistory");admin.initializeApp();const db=admin.firestore(),bucket=admin.storage().bucket(),FIREBASE_PROJECT_ID="keycard-helpdesk";
+const{onCall,onRequest,HttpsError}=require("firebase-functions/v2/https"),{setGlobalOptions}=require("firebase-functions/v2"),admin=require("firebase-admin"),crypto=require("crypto"),{Client}=require("@microsoft/microsoft-graph-client"),{GoogleGenAI}=require("@google/genai"),{getAccessToken}=require("./graphAuth"),{submitEmailRequest:buildAndSendEmailRequest,buildEmailRequest,entryKeycardAction}=require("./emailRequest"),{buildSignedKeycardFormPdf,sha256Hex:signatureSha256Hex}=require("./signatureRequests"),{KEYCARD_REQUEST_HISTORY_COLLECTION,KEYCARD_PHOTO_ID_STORAGE_PREFIX,MAX_KEYCARD_PHOTO_ID_BYTES,MAX_KEYCARD_PHOTO_ID_BASE64_CHARS,KEYCARD_REQUEST_ID_RE,KEYCARD_CARD_NUMBER_RE,sanitizeEntriesSummary:sanitizeKeycardEntriesSummary,sanitizeExtraLocationLines:sanitizeKeycardExtraLocationLines,sanitizeKeycardFullEntries,sanitizeKeycardFormSnapshot,sanitizeKeycardSignIdSignatureDataUrl,computeKeycardHistoryStatus,buildKeycardFormPdfInputsFromHistory}=require("./keycardHistory"),{WIFI_REQUEST_HISTORY_COLLECTION,WIFI_REQUEST_ID_RE,sanitizeWifiEntriesSummary,sanitizeWifiExtraLocationLines}=require("./wifiHistory"),{EMPLOYEE_REQUEST_HISTORY_COLLECTION,EMPLOYEE_REQUEST_ID_RE,sanitizeEmployeeEntriesSummary,sanitizeEmployeeExtraLocationLines}=require("./employeeHistory"),{STANDUP_CATEGORY_RULES_COLLECTION,MAX_ISSUE_LINK_IDS,MAX_RULE_SENDERS,sanitizeMatchEntry:sanitizeStandupMatchEntry,findMatchingIssue:findMatchingStandupIssue,mergeTagKeys:mergeStandupTagKeys,cleanCategoryKeys:cleanStandupCategoryKeys,sanitizeCategoryRuleInput:sanitizeStandupCategoryRuleInput,ruleDocId:standupCategoryRuleDocId,buildStandupUpdateNote}=require("./standupTransfer");admin.initializeApp();const db=admin.firestore(),bucket=admin.storage().bucket(),FIREBASE_PROJECT_ID="keycard-helpdesk";
 // Timestamp/FieldValue via the modular "firebase-admin/firestore" import, not
 // admin.firestore.Timestamp/FieldValue - the Functions
 // Emulator (firebase-tools' admin-init shim for onCall v2 functions) leaves
@@ -9,7 +9,10 @@ const{onCall,onRequest,HttpsError}=require("firebase-functions/v2/https"),{setGl
 // import isn't affected and matches Google's own current recommendation over
 // the namespaced statics. Untested in production but harmless there either
 // way - same class/methods either import path.
-const{Timestamp,FieldValue}=require("firebase-admin/firestore");setGlobalOptions({region:"us-central1",secrets:["MS_CLIENT_ID","MS_CLIENT_SECRET","MS_TENANT_ID","MS_REFRESH_TOKEN"]});const MAILBOX_USER=process.env.MAILBOX_USER||"huy.nguyen@cubework.com",OWNER_EMAIL=MAILBOX_USER,ACCESS_CONTROL_COLLECTION="accessControl",ROLE_RANK={view:1,edit:2,full:3};function normalizeEmail(t){return typeof t=="string"?t.trim().toLowerCase():""}const NAME_FROM_EMAIL_DENYLIST=new Set(["noreply","no-reply","donotreply","do-not-reply","info","support","helpdesk","admin","notifications","alerts","notification","mailer","postmaster","webmaster","system","automated"]);function nameFromEmail(t){if(typeof t!="string"||!t.includes("@"))return null;const e=t.split("@")[0];if(NAME_FROM_EMAIL_DENYLIST.has(e.toLowerCase().replace(/[._-]/g,"")))return null;const a=e.split(/[._+-]+/).filter(Boolean).filter(n=>!/^\d+$/.test(n));return a.length?a.map(n=>n.charAt(0).toUpperCase()+n.slice(1).toLowerCase()).join(" "):null}function senderDisplayName(t,e){const a=typeof t=="string"?t.trim():"";return a&&!a.includes("@")?a:nameFromEmail(e||a)||a||null}function normalizeStateCode(t){if(typeof t!="string")return null;const e=t.trim().toUpperCase();return e?e.slice(0,2):null}const MANAGEABLE_TABS=["standup","dailyTodo","roadmap","emailRequestAttachmentsEmbed","issue"];
+const{Timestamp,FieldValue}=require("firebase-admin/firestore");setGlobalOptions({region:"us-central1",secrets:["MS_CLIENT_ID","MS_CLIENT_SECRET","MS_TENANT_ID","MS_REFRESH_TOKEN"]});const MAILBOX_USER=process.env.MAILBOX_USER||"huy.nguyen@cubework.com",OWNER_EMAIL=MAILBOX_USER,ACCESS_CONTROL_COLLECTION="accessControl",ROLE_RANK={view:1,edit:2,full:3};function normalizeEmail(t){return typeof t=="string"?t.trim().toLowerCase():""}const NAME_FROM_EMAIL_DENYLIST=new Set(["noreply","no-reply","donotreply","do-not-reply","info","support","helpdesk","admin","notifications","alerts","notification","mailer","postmaster","webmaster","system","automated"]);function nameFromEmail(t){if(typeof t!="string"||!t.includes("@"))return null;const e=t.split("@")[0];if(NAME_FROM_EMAIL_DENYLIST.has(e.toLowerCase().replace(/[._-]/g,"")))return null;const a=e.split(/[._+-]+/).filter(Boolean).filter(n=>!/^\d+$/.test(n));return a.length?a.map(n=>n.charAt(0).toUpperCase()+n.slice(1).toLowerCase()).join(" "):null}function senderDisplayName(t,e){const a=typeof t=="string"?t.trim():"";return a&&!a.includes("@")?a:nameFromEmail(e||a)||a||null}function normalizeStateCode(t){if(typeof t!="string")return null;const e=t.trim().toUpperCase();return e?e.slice(0,2):null}const MANAGEABLE_TABS=["standup","dailyTodo","roadmap","networkMap","emailRequestAttachmentsEmbed","issue"];
+// "networkMap" (2026-09-29, Network Map Tool grant) is opt-in only - never
+// part of any implicit "all tabs" snapshot, see migrateAccessControlPermissions.
+const MANAGEABLE_TABS_NEVER_IMPLIED=["networkMap"];
 // sanitizeTabs (and the sibling era sanitizers just below) used to collapse
 // "every current option checked" down to null, on the theory that null means
 // "unrestricted." That was the bug (2026-09-02, "no automatic access
@@ -54,9 +57,15 @@ function sanitizeEraHardwareCategories(t){return Array.isArray(t)?[...new Set(t.
 const ERA_TREE={
   KEYCARD:{label:"Keycard",children:{ACTIVATE:"Activate",DEACTIVATE:"De-Activate",REPLACEMENT:"Replacement",TROUBLESHOOT:"Troubleshoot",TRANSFER:"Transfer",REQUEST_BLANK_KEYCARD:"Request Blank Keycard"}},
   WIFI:{label:"Wi-Fi",children:{CUBEWORK:"Cubework",UNIS:"Unis"}},
-  ELECTRICAL:{label:"Electrical",children:{
-    CUBEWORK:{label:"Cubework",children:{CREATE:"Create",TROUBLESHOOT:"Troubleshoot",DEACTIVATE:"De-Activate"}},
-    UNIS:{label:"Unis",children:{CREATE:"Create",TROUBLESHOOT:"Troubleshoot",DEACTIVATE:"De-Activate"}},
+  // Renamed/repurposed from Electrical 2026-09-26, per Huy's request -
+  // Create/Troubleshoot/De-Activate became New Hire/End Assignment
+  // (buildEmployee(), functions/emailRequest.js). Cubework/Unis kept for
+  // the same reason Wi-Fi's own UNIS branch is kept despite being
+  // Cubework-only in practice today (see buildEmployee()'s own comment) -
+  // dead-but-harmless if granted, ready if Unis support is ever added.
+  EMPLOYEE:{label:"Employee",children:{
+    CUBEWORK:{label:"Cubework",children:{NEW_HIRE:"New Hire",END_ASSIGNMENT:"End Assignment"}},
+    UNIS:{label:"Unis",children:{NEW_HIRE:"New Hire",END_ASSIGNMENT:"End Assignment"}},
   }},
   SOFTWARE:{label:"Software",children:{
     CUBEWORK:{label:"Cubework",children:{
@@ -125,7 +134,12 @@ const PHONE_UNMAPPED_FALLBACK_LEAF_KEYS=["NEW_INSTALL","TROUBLESHOOT","REMOVE"];
 //  - eraModes has "wifi": both WIFI.CUBEWORK and WIFI.UNIS (the old grant
 //    was mode-level, not serves-split - granting both is equivalent, not
 //    broader).
-//  - eraModes has "electrical": all 6 ELECTRICAL.* leaves (same reasoning).
+//  - eraModes has "electrical": intentionally maps to nothing (below) - the
+//    old Electrical mode was renamed/repurposed into an unrelated Employee
+//    feature 2026-09-26 (New Hire/End Assignment, not electrical drops), so
+//    a legacy "electrical" grant must NOT silently turn into EMPLOYEE.*
+//    access nobody asked for; ERA_MODES still keeps "electrical" as valid
+//    legacy vocabulary purely so old stored docs don't fail validation.
 //  - eraModes has "app": all 12 SOFTWARE.* leaves (legacy-compat only - the
 //    current UI has no control that submits mode:"app" anymore; Software's
 //    own Laptop/Phone cascade routes into mode:"laptop"/"phone" instead -
@@ -154,7 +168,9 @@ function deriveEraPermissionsFromLegacy(d){
     actions.forEach(a=>{const leaf=KEYCARD_ACTION_TO_LEAF[a];if(leaf)leaves.add(`KEYCARD.${leaf}`)});
   }
   if(modes.includes("wifi")){leaves.add("WIFI.CUBEWORK");leaves.add("WIFI.UNIS")}
-  if(modes.includes("electrical")){eraLeavesUnder("ELECTRICAL").forEach(l=>leaves.add(l))}
+  // Deliberately no "electrical"->EMPLOYEE.* mapping - see this function's
+  // own big comment above for why a legacy Electrical grant must not carry
+  // forward into the unrelated Employee feature that replaced it.
   if(modes.includes("app")){eraLeavesUnder("SOFTWARE").forEach(l=>leaves.add(l))}
   if(modes.includes("laptop")){
     eraLeavesUnder("SOFTWARE.CUBEWORK.LAPTOP").forEach(l=>leaves.add(l));
@@ -221,6 +237,17 @@ const OTP_RESEND_MIN_INTERVAL_MS = 60 * 1000; // 60s between sends
 const OTP_MAX_SENDS_PER_WINDOW = 5; // then throttled until the window rolls over
 const OTP_SEND_WINDOW_MS = 60 * 60 * 1000;
 const OTP_MAX_VERIFY_ATTEMPTS = 5; // per code, then it's dead - request a new one
+// 2026-09-26, per Huy's request: the OTP email must read as coming from a
+// no-reply address, never the real mailbox behind MS_REFRESH_TOKEN (see
+// graphAuth.js) - sendPlainHtmlEmail's fromEmail param sets the message's
+// "from" field. Graph still sends through /me/sendMail (the same delegated
+// mailbox always authenticates the call), so this only actually renders as
+// no-reply@cubework.com in the recipient's inbox once that mailbox has
+// either (a) no-reply@cubework.com added as one of its own proxy/alias
+// addresses, or (b) explicit "Send As" permission on a separate
+// no-reply@cubework.com mailbox - both are one-time Exchange admin steps
+// this code can't make, same shape as pitfall #13 in CLAUDE.md.
+const OTP_EMAIL_FROM_ADDRESS = "no-reply@cubework.com";
 // How long a session established via OTP stays valid without re-verifying -
 // see otpVerifiedAt below and the matching otpSessionValid() check in
 // firestore.rules. Only accounts that carry this field are ever subject to
@@ -317,16 +344,28 @@ exports.requestEmailOtp = onCall({ timeoutSeconds: 30 }, async (request) => {
     console.log(`[emulator] OTP code for ${email}: ${code}`);
   }
 
+  const otpEmail = {
+    toEmail: email,
+    subject: `Cubework Login Verification Code - [${email}]`,
+    html:
+      `<p>Your Cubework verification code is:</p>` +
+      `<p style="font-size:28px;font-weight:700;letter-spacing:4px;color:#16a34a;">${code}</p>` +
+      `<p>This code expires in 10 minutes and can only be used once. If you didn't request this, you can ignore this email.</p>`,
+  };
   try {
     const graphClient = await getGraphClientForSend();
-    await sendPlainHtmlEmail(graphClient, {
-      toEmail: email,
-      subject: `Your Keycard Helpdesk sign-in code: ${code}`,
-      html:
-        `<p>Your Keycard Helpdesk sign-in code is:</p>` +
-        `<p style="font-size:28px;font-weight:700;letter-spacing:4px;">${code}</p>` +
-        `<p>This code expires in 10 minutes and can only be used once. If you didn't request this, you can ignore this email.</p>`,
-    });
+    try {
+      await sendPlainHtmlEmail(graphClient, { ...otpEmail, fromEmail: OTP_EMAIL_FROM_ADDRESS });
+    } catch (fromErr) {
+      // The from-address override (see OTP_EMAIL_FROM_ADDRESS's own comment)
+      // needs a one-time Exchange-side alias/Send-As grant that may not be
+      // in place yet - until it is, Graph rejects the override outright
+      // (e.g. ErrorSendAsDenied). Fall back to sending as the real mailbox
+      // rather than leaving the user with no code at all; this should stop
+      // triggering once that admin step is done.
+      console.error("requestEmailOtp: from-address override rejected, falling back to the default sender:", fromErr);
+      await sendPlainHtmlEmail(graphClient, otpEmail);
+    }
   } catch (err) {
     console.error("requestEmailOtp: failed to send email:", err);
     throw new HttpsError("internal", "Could not send the code email. Try again in a moment.");
@@ -424,7 +463,7 @@ exports.verifyEmailOtp = onCall({ timeoutSeconds: 30 }, async (request) => {
           eraModes: ERA_MODES,
           eraKeycardActions: ERA_KEYCARD_ACTIONS,
           eraHardwareCategories: ERA_HARDWARE_CATEGORIES,
-          // Full grant: every leaf under ERA_TREE (Keycard/Wi-Fi/Electrical/
+          // Full grant: every leaf under ERA_TREE (Keycard/Wi-Fi/Employee/
           // Software/Hardware, all sub-actions) - see getAccessInfo/
           // sanitizeEraPermissions above for how this is validated/enforced.
           eraPermissions: Array.from(ERA_ALL_LEAVES),
@@ -899,8 +938,14 @@ async function buildSigningPdfInputsFromHistory(historyRequestId, targetField, s
 }
 // attachments (optional, 2026-09-22): [{name, contentType, bytes}] - used to
 // put the signed Keycard Form on the Requester's "Signed" notification.
-async function sendPlainHtmlEmail(graphClient, { toEmail, subject, html, attachments }) {
+async function sendPlainHtmlEmail(graphClient, { toEmail, subject, html, attachments, fromEmail }) {
   const message = { subject, body: { contentType: "HTML", content: html }, toRecipients: [{ emailAddress: { address: toEmail } }] };
+  // fromEmail (2026-09-26, OTP emails only so far) - see OTP_EMAIL_FROM_ADDRESS's
+  // own comment for why this alone isn't sufficient without an Exchange-side
+  // alias/Send-As grant on the mailbox /me/sendMail actually authenticates as.
+  if (fromEmail) {
+    message.from = { emailAddress: { address: fromEmail } };
+  }
   if (Array.isArray(attachments) && attachments.length) {
     message.attachments = attachments.map((a) => ({
       "@odata.type": "#microsoft.graph.fileAttachment",
@@ -1742,7 +1787,365 @@ exports.setKeycardHistoryStatus = onCall({ timeoutSeconds: 30 }, async (request)
   return { ok: true, status };
 });
 
-exports.migrateTagCatalogsToShared=onCall({timeoutSeconds:300},async t=>{requireOwner(t);const e=t.data?.dryRun!==!1,a=["standupTagCatalog","dailyTodoTagCatalog","issueTagCatalog"],n=new Map,o=new Map;let i=0;for(const l of a){const g=await db.collection(l).orderBy("addedAt","asc").get().catch(()=>db.collection(l).get());for(const h of g.docs){const c=h.data(),w=(c.label||"").trim();if(!w)continue;const u=w.toLowerCase();let f=o.get(u);f?i++:(f={id:null,label:w,color:c.color||"#6b7280",addedBy:c.addedBy||null,addedAt:c.addedAt||FieldValue.serverTimestamp()},o.set(u,f)),n.set(h.id,f)}}if(!e)for(const l of o.values()){const g=await db.collection(SHARED_TAG_CATALOG_COLLECTION).add({label:l.label,color:l.color,addedBy:l.addedBy,addedAt:l.addedAt});l.id=g.id}const d={};for(const[l,g]of n.entries())d[l]=g.id;const r=l=>{if(typeof l!="string"||!l.startsWith("custom:"))return null;const g=l.slice(7),h=d[g];return!h||h===g?null:`custom:${h}`};let s=0,m=0,p=0;if(!e){const l=await db.collection("issueItems").get();for(const c of l.docs){const w=r(c.data().tag);w&&(await c.ref.update({tag:w}),s++)}const g=await db.collection(STANDUP_SAVES_COLLECTION).get();for(const c of g.docs){const w=Array.isArray(c.data().items)?c.data().items:[];let u=!1;const f=w.map(y=>{const v=r(y.tag);return v?(u=!0,{...y,tag:v}):y});u&&(await c.ref.update({items:f}),m++)}const h=await db.collection(DAILY_TODO_SAVES_COLLECTION).get();for(const c of h.docs){const w=Array.isArray(c.data().entries)?c.data().entries:[];let u=!1;const f=w.map(y=>{const v=r(y.tag);return v?(u=!0,{...y,tag:v}):y});u&&(await c.ref.update({entries:f}),p++)}}return{ok:!0,dryRun:e,uniqueTagsFound:o.size,labelCollisionsMerged:i,tagsCreatedInSharedCatalog:e?0:o.size,issueItemsUpdated:s,standupSavesUpdated:m,dailyTodoSavesUpdated:p,labelMapping:Array.from(o.values()).map(l=>({label:l.label,newId:l.id}))}}),exports.setThreadCompleted=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{threadKey:e,completed:a}=t.data||{};if(!e||typeof a!="boolean")throw new HttpsError("invalid-argument","threadKey (string) and completed (boolean) are required.");return await db.collection(THREAD_STATUS_COLLECTION).doc(e).set({completed:a,completedAt:a?FieldValue.serverTimestamp():null,updatedBy:t.auth.token.email},{merge:!0}),{ok:!0}}),exports.addRoadmapItem=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const e=(t.data?.title||"").trim();if(!e)throw new HttpsError("invalid-argument","title (non-empty string) is required.");const a=(t.data?.notes||"").trim(),n=normalizeStateCode(t.data?.state);return{ok:!0,id:(await db.collection(ROADMAP_COLLECTION).add({title:e,notes:a||null,state:n,status:"planning",completed:!1,completedAt:null,createdAt:FieldValue.serverTimestamp(),createdBy:t.auth.token.email})).id}}),exports.updateRoadmapItem=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e}=t.data||{},a=(t.data?.title||"").trim();if(!e||!a)throw new HttpsError("invalid-argument","itemId (string) and title (non-empty string) are required.");const n=(t.data?.notes||"").trim(),o=normalizeStateCode(t.data?.state),i=/^\d{4}-\d{2}-\d{2}$/,d=(t.data?.deploymentStart||"").trim(),r=(t.data?.deploymentEnd||"").trim(),s=i.test(d)?d:null,m=i.test(r)?r:null,p=["unifi","amazon","homedepot","lts"],g=(Array.isArray(t.data?.lineItems)?t.data.lineItems:[]).filter(c=>c&&typeof c.amount=="number"&&isFinite(c.amount)).slice(0,200).map(c=>({desc:typeof c.desc=="string"?c.desc.trim().slice(0,300):"",qty:typeof c.qty=="number"&&isFinite(c.qty)?c.qty:1,amount:c.amount,vendor:p.includes(c.vendor)?c.vendor:"unifi"}));await db.collection(ROADMAP_COLLECTION).doc(e).set({title:a,notes:n||null,state:o,lineItems:g,deploymentStart:s,deploymentEnd:m,updatedAt:FieldValue.serverTimestamp(),updatedBy:t.auth.token.email},{merge:!0});const h={};for(const c of g){const w=c.desc.trim().toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"").slice(0,120);if(!w)continue;const u=`${c.vendor}_${w}`;h[u]={desc:c.desc,amount:c.amount,vendor:c.vendor,updatedAt:FieldValue.serverTimestamp()}}return Object.keys(h).length&&await db.collection("roadmapSettings").doc("customLineItems").set({items:h},{merge:!0}),{ok:!0}});const ROADMAP_STATUSES=["planning","active","pending","complete"];exports.setRoadmapItemStatus=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e,status:a}=t.data||{};if(!e||!ROADMAP_STATUSES.includes(a))throw new HttpsError("invalid-argument","itemId (string) and status (pending|active|complete) are required.");return await db.collection(ROADMAP_COLLECTION).doc(e).set({status:a,completed:a==="complete",completedAt:a==="complete"?FieldValue.serverTimestamp():null},{merge:!0}),{ok:!0}}),exports.setRoadmapItemResolution=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e}=t.data||{};if(!e)throw new HttpsError("invalid-argument","itemId (string) is required.");const a=(t.data?.resolution||"").trim();return await db.collection(ROADMAP_COLLECTION).doc(e).set({resolution:a||null,resolutionUpdatedAt:FieldValue.serverTimestamp(),resolutionUpdatedBy:t.auth.token.email},{merge:!0}),{ok:!0}}),exports.setRoadmapItemPendingReason=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e}=t.data||{};if(!e)throw new HttpsError("invalid-argument","itemId (string) is required.");const a=(t.data?.pendingReason||"").trim();return await db.collection(ROADMAP_COLLECTION).doc(e).set({pendingReason:a||null,pendingReasonUpdatedAt:FieldValue.serverTimestamp(),pendingReasonUpdatedBy:t.auth.token.email},{merge:!0}),{ok:!0}});const MAX_ROADMAP_ATTACHMENT_BYTES=8*1024*1024;exports.getRoadmapAttachmentData=onCall({timeoutSeconds:60},async t=>{await requireRole(t,"view");const{itemId:e,path:a}=t.data||{};if(!e||!a)throw new HttpsError("invalid-argument","itemId and path are required.");if(!a.startsWith(`roadmapAttachments/${e}/`))throw new HttpsError("invalid-argument","path does not belong to this item.");try{const n=bucket.file(a),[o]=await n.download(),[i]=await n.getMetadata();return{base64Data:o.toString("base64"),contentType:i.contentType||"application/octet-stream"}}catch(n){throw console.error(`Could not read attachment ${a}:`,n.message),new HttpsError("not-found","Could not read that attachment.")}}),exports.fetchUnifiPrice=onCall({timeoutSeconds:20},async t=>{await requireRole(t,"edit");const{url:e,sku:a}=t.data||{};if(typeof e!="string"||!e.startsWith("https://store.ui.com/"))throw new HttpsError("invalid-argument","url must be a store.ui.com page.");let n;try{const s=await fetch(e,{headers:{"User-Agent":"Mozilla/5.0 (compatible; KeycardHelpdesk/1.0)"}});if(!s.ok)throw new Error(`status ${s.status}`);n=await s.text()}catch(s){throw console.error(`Could not fetch ${e}:`,s.message),new HttpsError("unavailable","Could not reach the UniFi store.")}const o=n.replace(/<script[\s\S]*?<\/script>/gi," ").replace(/<style[\s\S]*?<\/style>/gi," ").replace(/<[^>]+>/g," ").replace(/&amp;/g,"&");let i=0;if(typeof a=="string"&&a){const s=o.indexOf(a);s>=0&&(i=s)}const r=o.slice(i,i+400).match(/\$([\d,]+(?:\.\d{2})?)/);if(!r)throw new HttpsError("not-found","Could not find a price on that page.");return{price:parseFloat(r[1].replace(/,/g,""))}});const PRODUCT_PRICE_VENDOR_DOMAINS={unifi:"store.ui.com",amazon:"amazon.com",homedepot:"homedepot.com",lts:"ltsecurityinc.com"};exports.fetchProductPrice=onCall({timeoutSeconds:20},async t=>{await requireRole(t,"edit");const{url:e,sku:a,vendor:n}=t.data||{},o=PRODUCT_PRICE_VENDOR_DOMAINS[n];if(!o)throw new HttpsError("invalid-argument",`vendor must be one of: ${Object.keys(PRODUCT_PRICE_VENDOR_DOMAINS).join(", ")}.`);let i;try{i=new URL(e)}catch{throw new HttpsError("invalid-argument","url is not a valid URL.")}if(i.protocol!=="https:"||!i.hostname.endsWith(o))throw new HttpsError("invalid-argument",`url must be an https:// link on ${o}.`);let d;try{const l=await fetch(i.toString(),{headers:{"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",Accept:"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"}});if(!l.ok)throw new Error(`status ${l.status}`);d=await l.text()}catch(l){throw console.error(`Could not fetch ${e}:`,l.message),new HttpsError("unavailable","Could not reach that page.")}const r=d.replace(/<script[\s\S]*?<\/script>/gi," ").replace(/<style[\s\S]*?<\/style>/gi," ").replace(/<[^>]+>/g," ").replace(/&amp;/g,"&");let s=0;if(typeof a=="string"&&a){const l=r.indexOf(a);l>=0&&(s=l)}const p=r.slice(s,s+2e3).match(/\$([\d,]+(?:\.\d{2})?)/)||r.match(/\$([\d,]+(?:\.\d{2})?)/);if(!p)throw new HttpsError("not-found","Could not find a price on that page.");return{price:parseFloat(p[1].replace(/,/g,""))}}),exports.addRoadmapAttachment=onCall({timeoutSeconds:60},async t=>{await requireRole(t,"edit");const{itemId:e,fileName:a,contentType:n,base64Data:o}=t.data||{};if(!e||!a||!o)throw new HttpsError("invalid-argument","itemId, fileName, and base64Data are required.");const i=Buffer.from(o,"base64");if(i.length>MAX_ROADMAP_ATTACHMENT_BYTES)throw new HttpsError("invalid-argument","File is too large (max 8 MB).");const d=a.replace(/[^a-zA-Z0-9._-]/g,"_"),r=`roadmapAttachments/${e}/${Date.now()}-${d}`;return await bucket.file(r).save(i,{contentType:n||"application/octet-stream",metadata:{cacheControl:"public, max-age=31536000"}}),await db.collection(ROADMAP_COLLECTION).doc(e).set({attachments:FieldValue.arrayUnion({path:r,name:a})},{merge:!0}),{ok:!0,path:r}}),exports.replaceRoadmapAttachment=onCall({timeoutSeconds:60},async t=>{await requireRole(t,"edit");const{itemId:e,originalPath:a,fileName:n,base64Data:o}=t.data||{};if(!e||!a||!n||!o)throw new HttpsError("invalid-argument","itemId, originalPath, fileName, and base64Data are required.");if(!a.startsWith(`roadmapAttachments/${e}/`))throw new HttpsError("invalid-argument","originalPath does not belong to this item.");const i=Buffer.from(o,"base64");if(i.length>MAX_ROADMAP_ATTACHMENT_BYTES)throw new HttpsError("invalid-argument","File is too large (max 8 MB).");const d=n.replace(/[^a-zA-Z0-9._-]/g,"_"),r=`roadmapAttachments/${e}/${Date.now()}-${d}`;await bucket.file(r).save(i,{contentType:"image/png",metadata:{cacheControl:"public, max-age=31536000"}});const s=db.collection(ROADMAP_COLLECTION).doc(e),l=((await s.get()).data()?.attachments||[]).filter(g=>g.path!==a);return l.push({path:r,name:n}),await s.set({attachments:l},{merge:!0}),bucket.file(a).delete().catch(()=>{}),{ok:!0,path:r}}),exports.setRoadmapAttachmentNotes=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e,path:a,notes:n}=t.data||{};if(!e||!a||!Array.isArray(n))throw new HttpsError("invalid-argument","itemId, path, and notes (array) are required.");if(!a.startsWith(`roadmapAttachments/${e}/`))throw new HttpsError("invalid-argument","path does not belong to this item.");const o=/^#[0-9a-fA-F]{3,8}$/,i=n.filter(m=>m&&typeof m.x=="number"&&typeof m.y=="number"&&typeof m.text=="string"&&m.text.trim()).slice(0,200).map(m=>({x:m.x,y:m.y,text:m.text.slice(0,500),color:typeof m.color=="string"&&o.test(m.color)?m.color:"#7c3aed"})),d=db.collection(ROADMAP_COLLECTION).doc(e),s=(await d.get()).data()?.attachmentNotes||{};return s[a]=i,await d.set({attachmentNotes:s},{merge:!0}),{ok:!0}}),exports.removeRoadmapAttachment=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e,path:a}=t.data||{};if(!e||!a)throw new HttpsError("invalid-argument","itemId and path are required.");if(!a.startsWith(`roadmapAttachments/${e}/`))throw new HttpsError("invalid-argument","path does not belong to this item.");const n=db.collection(ROADMAP_COLLECTION).doc(e),d=((await n.get()).data()?.attachments||[]).filter(r=>r.path!==a);return await n.set({attachments:d},{merge:!0}),bucket.file(a).delete().catch(()=>{}),{ok:!0}}),exports.deleteRoadmapItem=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e}=t.data||{};if(!e)throw new HttpsError("invalid-argument","itemId (string) is required.");return await db.collection(ROADMAP_COLLECTION).doc(e).delete(),{ok:!0}});const ISSUE_REGIONS=["cali","outsideCali"],ISSUE_STATUSES=["active","pending","complete"],US_STATE_CODES=["AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","OTHER"];function issueRegionForState(t){return t==="CA"?"cali":"outsideCali"}exports.addIssueItem=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const e=(t.data?.title||"").trim();if(!e)throw new HttpsError("invalid-argument","title (non-empty string) is required.");const a=US_STATE_CODES.includes(t.data?.state)?t.data.state:null,n=a?issueRegionForState(a):ISSUE_REGIONS.includes(t.data?.region)?t.data.region:"cali",o=(t.data?.ticket||"").trim(),i=(t.data?.location||"").trim(),d=(t.data?.notes||"").trim(),r=isValidSharedTagKey(t.data?.tag)?t.data.tag:null;return{ok:!0,id:(await db.collection(ISSUE_COLLECTION).add({title:e,ticket:o||null,location:i||null,region:n,state:a,tag:r,notes:d||null,status:"active",resolution:null,pendingReason:null,attachments:[],createdAt:FieldValue.serverTimestamp(),createdBy:t.auth.token.email})).id,region:n}}),exports.updateIssueItem=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e}=t.data||{},a=(t.data?.title||"").trim();if(!e||!a)throw new HttpsError("invalid-argument","itemId (string) and title (non-empty string) are required.");const n=(t.data?.ticket||"").trim(),o=(t.data?.location||"").trim(),i=(t.data?.notes||"").trim(),d=isValidSharedTagKey(t.data?.tag)?t.data.tag:null;return await db.collection(ISSUE_COLLECTION).doc(e).set({title:a,ticket:n||null,location:o||null,notes:i||null,tag:d,updatedAt:FieldValue.serverTimestamp(),updatedBy:t.auth.token.email},{merge:!0}),{ok:!0}}),exports.setIssueItemStatus=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e,status:a}=t.data||{};if(!e||!ISSUE_STATUSES.includes(a))throw new HttpsError("invalid-argument","itemId (string) and status (active|pending|complete) are required.");return await db.collection(ISSUE_COLLECTION).doc(e).set({status:a,statusUpdatedAt:FieldValue.serverTimestamp(),statusUpdatedBy:t.auth.token.email},{merge:!0}),{ok:!0}}),exports.setIssueItemTag=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e}=t.data||{};if(!e)throw new HttpsError("invalid-argument","itemId (string) is required.");const a=isValidSharedTagKey(t.data?.tag)?t.data.tag:null;return await db.collection(ISSUE_COLLECTION).doc(e).set({tag:a,tagUpdatedAt:FieldValue.serverTimestamp(),tagUpdatedBy:t.auth.token.email},{merge:!0}),{ok:!0}}),exports.setIssueItemResolution=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e}=t.data||{};if(!e)throw new HttpsError("invalid-argument","itemId (string) is required.");const a=(t.data?.resolution||"").trim();return await db.collection(ISSUE_COLLECTION).doc(e).set({resolution:a||null,resolutionUpdatedAt:FieldValue.serverTimestamp(),resolutionUpdatedBy:t.auth.token.email},{merge:!0}),{ok:!0}}),exports.setIssueItemPendingReason=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e}=t.data||{};if(!e)throw new HttpsError("invalid-argument","itemId (string) is required.");const a=(t.data?.pendingReason||"").trim();return await db.collection(ISSUE_COLLECTION).doc(e).set({pendingReason:a||null,pendingReasonUpdatedAt:FieldValue.serverTimestamp(),pendingReasonUpdatedBy:t.auth.token.email},{merge:!0}),{ok:!0}}),exports.deleteIssueItem=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e}=t.data||{};if(!e)throw new HttpsError("invalid-argument","itemId (string) is required.");return await db.collection(ISSUE_COLLECTION).doc(e).delete(),{ok:!0}});const MAX_ISSUE_ATTACHMENT_BYTES=8*1024*1024;exports.addIssueAttachment=onCall({timeoutSeconds:60},async t=>{await requireRole(t,"edit");const{itemId:e,fileName:a,contentType:n,base64Data:o}=t.data||{};if(!e||!a||!o)throw new HttpsError("invalid-argument","itemId, fileName, and base64Data are required.");const i=Buffer.from(o,"base64");if(i.length>MAX_ISSUE_ATTACHMENT_BYTES)throw new HttpsError("invalid-argument","File is too large (max 8 MB).");const d=a.replace(/[^a-zA-Z0-9._-]/g,"_"),r=`issueAttachments/${e}/${Date.now()}-${d}`;return await bucket.file(r).save(i,{contentType:n||"application/octet-stream",metadata:{cacheControl:"public, max-age=31536000"}}),await db.collection(ISSUE_COLLECTION).doc(e).set({attachments:FieldValue.arrayUnion({path:r,name:a})},{merge:!0}),{ok:!0,path:r}}),exports.removeIssueAttachment=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e,path:a}=t.data||{};if(!e||!a)throw new HttpsError("invalid-argument","itemId and path are required.");if(!a.startsWith(`issueAttachments/${e}/`))throw new HttpsError("invalid-argument","path does not belong to this item.");const n=db.collection(ISSUE_COLLECTION).doc(e),d=((await n.get()).data()?.attachments||[]).filter(r=>r.path!==a);return await n.set({attachments:d},{merge:!0}),bucket.file(a).delete().catch(()=>{}),{ok:!0}}),exports.migrateRoadmapActiveToPlanning=onCall({timeoutSeconds:60},async t=>{await requireRole(t,"full");const e=await db.collection(ROADMAP_COLLECTION).get();let a=db.batch(),n=0,o=0;for(const i of e.docs){const d=i.data();(d.status||(d.completed?"complete":"active"))==="active"&&(a.set(i.ref,{status:"planning"},{merge:!0}),o++,n++,n>=400&&(await a.commit(),a=db.batch(),n=0))}return n>0&&await a.commit(),{updated:o}}),exports.getMyRole=onCall({timeoutSeconds:15},async t=>{if(!t.auth)throw new HttpsError("unauthenticated","Sign in first.");const{role:e,tabs:a,eraModes:m,eraKeycardActions:k,eraHardwareCategories:h,eraPermissions:p,showVideo:n,disableAnimations:s}=await getAccessInfo(t.auth.token.email);return{role:e,tabs:a,eraModes:m,eraKeycardActions:k,eraHardwareCategories:h,eraPermissions:p,showVideo:n,disableAnimations:s}});const VALID_ROLES=["view","edit","full"],VALID_POSITIONS=["dev","sale","facilityLead","facilityManager","boss","hr"];function sanitizePosition(t){return VALID_POSITIONS.includes(t)?t:null}exports.addAuthorizedUser=onCall({timeoutSeconds:30},async t=>{
+// Wi-Fi Submission History (added 2026-09-23, per Huy's request) - same
+// shape as recordKeycardSubmission/deleteKeycardHistory/setKeycardHistoryStatus
+// just above, deliberately without the e-signature/photo-ID machinery Wi-Fi
+// has no equivalent for. See functions/wifiHistory.js.
+exports.recordWifiSubmission = onCall({ timeoutSeconds: 30 }, async (request) => {
+  await requireRole(request, "view");
+  const data = request.data || {};
+  const requestId = typeof data.requestId === "string" && WIFI_REQUEST_ID_RE.test(data.requestId) ? data.requestId : "";
+  if (!requestId) throw new HttpsError("invalid-argument", "A valid requestId is required.");
+  const entriesSummary = sanitizeWifiEntriesSummary(data.entriesSummary);
+  const extraLocationBodyLines = sanitizeWifiExtraLocationLines(data.extraLocationBodyLines);
+
+  const ref = db.collection(WIFI_REQUEST_HISTORY_COLLECTION).doc(requestId);
+  const existing = await ref.get();
+  const existingData = existing.exists ? existing.data() : {};
+  const sentFlag = data.sent === true || existingData.sent === true;
+  // Manual override (mirrors Keycard's own) - once staff has hand-set the
+  // status via setWifiHistoryStatus, a later record call must not silently
+  // recompute/overwrite it back. Otherwise: unlike Keycard (pending until
+  // every card's photo ID + signature is in), Wi-Fi has no step after Send at
+  // all, so a sent submission is complete the instant it's recorded - the
+  // same "no further step required" case computeKeycardHistoryStatus
+  // (functions/keycardHistory.js) already applies to Keycard's "yes"
+  // (physical form) path.
+  const status = existingData.manualOverride === true ? existingData.status : sentFlag ? "complete" : "pending";
+
+  await ref.set(
+    {
+      status,
+      sent: sentFlag,
+      locationText: typeof data.locationText === "string" ? data.locationText.trim().slice(0, 300) : "",
+      extraLocationBodyLines,
+      requesterEmail: typeof data.requesterEmail === "string" ? data.requesterEmail.trim().slice(0, 200) : "",
+      entriesSummary,
+      createdBy: existingData.createdBy || request.auth.token.email,
+      createdAt: existingData.createdAt || FieldValue.serverTimestamp(),
+      completedAt: status === "complete" ? existingData.completedAt || FieldValue.serverTimestamp() : existingData.completedAt || null,
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+  return { ok: true, requestId, status };
+});
+
+exports.deleteWifiHistory = onCall({ timeoutSeconds: 30 }, async (request) => {
+  const role = await requireRole(request, "edit");
+  const data = request.data || {};
+  const requestId = typeof data.requestId === "string" && WIFI_REQUEST_ID_RE.test(data.requestId) ? data.requestId : "";
+  if (!requestId) throw new HttpsError("invalid-argument", "A valid requestId is required.");
+  const ref = db.collection(WIFI_REQUEST_HISTORY_COLLECTION).doc(requestId);
+  if (role !== "full") {
+    const snap = await ref.get();
+    if (snap.exists && snap.data().createdBy !== request.auth.token.email) {
+      throw new HttpsError("permission-denied", "You can only delete your own submissions.");
+    }
+  }
+  await ref.delete();
+  return { ok: true };
+});
+
+const WIFI_MANUAL_STATUSES = ["pending", "complete"];
+exports.setWifiHistoryStatus = onCall({ timeoutSeconds: 30 }, async (request) => {
+  const role = await requireRole(request, "edit");
+  const data = request.data || {};
+  const requestId = typeof data.requestId === "string" && WIFI_REQUEST_ID_RE.test(data.requestId) ? data.requestId : "";
+  const status = WIFI_MANUAL_STATUSES.includes(data.status) ? data.status : "";
+  if (!requestId || !status) throw new HttpsError("invalid-argument", "requestId and status (pending|complete) are required.");
+
+  const ref = db.collection(WIFI_REQUEST_HISTORY_COLLECTION).doc(requestId);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpsError("not-found", "No such submission.");
+  const existing = snap.data();
+  if (role !== "full" && existing.createdBy !== request.auth.token.email) {
+    throw new HttpsError("permission-denied", "You can only update your own submissions.");
+  }
+
+  await ref.set(
+    {
+      status,
+      manualOverride: true,
+      manualOverrideBy: request.auth.token.email,
+      manualOverrideAt: FieldValue.serverTimestamp(),
+      completedAt: status === "complete" ? existing.completedAt || FieldValue.serverTimestamp() : existing.completedAt || null,
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+  return { ok: true, status };
+});
+
+// Employee Submission History (added 2026-09-26, per Huy's request - rename
+// Electrical into Employee, keep all the Submission-history features Wi-Fi's
+// own tab already has) - same shape as recordWifiSubmission/deleteWifiHistory/
+// setWifiHistoryStatus just above. See functions/employeeHistory.js.
+exports.recordEmployeeSubmission = onCall({ timeoutSeconds: 30 }, async (request) => {
+  await requireRole(request, "view");
+  const data = request.data || {};
+  const requestId = typeof data.requestId === "string" && EMPLOYEE_REQUEST_ID_RE.test(data.requestId) ? data.requestId : "";
+  if (!requestId) throw new HttpsError("invalid-argument", "A valid requestId is required.");
+  const entriesSummary = sanitizeEmployeeEntriesSummary(data.entriesSummary);
+  const extraLocationBodyLines = sanitizeEmployeeExtraLocationLines(data.extraLocationBodyLines);
+
+  const ref = db.collection(EMPLOYEE_REQUEST_HISTORY_COLLECTION).doc(requestId);
+  const existing = await ref.get();
+  const existingData = existing.exists ? existing.data() : {};
+  const sentFlag = data.sent === true || existingData.sent === true;
+  const status = existingData.manualOverride === true ? existingData.status : sentFlag ? "complete" : "pending";
+
+  await ref.set(
+    {
+      status,
+      sent: sentFlag,
+      locationText: typeof data.locationText === "string" ? data.locationText.trim().slice(0, 300) : "",
+      extraLocationBodyLines,
+      requesterEmail: typeof data.requesterEmail === "string" ? data.requesterEmail.trim().slice(0, 200) : "",
+      entriesSummary,
+      createdBy: existingData.createdBy || request.auth.token.email,
+      createdAt: existingData.createdAt || FieldValue.serverTimestamp(),
+      completedAt: status === "complete" ? existingData.completedAt || FieldValue.serverTimestamp() : existingData.completedAt || null,
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+  return { ok: true, requestId, status };
+});
+
+exports.deleteEmployeeHistory = onCall({ timeoutSeconds: 30 }, async (request) => {
+  const role = await requireRole(request, "edit");
+  const data = request.data || {};
+  const requestId = typeof data.requestId === "string" && EMPLOYEE_REQUEST_ID_RE.test(data.requestId) ? data.requestId : "";
+  if (!requestId) throw new HttpsError("invalid-argument", "A valid requestId is required.");
+  const ref = db.collection(EMPLOYEE_REQUEST_HISTORY_COLLECTION).doc(requestId);
+  if (role !== "full") {
+    const snap = await ref.get();
+    if (snap.exists && snap.data().createdBy !== request.auth.token.email) {
+      throw new HttpsError("permission-denied", "You can only delete your own submissions.");
+    }
+  }
+  await ref.delete();
+  return { ok: true };
+});
+
+const EMPLOYEE_MANUAL_STATUSES = ["pending", "complete"];
+exports.setEmployeeHistoryStatus = onCall({ timeoutSeconds: 30 }, async (request) => {
+  const role = await requireRole(request, "edit");
+  const data = request.data || {};
+  const requestId = typeof data.requestId === "string" && EMPLOYEE_REQUEST_ID_RE.test(data.requestId) ? data.requestId : "";
+  const status = EMPLOYEE_MANUAL_STATUSES.includes(data.status) ? data.status : "";
+  if (!requestId || !status) throw new HttpsError("invalid-argument", "requestId and status (pending|complete) are required.");
+
+  const ref = db.collection(EMPLOYEE_REQUEST_HISTORY_COLLECTION).doc(requestId);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpsError("not-found", "No such submission.");
+  const existing = snap.data();
+  if (role !== "full" && existing.createdBy !== request.auth.token.email) {
+    throw new HttpsError("permission-denied", "You can only update your own submissions.");
+  }
+
+  await ref.set(
+    {
+      status,
+      manualOverride: true,
+      manualOverrideBy: request.auth.token.email,
+      manualOverrideAt: FieldValue.serverTimestamp(),
+      completedAt: status === "complete" ? existing.completedAt || FieldValue.serverTimestamp() : existing.completedAt || null,
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+  return { ok: true, status };
+});
+
+// Software Submission History (added 2026-09-29, per Huy's written spec:
+// Dashboard > Software Submission for Software > New Install) - same shape as
+// recordEmployeeSubmission/deleteEmployeeHistory/setEmployeeHistoryStatus
+// just above, flat one-request-per-doc (no entries[]): location, job title,
+// employee name, manager email and every numbered Software Request. See
+// functions/softwareHistory.js.
+const { SOFTWARE_REQUEST_HISTORY_COLLECTION, SOFTWARE_REQUEST_ID_RE, sanitizeSoftwareRequests, clip: clipSoftwareText } = require("./softwareHistory");
+exports.recordSoftwareSubmission = onCall({ timeoutSeconds: 30 }, async (request) => {
+  await requireRole(request, "view");
+  const data = request.data || {};
+  const requestId = typeof data.requestId === "string" && SOFTWARE_REQUEST_ID_RE.test(data.requestId) ? data.requestId : "";
+  if (!requestId) throw new HttpsError("invalid-argument", "A valid requestId is required.");
+
+  const ref = db.collection(SOFTWARE_REQUEST_HISTORY_COLLECTION).doc(requestId);
+  const existing = await ref.get();
+  const existingData = existing.exists ? existing.data() : {};
+  // Preview records Pending (sent:false); Send records Complete. A record that
+  // was ever sent stays sent, and a manual Pending/Complete toggle wins.
+  const sentFlag = data.sent === true || existingData.sent === true;
+  const status = existingData.manualOverride === true ? existingData.status : sentFlag ? "complete" : "pending";
+
+  await ref.set(
+    {
+      status,
+      sent: sentFlag,
+      requestType: "New Install",
+      locationText: clipSoftwareText(data.locationText, 300),
+      requesterEmail: clipSoftwareText(data.requesterEmail, 200),
+      jobTitle: clipSoftwareText(data.jobTitle, 200),
+      employeeName: clipSoftwareText(data.employeeName, 200),
+      managerEmail: clipSoftwareText(data.managerEmail, 200),
+      softwareRequests: sanitizeSoftwareRequests(data.softwareRequests),
+      createdBy: existingData.createdBy || request.auth.token.email,
+      createdAt: existingData.createdAt || FieldValue.serverTimestamp(),
+      completedAt: status === "complete" ? existingData.completedAt || FieldValue.serverTimestamp() : existingData.completedAt || null,
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+  return { ok: true, requestId, status };
+});
+
+exports.deleteSoftwareHistory = onCall({ timeoutSeconds: 30 }, async (request) => {
+  const role = await requireRole(request, "edit");
+  const data = request.data || {};
+  const requestId = typeof data.requestId === "string" && SOFTWARE_REQUEST_ID_RE.test(data.requestId) ? data.requestId : "";
+  if (!requestId) throw new HttpsError("invalid-argument", "A valid requestId is required.");
+  const ref = db.collection(SOFTWARE_REQUEST_HISTORY_COLLECTION).doc(requestId);
+  if (role !== "full") {
+    const snap = await ref.get();
+    if (snap.exists && snap.data().createdBy !== request.auth.token.email) {
+      throw new HttpsError("permission-denied", "You can only delete your own submissions.");
+    }
+  }
+  await ref.delete();
+  return { ok: true };
+});
+
+const SOFTWARE_MANUAL_STATUSES = ["pending", "complete"];
+exports.setSoftwareHistoryStatus = onCall({ timeoutSeconds: 30 }, async (request) => {
+  const role = await requireRole(request, "edit");
+  const data = request.data || {};
+  const requestId = typeof data.requestId === "string" && SOFTWARE_REQUEST_ID_RE.test(data.requestId) ? data.requestId : "";
+  const status = SOFTWARE_MANUAL_STATUSES.includes(data.status) ? data.status : "";
+  if (!requestId || !status) throw new HttpsError("invalid-argument", "requestId and status (pending|complete) are required.");
+
+  const ref = db.collection(SOFTWARE_REQUEST_HISTORY_COLLECTION).doc(requestId);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpsError("not-found", "No such submission.");
+  const existing = snap.data();
+  if (role !== "full" && existing.createdBy !== request.auth.token.email) {
+    throw new HttpsError("permission-denied", "You can only update your own submissions.");
+  }
+
+  await ref.set(
+    {
+      status,
+      manualOverride: true,
+      manualOverrideBy: request.auth.token.email,
+      manualOverrideAt: FieldValue.serverTimestamp(),
+      completedAt: status === "complete" ? existing.completedAt || FieldValue.serverTimestamp() : existing.completedAt || null,
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+  return { ok: true, status };
+});
+
+// Hardware Submission History (added 2026-10-02, per Huy's written spec) -
+// same shape as the Software callables just above, but generic across
+// Printer / Phone / Hardware-route Laptop: the client sends a display-ready
+// summary (details + entries[].rows) and an opaque formStateJson for Edit.
+// See functions/hardwareHistory.js.
+const { HARDWARE_REQUEST_HISTORY_COLLECTION, HARDWARE_REQUEST_ID_RE, HARDWARE_MODES, HARDWARE_CATEGORY_BY_MODE, sanitizeRows: sanitizeHwRows, sanitizeEntries: sanitizeHwEntries, sanitizeFormStateJson: sanitizeHwFormState, clip: clipHwText } = require("./hardwareHistory");
+exports.recordHardwareSubmission = onCall({ timeoutSeconds: 30 }, async (request) => {
+  const role = await requireRole(request, "view");
+  const data = request.data || {};
+  const requestId = typeof data.requestId === "string" && HARDWARE_REQUEST_ID_RE.test(data.requestId) ? data.requestId : "";
+  if (!requestId) throw new HttpsError("invalid-argument", "A valid requestId is required.");
+  const mode = HARDWARE_MODES.includes(data.mode) ? data.mode : "";
+  if (!mode) throw new HttpsError("invalid-argument", "mode must be one of: " + HARDWARE_MODES.join(", ") + ".");
+
+  const ref = db.collection(HARDWARE_REQUEST_HISTORY_COLLECTION).doc(requestId);
+  const existing = await ref.get();
+  const existingData = existing.exists ? existing.data() : {};
+  if (existing.exists && existingData.createdBy !== request.auth.token.email && role !== "full") {
+    throw new HttpsError("permission-denied", "You can only update your own submissions.");
+  }
+  // Save/Preview record Pending (sent:false); Send records Complete. A record
+  // that was ever sent stays sent, and a manual Pending/Complete toggle wins.
+  const sentFlag = data.sent === true || existingData.sent === true;
+  const status = existingData.manualOverride === true ? existingData.status : sentFlag ? "complete" : "pending";
+
+  await ref.set(
+    {
+      status,
+      sent: sentFlag,
+      mode,
+      category: HARDWARE_CATEGORY_BY_MODE[mode],
+      requestType: clipHwText(data.requestType, 200),
+      locationText: clipHwText(data.locationText, 300),
+      requesterEmail: clipHwText(data.requesterEmail, 200),
+      details: sanitizeHwRows(data.details),
+      entries: sanitizeHwEntries(data.entries),
+      formStateJson: sanitizeHwFormState(data.formStateJson),
+      createdBy: existingData.createdBy || request.auth.token.email,
+      createdAt: existingData.createdAt || FieldValue.serverTimestamp(),
+      completedAt: status === "complete" ? existingData.completedAt || FieldValue.serverTimestamp() : existingData.completedAt || null,
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+  return { ok: true, requestId, status };
+});
+
+exports.deleteHardwareHistory = onCall({ timeoutSeconds: 30 }, async (request) => {
+  const role = await requireRole(request, "edit");
+  const data = request.data || {};
+  const requestId = typeof data.requestId === "string" && HARDWARE_REQUEST_ID_RE.test(data.requestId) ? data.requestId : "";
+  if (!requestId) throw new HttpsError("invalid-argument", "A valid requestId is required.");
+  const ref = db.collection(HARDWARE_REQUEST_HISTORY_COLLECTION).doc(requestId);
+  if (role !== "full") {
+    const snap = await ref.get();
+    if (snap.exists && snap.data().createdBy !== request.auth.token.email) {
+      throw new HttpsError("permission-denied", "You can only delete your own submissions.");
+    }
+  }
+  await ref.delete();
+  return { ok: true };
+});
+
+const HARDWARE_MANUAL_STATUSES = ["pending", "complete"];
+exports.setHardwareHistoryStatus = onCall({ timeoutSeconds: 30 }, async (request) => {
+  const role = await requireRole(request, "edit");
+  const data = request.data || {};
+  const requestId = typeof data.requestId === "string" && HARDWARE_REQUEST_ID_RE.test(data.requestId) ? data.requestId : "";
+  const status = HARDWARE_MANUAL_STATUSES.includes(data.status) ? data.status : "";
+  if (!requestId || !status) throw new HttpsError("invalid-argument", "requestId and status (pending|complete) are required.");
+
+  const ref = db.collection(HARDWARE_REQUEST_HISTORY_COLLECTION).doc(requestId);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpsError("not-found", "No such submission.");
+  const existing = snap.data();
+  if (role !== "full" && existing.createdBy !== request.auth.token.email) {
+    throw new HttpsError("permission-denied", "You can only update your own submissions.");
+  }
+
+  await ref.set(
+    {
+      status,
+      manualOverride: true,
+      manualOverrideBy: request.auth.token.email,
+      manualOverrideAt: FieldValue.serverTimestamp(),
+      completedAt: status === "complete" ? existing.completedAt || FieldValue.serverTimestamp() : existing.completedAt || null,
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+  return { ok: true, status };
+});
+
+exports.migrateTagCatalogsToShared=onCall({timeoutSeconds:300},async t=>{requireOwner(t);const e=t.data?.dryRun!==!1,a=["standupTagCatalog","dailyTodoTagCatalog","issueTagCatalog"],n=new Map,o=new Map;let i=0;for(const l of a){const g=await db.collection(l).orderBy("addedAt","asc").get().catch(()=>db.collection(l).get());for(const h of g.docs){const c=h.data(),w=(c.label||"").trim();if(!w)continue;const u=w.toLowerCase();let f=o.get(u);f?i++:(f={id:null,label:w,color:c.color||"#6b7280",addedBy:c.addedBy||null,addedAt:c.addedAt||FieldValue.serverTimestamp()},o.set(u,f)),n.set(h.id,f)}}if(!e)for(const l of o.values()){const g=await db.collection(SHARED_TAG_CATALOG_COLLECTION).add({label:l.label,color:l.color,addedBy:l.addedBy,addedAt:l.addedAt});l.id=g.id}const d={};for(const[l,g]of n.entries())d[l]=g.id;const r=l=>{if(typeof l!="string"||!l.startsWith("custom:"))return null;const g=l.slice(7),h=d[g];return!h||h===g?null:`custom:${h}`};let s=0,m=0,p=0;if(!e){const l=await db.collection("issueItems").get();for(const c of l.docs){const w=r(c.data().tag);w&&(await c.ref.update({tag:w}),s++)}const g=await db.collection(STANDUP_SAVES_COLLECTION).get();for(const c of g.docs){const w=Array.isArray(c.data().items)?c.data().items:[];let u=!1;const f=w.map(y=>{const v=r(y.tag);return v?(u=!0,{...y,tag:v}):y});u&&(await c.ref.update({items:f}),m++)}const h=await db.collection(DAILY_TODO_SAVES_COLLECTION).get();for(const c of h.docs){const w=Array.isArray(c.data().entries)?c.data().entries:[];let u=!1;const f=w.map(y=>{const v=r(y.tag);return v?(u=!0,{...y,tag:v}):y});u&&(await c.ref.update({entries:f}),p++)}}return{ok:!0,dryRun:e,uniqueTagsFound:o.size,labelCollisionsMerged:i,tagsCreatedInSharedCatalog:e?0:o.size,issueItemsUpdated:s,standupSavesUpdated:m,dailyTodoSavesUpdated:p,labelMapping:Array.from(o.values()).map(l=>({label:l.label,newId:l.id}))}}),exports.setThreadCompleted=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{threadKey:e,completed:a}=t.data||{};if(!e||typeof a!="boolean")throw new HttpsError("invalid-argument","threadKey (string) and completed (boolean) are required.");return await db.collection(THREAD_STATUS_COLLECTION).doc(e).set({completed:a,completedAt:a?FieldValue.serverTimestamp():null,updatedBy:t.auth.token.email},{merge:!0}),{ok:!0}}),exports.addRoadmapItem=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const e=(t.data?.title||"").trim();if(!e)throw new HttpsError("invalid-argument","title (non-empty string) is required.");const a=(t.data?.notes||"").trim(),n=normalizeStateCode(t.data?.state);return{ok:!0,id:(await db.collection(ROADMAP_COLLECTION).add({title:e,notes:a||null,state:n,status:"planning",completed:!1,completedAt:null,createdAt:FieldValue.serverTimestamp(),createdBy:t.auth.token.email})).id}}),exports.updateRoadmapItem=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e}=t.data||{},a=(t.data?.title||"").trim();if(!e||!a)throw new HttpsError("invalid-argument","itemId (string) and title (non-empty string) are required.");const n=(t.data?.notes||"").trim(),o=normalizeStateCode(t.data?.state),i=/^\d{4}-\d{2}-\d{2}$/,d=(t.data?.deploymentStart||"").trim(),r=(t.data?.deploymentEnd||"").trim(),s=i.test(d)?d:null,m=i.test(r)?r:null,p=["unifi","amazon","homedepot","lts"],g=(Array.isArray(t.data?.lineItems)?t.data.lineItems:[]).filter(c=>c&&typeof c.amount=="number"&&isFinite(c.amount)).slice(0,200).map(c=>({desc:typeof c.desc=="string"?c.desc.trim().slice(0,300):"",qty:typeof c.qty=="number"&&isFinite(c.qty)?c.qty:1,amount:c.amount,vendor:p.includes(c.vendor)?c.vendor:"unifi"}));await db.collection(ROADMAP_COLLECTION).doc(e).set({title:a,notes:n||null,state:o,lineItems:g,deploymentStart:s,deploymentEnd:m,updatedAt:FieldValue.serverTimestamp(),updatedBy:t.auth.token.email},{merge:!0});const h={};for(const c of g){const w=c.desc.trim().toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"").slice(0,120);if(!w)continue;const u=`${c.vendor}_${w}`;h[u]={desc:c.desc,amount:c.amount,vendor:c.vendor,updatedAt:FieldValue.serverTimestamp()}}return Object.keys(h).length&&await db.collection("roadmapSettings").doc("customLineItems").set({items:h},{merge:!0}),{ok:!0}});const ROADMAP_STATUSES=["planning","active","pending","complete"];exports.setRoadmapItemStatus=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e,status:a}=t.data||{};if(!e||!ROADMAP_STATUSES.includes(a))throw new HttpsError("invalid-argument","itemId (string) and status (pending|active|complete) are required.");return await db.collection(ROADMAP_COLLECTION).doc(e).set({status:a,completed:a==="complete",completedAt:a==="complete"?FieldValue.serverTimestamp():null},{merge:!0}),{ok:!0}}),exports.setRoadmapItemResolution=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e}=t.data||{};if(!e)throw new HttpsError("invalid-argument","itemId (string) is required.");const a=(t.data?.resolution||"").trim();return await db.collection(ROADMAP_COLLECTION).doc(e).set({resolution:a||null,resolutionUpdatedAt:FieldValue.serverTimestamp(),resolutionUpdatedBy:t.auth.token.email},{merge:!0}),{ok:!0}}),exports.setRoadmapItemPendingReason=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e}=t.data||{};if(!e)throw new HttpsError("invalid-argument","itemId (string) is required.");const a=(t.data?.pendingReason||"").trim();return await db.collection(ROADMAP_COLLECTION).doc(e).set({pendingReason:a||null,pendingReasonUpdatedAt:FieldValue.serverTimestamp(),pendingReasonUpdatedBy:t.auth.token.email},{merge:!0}),{ok:!0}});const MAX_ROADMAP_ATTACHMENT_BYTES=8*1024*1024;exports.getRoadmapAttachmentData=onCall({timeoutSeconds:60},async t=>{await requireRole(t,"view");const{itemId:e,path:a}=t.data||{};if(!e||!a)throw new HttpsError("invalid-argument","itemId and path are required.");if(!a.startsWith(`roadmapAttachments/${e}/`))throw new HttpsError("invalid-argument","path does not belong to this item.");try{const n=bucket.file(a),[o]=await n.download(),[i]=await n.getMetadata();return{base64Data:o.toString("base64"),contentType:i.contentType||"application/octet-stream"}}catch(n){throw console.error(`Could not read attachment ${a}:`,n.message),new HttpsError("not-found","Could not read that attachment.")}}),exports.fetchUnifiPrice=onCall({timeoutSeconds:20},async t=>{await requireRole(t,"edit");const{url:e,sku:a}=t.data||{};if(typeof e!="string"||!e.startsWith("https://store.ui.com/"))throw new HttpsError("invalid-argument","url must be a store.ui.com page.");let n;try{const s=await fetch(e,{headers:{"User-Agent":"Mozilla/5.0 (compatible; KeycardHelpdesk/1.0)"}});if(!s.ok)throw new Error(`status ${s.status}`);n=await s.text()}catch(s){throw console.error(`Could not fetch ${e}:`,s.message),new HttpsError("unavailable","Could not reach the UniFi store.")}const o=n.replace(/<script[\s\S]*?<\/script>/gi," ").replace(/<style[\s\S]*?<\/style>/gi," ").replace(/<[^>]+>/g," ").replace(/&amp;/g,"&");let i=0;if(typeof a=="string"&&a){const s=o.indexOf(a);s>=0&&(i=s)}const r=o.slice(i,i+400).match(/\$([\d,]+(?:\.\d{2})?)/);if(!r)throw new HttpsError("not-found","Could not find a price on that page.");return{price:parseFloat(r[1].replace(/,/g,""))}});const PRODUCT_PRICE_VENDOR_DOMAINS={unifi:"store.ui.com",amazon:"amazon.com",homedepot:"homedepot.com",lts:"ltsecurityinc.com"};exports.fetchProductPrice=onCall({timeoutSeconds:20},async t=>{await requireRole(t,"edit");const{url:e,sku:a,vendor:n}=t.data||{},o=PRODUCT_PRICE_VENDOR_DOMAINS[n];if(!o)throw new HttpsError("invalid-argument",`vendor must be one of: ${Object.keys(PRODUCT_PRICE_VENDOR_DOMAINS).join(", ")}.`);let i;try{i=new URL(e)}catch{throw new HttpsError("invalid-argument","url is not a valid URL.")}if(i.protocol!=="https:"||!i.hostname.endsWith(o))throw new HttpsError("invalid-argument",`url must be an https:// link on ${o}.`);let d;try{const l=await fetch(i.toString(),{headers:{"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",Accept:"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"}});if(!l.ok)throw new Error(`status ${l.status}`);d=await l.text()}catch(l){throw console.error(`Could not fetch ${e}:`,l.message),new HttpsError("unavailable","Could not reach that page.")}const r=d.replace(/<script[\s\S]*?<\/script>/gi," ").replace(/<style[\s\S]*?<\/style>/gi," ").replace(/<[^>]+>/g," ").replace(/&amp;/g,"&");let s=0;if(typeof a=="string"&&a){const l=r.indexOf(a);l>=0&&(s=l)}const p=r.slice(s,s+2e3).match(/\$([\d,]+(?:\.\d{2})?)/)||r.match(/\$([\d,]+(?:\.\d{2})?)/);if(!p)throw new HttpsError("not-found","Could not find a price on that page.");return{price:parseFloat(p[1].replace(/,/g,""))}}),exports.addRoadmapAttachment=onCall({timeoutSeconds:60},async t=>{await requireRole(t,"edit");const{itemId:e,fileName:a,contentType:n,base64Data:o}=t.data||{};if(!e||!a||!o)throw new HttpsError("invalid-argument","itemId, fileName, and base64Data are required.");const i=Buffer.from(o,"base64");if(i.length>MAX_ROADMAP_ATTACHMENT_BYTES)throw new HttpsError("invalid-argument","File is too large (max 8 MB).");const d=a.replace(/[^a-zA-Z0-9._-]/g,"_"),r=`roadmapAttachments/${e}/${Date.now()}-${d}`;return await bucket.file(r).save(i,{contentType:n||"application/octet-stream",metadata:{cacheControl:"public, max-age=31536000"}}),await db.collection(ROADMAP_COLLECTION).doc(e).set({attachments:FieldValue.arrayUnion({path:r,name:a})},{merge:!0}),{ok:!0,path:r}}),exports.replaceRoadmapAttachment=onCall({timeoutSeconds:60},async t=>{await requireRole(t,"edit");const{itemId:e,originalPath:a,fileName:n,base64Data:o}=t.data||{};if(!e||!a||!n||!o)throw new HttpsError("invalid-argument","itemId, originalPath, fileName, and base64Data are required.");if(!a.startsWith(`roadmapAttachments/${e}/`))throw new HttpsError("invalid-argument","originalPath does not belong to this item.");const i=Buffer.from(o,"base64");if(i.length>MAX_ROADMAP_ATTACHMENT_BYTES)throw new HttpsError("invalid-argument","File is too large (max 8 MB).");const d=n.replace(/[^a-zA-Z0-9._-]/g,"_"),r=`roadmapAttachments/${e}/${Date.now()}-${d}`;await bucket.file(r).save(i,{contentType:"image/png",metadata:{cacheControl:"public, max-age=31536000"}});const s=db.collection(ROADMAP_COLLECTION).doc(e),l=((await s.get()).data()?.attachments||[]).filter(g=>g.path!==a);return l.push({path:r,name:n}),await s.set({attachments:l},{merge:!0}),bucket.file(a).delete().catch(()=>{}),{ok:!0,path:r}}),exports.setRoadmapAttachmentNotes=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e,path:a,notes:n}=t.data||{};if(!e||!a||!Array.isArray(n))throw new HttpsError("invalid-argument","itemId, path, and notes (array) are required.");if(!a.startsWith(`roadmapAttachments/${e}/`))throw new HttpsError("invalid-argument","path does not belong to this item.");const o=/^#[0-9a-fA-F]{3,8}$/,i=n.filter(m=>m&&typeof m.x=="number"&&typeof m.y=="number"&&typeof m.text=="string"&&m.text.trim()).slice(0,200).map(m=>({x:m.x,y:m.y,text:m.text.slice(0,500),color:typeof m.color=="string"&&o.test(m.color)?m.color:"#7c3aed"})),d=db.collection(ROADMAP_COLLECTION).doc(e),s=(await d.get()).data()?.attachmentNotes||{};return s[a]=i,await d.set({attachmentNotes:s},{merge:!0}),{ok:!0}}),exports.removeRoadmapAttachment=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e,path:a}=t.data||{};if(!e||!a)throw new HttpsError("invalid-argument","itemId and path are required.");if(!a.startsWith(`roadmapAttachments/${e}/`))throw new HttpsError("invalid-argument","path does not belong to this item.");const n=db.collection(ROADMAP_COLLECTION).doc(e),d=((await n.get()).data()?.attachments||[]).filter(r=>r.path!==a);return await n.set({attachments:d},{merge:!0}),bucket.file(a).delete().catch(()=>{}),{ok:!0}}),exports.deleteRoadmapItem=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e}=t.data||{};if(!e)throw new HttpsError("invalid-argument","itemId (string) is required.");return await db.collection(ROADMAP_COLLECTION).doc(e).delete(),{ok:!0}});const ISSUE_REGIONS=["cali","outsideCali"],ISSUE_STATUSES=["active","pending","complete"],US_STATE_CODES=["AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","OTHER"];function issueRegionForState(t){return t==="CA"?"cali":"outsideCali"}
+// Shared by addIssueItem (Issue tab's New form) and transferStandupEntryToIssue
+// (Standup's Transfer to Issue, 2026-09-29) so both build a brand-new Issue
+// doc identically - the Standup path just layers extra link fields on top.
+function buildNewIssueDoc(data,email){const e=(data?.title||"").trim();if(!e)throw new HttpsError("invalid-argument","title (non-empty string) is required.");const a=US_STATE_CODES.includes(data?.state)?data.state:null,n=a?issueRegionForState(a):ISSUE_REGIONS.includes(data?.region)?data.region:"cali",o=(data?.ticket||"").trim(),i=(data?.location||"").trim(),d=(data?.notes||"").trim(),r=isValidSharedTagKey(data?.tag)?data.tag:null;return{region:n,doc:{title:e,ticket:o||null,location:i||null,region:n,state:a,tag:r,notes:d||null,status:"active",resolution:null,pendingReason:null,attachments:[],createdAt:FieldValue.serverTimestamp(),createdBy:email}}}
+exports.addIssueItem=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{doc:e,region:n}=buildNewIssueDoc(t.data,t.auth.token.email);return{ok:!0,id:(await db.collection(ISSUE_COLLECTION).add(e)).id,region:n}}),exports.updateIssueItem=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e}=t.data||{},a=(t.data?.title||"").trim();if(!e||!a)throw new HttpsError("invalid-argument","itemId (string) and title (non-empty string) are required.");const n=(t.data?.ticket||"").trim(),o=(t.data?.location||"").trim(),i=(t.data?.notes||"").trim(),d=isValidSharedTagKey(t.data?.tag)?t.data.tag:null;return await db.collection(ISSUE_COLLECTION).doc(e).set({title:a,ticket:n||null,location:o||null,notes:i||null,tag:d,updatedAt:FieldValue.serverTimestamp(),updatedBy:t.auth.token.email},{merge:!0}),{ok:!0}}),exports.setIssueItemStatus=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e,status:a}=t.data||{};if(!e||!ISSUE_STATUSES.includes(a))throw new HttpsError("invalid-argument","itemId (string) and status (active|pending|complete) are required.");return await db.collection(ISSUE_COLLECTION).doc(e).set({status:a,statusUpdatedAt:FieldValue.serverTimestamp(),statusUpdatedBy:t.auth.token.email},{merge:!0}),{ok:!0}}),exports.setIssueItemTag=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e}=t.data||{};if(!e)throw new HttpsError("invalid-argument","itemId (string) is required.");const a=isValidSharedTagKey(t.data?.tag)?t.data.tag:null;return await db.collection(ISSUE_COLLECTION).doc(e).set({tag:a,tagUpdatedAt:FieldValue.serverTimestamp(),tagUpdatedBy:t.auth.token.email},{merge:!0}),{ok:!0}}),exports.setIssueItemResolution=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e}=t.data||{};if(!e)throw new HttpsError("invalid-argument","itemId (string) is required.");const a=(t.data?.resolution||"").trim();return await db.collection(ISSUE_COLLECTION).doc(e).set({resolution:a||null,resolutionUpdatedAt:FieldValue.serverTimestamp(),resolutionUpdatedBy:t.auth.token.email},{merge:!0}),{ok:!0}}),exports.setIssueItemPendingReason=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e}=t.data||{};if(!e)throw new HttpsError("invalid-argument","itemId (string) is required.");const a=(t.data?.pendingReason||"").trim();return await db.collection(ISSUE_COLLECTION).doc(e).set({pendingReason:a||null,pendingReasonUpdatedAt:FieldValue.serverTimestamp(),pendingReasonUpdatedBy:t.auth.token.email},{merge:!0}),{ok:!0}}),exports.deleteIssueItem=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e}=t.data||{};if(!e)throw new HttpsError("invalid-argument","itemId (string) is required.");return await db.collection(ISSUE_COLLECTION).doc(e).delete(),{ok:!0}});const MAX_ISSUE_ATTACHMENT_BYTES=8*1024*1024;exports.addIssueAttachment=onCall({timeoutSeconds:60},async t=>{await requireRole(t,"edit");const{itemId:e,fileName:a,contentType:n,base64Data:o}=t.data||{};if(!e||!a||!o)throw new HttpsError("invalid-argument","itemId, fileName, and base64Data are required.");const i=Buffer.from(o,"base64");if(i.length>MAX_ISSUE_ATTACHMENT_BYTES)throw new HttpsError("invalid-argument","File is too large (max 8 MB).");const d=a.replace(/[^a-zA-Z0-9._-]/g,"_"),r=`issueAttachments/${e}/${Date.now()}-${d}`;return await bucket.file(r).save(i,{contentType:n||"application/octet-stream",metadata:{cacheControl:"public, max-age=31536000"}}),await db.collection(ISSUE_COLLECTION).doc(e).set({attachments:FieldValue.arrayUnion({path:r,name:a})},{merge:!0}),{ok:!0,path:r}}),exports.removeIssueAttachment=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const{itemId:e,path:a}=t.data||{};if(!e||!a)throw new HttpsError("invalid-argument","itemId and path are required.");if(!a.startsWith(`issueAttachments/${e}/`))throw new HttpsError("invalid-argument","path does not belong to this item.");const n=db.collection(ISSUE_COLLECTION).doc(e),d=((await n.get()).data()?.attachments||[]).filter(r=>r.path!==a);return await n.set({attachments:d},{merge:!0}),bucket.file(a).delete().catch(()=>{}),{ok:!0}}),exports.migrateRoadmapActiveToPlanning=onCall({timeoutSeconds:60},async t=>{await requireRole(t,"full");const e=await db.collection(ROADMAP_COLLECTION).get();let a=db.batch(),n=0,o=0;for(const i of e.docs){const d=i.data();(d.status||(d.completed?"complete":"active"))==="active"&&(a.set(i.ref,{status:"planning"},{merge:!0}),o++,n++,n>=400&&(await a.commit(),a=db.batch(),n=0))}return n>0&&await a.commit(),{updated:o}}),exports.getMyRole=onCall({timeoutSeconds:15},async t=>{if(!t.auth)throw new HttpsError("unauthenticated","Sign in first.");const{role:e,tabs:a,eraModes:m,eraKeycardActions:k,eraHardwareCategories:h,eraPermissions:p,showVideo:n,disableAnimations:s}=await getAccessInfo(t.auth.token.email);return{role:e,tabs:a,eraModes:m,eraKeycardActions:k,eraHardwareCategories:h,eraPermissions:p,showVideo:n,disableAnimations:s}});const VALID_ROLES=["view","edit","full"],VALID_POSITIONS=["dev","sale","facilityLead","facilityManager","boss","hr"];function sanitizePosition(t){return VALID_POSITIONS.includes(t)?t:null}exports.addAuthorizedUser=onCall({timeoutSeconds:30},async t=>{
   requireOwner(t);
   const e=normalizeEmail(t.data?.email),a=t.data?.role;
   if(!e||!e.includes("@")||!VALID_ROLES.includes(a))throw new HttpsError("invalid-argument","A valid email and role (view|edit|full) are required.");
@@ -1809,7 +2212,7 @@ exports.migrateAccessControlPermissions=onCall({timeoutSeconds:120},async t=>{
     if(email===OWNER_EMAIL.toLowerCase())continue;
     const d=doc.data();
     const patch={};
-    if(!Array.isArray(d.tabs)){patch.tabs=[...MANAGEABLE_TABS];tabsBackfilled++}
+    if(!Array.isArray(d.tabs)){patch.tabs=MANAGEABLE_TABS.filter(k=>!MANAGEABLE_TABS_NEVER_IMPLIED.includes(k));tabsBackfilled++}
     let eraModes=Array.isArray(d.eraModes)?[...d.eraModes]:null;
     if(eraModes===null){eraModes=[...ERA_MODES_NO_HARDWARE];eraModesBackfilled++;patch.eraModes=eraModes}
     else if(eraModes.includes("hardware")){eraModes=eraModes.filter(m=>m!=="hardware");hardwareStripped++;patch.eraModes=eraModes}
@@ -1852,9 +2255,10 @@ exports.migrateAccessControlPermissions=onCall({timeoutSeconds:120},async t=>{
 // field names ever change:
 //  - keycard: per-entry, KEYCARD.<mapped action> via entryKeycardAction().
 //  - wifi: WIFI.CUBEWORK or WIFI.UNIS from fields.serves.
-//  - electrical: ELECTRICAL.<CUBEWORK|UNIS>.<CREATE|TROUBLESHOOT|DEACTIVATE>
-//    from fields.serves + create/troubleshoot/deactivate (GENERIC_CONFIG.
-//    electrical's hasPlainServes/hasDeactivateToggle).
+//  - employee: per-entry, EMPLOYEE.<CUBEWORK|UNIS>.<NEW_HIRE|END_ASSIGNMENT>
+//    from fields.serves + each fields.entries[].action (buildEmployee(),
+//    functions/emailRequest.js) - same per-entry shape as keycard above,
+//    since a single submission can mix New Hire and End Assignment entries.
 //  - laptop: SOFTWARE.<CUBEWORK|UNIS>.LAPTOP.<NEW_INSTALL|TROUBLESHOOT|
 //    REMOVE|ACCESS_HIKCENTRAL|ACCESS_UNIFI|ACCESS_APP_CW> from fields.serves
 //    + create/troubleshoot/remove/accessHikcentral/accessUnifi/accessAppcw,
@@ -1915,10 +2319,22 @@ async function requireEraAccess(t,e){
     if(!leaf||!eraHasLeaf(granted,leaf))deny();
     return;
   }
-  if(mode==="electrical"){
-    const branch=fields.serves==="Unis"?"ELECTRICAL.UNIS":fields.serves==="Cubework"?"ELECTRICAL.CUBEWORK":null;
-    const action=fields.create?"CREATE":fields.troubleshoot?"TROUBLESHOOT":fields.deactivate?"DEACTIVATE":null;
-    if(!branch||!action||!eraHasLeaf(granted,`${branch}.${action}`))deny();
+  if(mode==="employee"){
+    const branch=fields.serves==="Unis"?"EMPLOYEE.UNIS":fields.serves==="Cubework"?"EMPLOYEE.CUBEWORK":null;
+    const entries=Array.isArray(fields.entries)?fields.entries:[];
+    for(const entry of entries){
+      const action=entry&&entry.action==="newHire"?"NEW_HIRE":entry&&entry.action==="endAssignment"?"END_ASSIGNMENT":null;
+      if(!branch||!action||!eraHasLeaf(granted,`${branch}.${action}`))deny();
+    }
+    return;
+  }
+  // Employee > New Hire (2026-09-26, later pass) - a genuinely separate
+  // top-level mode from "employee" now (see buildEmployeeNewHire's own
+  // comment, functions/emailRequest.js), Cubework-only same as every other
+  // New Hire/End Assignment check above (no Unis path - the wizard's
+  // client-side flow never collects a serves pick).
+  if(mode==="employeeNewHire"){
+    if(!eraHasLeaf(granted,"EMPLOYEE.CUBEWORK.NEW_HIRE"))deny();
     return;
   }
   if(mode==="laptop"){
@@ -1972,3 +2388,73 @@ async function requireEraAccess(t,e){
   // callable today - see this function's own comment above.
 }
 exports.submitEmailRequest=onCall({timeoutSeconds:180},async t=>{await requireRole(t,"view");await requireEraAccess(t,t.data||{});const e=await getGraphClientForSend();return buildAndSendEmailRequest(e,t.data||{})}),exports.buildEmailRequestPreview=onCall({timeoutSeconds:30},async t=>(await requireRole(t,"view"),await requireEraAccess(t,t.data||{}),buildEmailRequest(t.data||{})));
+
+// ---- Standup "Transfer to Issue" from the Pull step (2026-09-29) -----------
+// Same-Issue = update the existing Issue, different Issue = create a new one.
+// Matching lives in functions/standupTransfer.js (findMatchingIssue): exact
+// Conversation ID -> Issue ID -> source message -> exact subject+metadata ->
+// exact ticket. A brand-new Issue is created through the SAME
+// buildNewIssueDoc addIssueItem uses; only extra link fields (conversationIds,
+// sourceMessageIds, sourceSenderEmails, tags) are layered on, so an Issue made
+// from Standup still looks like any other Issue to the Issue tab.
+async function loadIssuesForStandupMatch(){const t=await db.collection(ISSUE_COLLECTION).select("title","ticket","location","status","tag","tags","notes","region","conversationIds","sourceMessageIds","sourceSenderEmails","createdAt").get();return t.docs.map(e=>{const a=e.data();return{...a,id:e.id,_createdMs:a.createdAt&&typeof a.createdAt.toMillis=="function"?a.createdAt.toMillis():0}})}
+function standupIssueTagKeys(t){return mergeStandupTagKeys(Array.isArray(t.tags)&&t.tags.length?t.tags:t.tag?[t.tag]:[],[],isValidSharedTagKey)}
+exports.lookupStandupIssueLinks=onCall({timeoutSeconds:60},async t=>{await requireRole(t,"view");const e=Array.isArray(t.data?.entries)?t.data.entries.slice(0,MAX_ISSUE_LINK_IDS*10):[];if(!e.length)return{links:{}};const a=await loadIssuesForStandupMatch(),n={};for(const o of e){const i=sanitizeStandupMatchEntry(o);if(!i.clientKey)continue;const d=findMatchingStandupIssue(i,a);d&&(n[i.clientKey]={issueId:d.issue.id,matchedBy:d.matchedBy,title:d.issue.title||"",status:d.issue.status||"active",region:d.issue.region||null,tags:standupIssueTagKeys(d.issue)})}return{links:n}});
+exports.transferStandupEntryToIssue=onCall({timeoutSeconds:60},async t=>{
+  await requireRole(t,"edit");
+  const e=t.data||{},a=t.auth.token.email,n=sanitizeStandupMatchEntry(e),o=cleanStandupCategoryKeys(e.tags,isValidSharedTagKey),i=typeof e.tag=="string"&&isValidSharedTagKey(e.tag)&&(!o.length||o.includes(e.tag))?e.tag:o[0]||null,d=(e.notes||"").trim(),r=await loadIssuesForStandupMatch(),s=findMatchingStandupIssue(n,r);
+  if(!s){
+    const{doc:c,region:l}=buildNewIssueDoc({...e,tag:i},a);
+    n.conversationId&&(c.conversationIds=[n.conversationId]);
+    n.sourceMessageId&&(c.sourceMessageIds=[n.sourceMessageId]);
+    n.senderEmail&&(c.sourceSenderEmails=[n.senderEmail]);
+    c.tags=o.length?o:c.tag?[c.tag]:[];
+    c.source="standup";
+    const u=await db.collection(ISSUE_COLLECTION).add(c);
+    return{ok:!0,id:u.id,region:l,created:!0,matched:!1,matchedBy:null};
+  }
+  const m=s.issue,p=db.collection(ISSUE_COLLECTION).doc(m.id),c=mergeStandupTagKeys(standupIssueTagKeys(m),o,isValidSharedTagKey);
+  if(n.sourceMessageId&&Array.isArray(m.sourceMessageIds)&&m.sourceMessageIds.includes(n.sourceMessageId)){
+    // Already linked from an earlier transfer of this exact message - only fold
+    // in any newly-picked categories, never append the same update twice.
+    await p.set({tags:c,...(m.tag?{}:{tag:c[0]||null}),updatedAt:FieldValue.serverTimestamp(),updatedBy:a},{merge:!0});
+    return{ok:!0,id:m.id,region:m.region||"cali",created:!1,matched:!0,matchedBy:s.matchedBy,alreadyLinked:!0};
+  }
+  const l=typeof e.dateLabel=="string"&&e.dateLabel.trim()?e.dateLabel.trim().slice(0,40):new Date().toISOString().slice(0,10),u=buildStandupUpdateNote(m.notes,l,d,(e.title||"").trim()),f={tags:c,updatedAt:FieldValue.serverTimestamp(),updatedBy:a};
+  !m.tag&&c.length&&(f.tag=c[0]);
+  u&&(f.notes=u);
+  n.conversationId&&(f.conversationIds=FieldValue.arrayUnion(n.conversationId));
+  n.sourceMessageId&&(f.sourceMessageIds=FieldValue.arrayUnion(n.sourceMessageId));
+  n.senderEmail&&(f.sourceSenderEmails=FieldValue.arrayUnion(n.senderEmail));
+  !m.ticket&&n.ticket&&(f.ticket=n.ticket);
+  !(typeof m.location=="string"&&m.location.trim())&&n.location&&(f.location=n.location);
+  await p.set(f,{merge:!0});
+  return{ok:!0,id:m.id,region:m.region||"cali",created:!1,matched:!0,matchedBy:s.matchedBy,alreadyLinked:!1};
+});
+// Learned category rules (2026-09-29) - one doc per (owner, subject pattern),
+// readable only by its owner (firestore.rules), written only here. The client
+// owns tokenization/matching (standupSubjectTokens, standupMatchLearnedRules
+// in src/app.js); this just validates and upserts what it sends. Passing an
+// existing ruleId updates THAT rule's categories in place (its token pattern
+// stays as first learned) - that's how a correction of an auto-selected
+// category overrides the old association instead of forking a conflicting one.
+exports.saveStandupCategoryRules=onCall({timeoutSeconds:30},async t=>{
+  await requireRole(t,"edit");
+  const e=normalizeEmail(t.auth.token.email),a=Array.isArray(t.data?.rules)?t.data.rules.slice(0,100):[],n=db.collection(STANDUP_CATEGORY_RULES_COLLECTION);
+  let o=0,i=0;
+  for(const d of a){
+    const r=sanitizeStandupCategoryRuleInput(d,isValidSharedTagKey);
+    if(!r)continue;
+    let s=r.ruleId?n.doc(r.ruleId):null,c=s?await s.get():null;
+    if(!c||!c.exists||c.data().owner!==e){s=n.doc(standupCategoryRuleDocId(crypto,e,r.patternKey));c=await s.get()}
+    const l=c.exists?c.data():null;
+    if(l&&l.owner!==e)continue;
+    const u=l?l.categories||[]:[],f=u.length===r.categories.length&&u.every(m=>r.categories.includes(m)),p=l?f?(l.count||1)+1:1:1,g=l&&Array.isArray(l.senders)?l.senders.slice():[];
+    r.sender&&!g.includes(r.sender)&&g.push(r.sender);
+    const h={owner:e,tokens:l?l.tokens:r.tokens,patternKey:l?l.patternKey:r.patternKey,lead:r.lead||(l?l.lead:null)||null,categories:r.categories,senders:g.slice(-MAX_RULE_SENDERS),count:p,exampleSubject:r.exampleSubject||(l?l.exampleSubject:"")||"",updatedAt:FieldValue.serverTimestamp(),updatedBy:t.auth.token.email};
+    l||(h.createdAt=FieldValue.serverTimestamp());
+    l?i++:o++;
+    await s.set(h,{merge:!0});
+  }
+  return{ok:!0,created:o,updated:i};
+}),exports.deleteStandupCategoryRule=onCall({timeoutSeconds:30},async t=>{await requireRole(t,"edit");const e=normalizeEmail(t.auth.token.email),a=typeof t.data?.ruleId=="string"?t.data.ruleId.trim():"";if(!a)throw new HttpsError("invalid-argument","ruleId (string) is required.");const n=db.collection(STANDUP_CATEGORY_RULES_COLLECTION).doc(a),o=await n.get();if(!o.exists)return{ok:!0};if(o.data().owner!==e)throw new HttpsError("permission-denied","That rule belongs to another user.");return await n.delete(),{ok:!0}});
