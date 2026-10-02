@@ -1521,20 +1521,6 @@ appSwitcherEl?.addEventListener("click", (e) => {
   subscribeToCurrentApp();
 });
 
-// Help (account menu, 2026-09-22, per Huy's request). Reuses the app's own
-// routing - a click on the Cubework Email Request switcher tab, same as the
-// person clicking it themselves - then opens that tab's existing Video
-// Tutorials player (window.eraOpenVideoTutorials, index.html) rather than a
-// second help/tutorial system. Hidden for anyone who can't see that tab
-// (see the per-user tab-visibility loop in onAuthStateChanged below).
-const helpBtnEl = document.getElementById("helpBtn");
-helpBtnEl?.addEventListener("click", () => {
-  document.getElementById("userPopover")?.classList.remove("open");
-  if (!canSeeTab(EMAIL_REQUEST_ATTACHMENTS_EMBED_APP_KEY)) return;
-  appSwitcherEl?.querySelector(`.tab[data-app="${EMAIL_REQUEST_ATTACHMENTS_EMBED_APP_KEY}"]`)?.click();
-  window.eraOpenVideoTutorials?.();
-});
-
 // Completed state per thread, synced live from the threadStatus collection.
 // Writes go through the setThreadCompleted callable, not straight to
 // Firestore - clients only ever have read access (see firestore.rules).
@@ -7047,7 +7033,6 @@ onAuthStateChanged(auth, async (user) => {
     if (key === EMAIL_REQUEST_APP_KEY || key === EMAIL_REQUEST_ATTACHMENTS_APP_KEY) return;
     btn.style.display = canSeeTab(key) ? "" : "none";
   });
-  if (helpBtnEl) helpBtnEl.style.display = canSeeTab(EMAIL_REQUEST_ATTACHMENTS_EMBED_APP_KEY) ? "" : "none";
   if (currentApp === ACCESS_APP_KEY && !isOwner()) {
     // Role/identity was downgraded since this tab was last open (e.g.
     // re-signing in as someone else) - don't strand the UI on a tab it can

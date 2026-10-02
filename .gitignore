@@ -12,6 +12,7 @@ ui-debug.log
 emulator-data/
 
 # Real secrets - never commit these
+Key/
 refresh-token.txt
 client-id.txt
 functions/.secret.local
